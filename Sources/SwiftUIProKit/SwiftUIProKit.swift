@@ -31,8 +31,12 @@ import SwiftUI
 /// - `View+Shape.swift`       形状与裁剪（圆形 / 胶囊 / 部分圆角 / 虚线边框 / 蒙版）
 /// - `View+ShadowGradient.swift` 阴影与渐变（自定义阴影 / 发光 / 径向 / 角度渐变）
 /// - `View+Lifecycle.swift`   生命周期（出现 / 消失 / 变化 / 订阅 / 异步任务）
+/// - `View+Skeleton.swift`    骨架屏（骨架占位 / 扫光）
+/// - `View+RefreshSearch.swift` 刷新与搜索（下拉刷新 / 搜索框）
+/// - `FlowLayout.swift`       流式布局（标签自动换行，iOS 16 / macOS 13+）
+/// - `Haptics.swift`          触觉反馈（冲击 / 选择 / 通知，仅 iOS）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.6.0"
+    public static let version = "0.7.0"
 }

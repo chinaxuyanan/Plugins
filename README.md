@@ -6,7 +6,7 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、触觉反馈，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
@@ -19,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.6.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.7.0")
 ]
 ```
 
@@ -103,6 +103,10 @@ VStack {
 | `圆形裁剪` / `胶囊裁剪` / `指定圆角` / `圆形描边` / `胶囊描边` / `虚线边框` / `蒙版裁剪` | `circleClip` / `capsuleClip` / `roundedCorners` / `circleStroke` / `capsuleStroke` / `dashedBorder` / `maskWith` |
 | `自定义阴影` / `发光` / `径向渐变背景` / `角度渐变背景` | `customShadow` / `glow` / `radialBackgroundGradient` / `angularBackgroundGradient` |
 | `出现时` / `消失时` / `变化时` / `订阅时` / `异步任务` | `didAppear` / `didDisappear` / `didChange` / `didReceive` / `asyncTask` |
+| `骨架屏` / `扫光` | `skeleton` / `shimmer` |
+| `下拉刷新` / `搜索框` | `pullToRefresh` / `searchableText` |
+| `流式布局` | `FlowLayout`（iOS 16+ / macOS 13+）|
+| `冲击` / `选择` / `通知` / `成功` / `警告` / `错误` | `Haptics.impact` / `selection` / `notification` / `success` / `warning` / `error`（仅 iOS）|
 
 ## 属性速查表
 
@@ -317,17 +321,48 @@ VStack {
 | `didReceive(_:perform:)` | 订阅发布者 |
 | `asyncTask(priority:_:)` | 异步任务（出现启动 / 消失取消）|
 
+### 骨架屏
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `skeleton(_:)` | 骨架占位（灰化内容）|
+| `shimmer(isActive:baseColor:highlightColor:duration:)` | 扫光动画（配合骨架屏）|
+
+### 刷新与搜索
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `pullToRefresh(_:)` | 下拉刷新 |
+| `searchableText(_:placement:prompt:)` | 搜索框 |
+
+### 流式布局
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `FlowLayout(spacing:lineSpacing:)` | 标签自动换行容器（iOS 16+ / macOS 13+）|
+
+### 触觉反馈
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `Haptics.impact(_:)` | 冲击触感 |
+| `Haptics.selection()` | 选择触感 |
+| `Haptics.notification(_:)` | 通知触感 |
+| `Haptics.success() / warning() / error()` | 成功 / 警告 / 错误触感（仅 iOS）|
+
 ## 路线图
 
 - [x] UI 控件属性封装（第一期，本库）
 - [x] UI 控件属性封装（第二期：动画 / 手势 / 输入框 / 按钮）
 - [x] UI 控件属性封装（第三期：列表 / 导航 / 选择器 / 进度 / 弹窗）
-- [ ] 日志打印工具库（LogKit）
-- [ ] 系统检测工具库（SystemInfoKit）
+- [x] 日志打印工具库（LogKit）
+- [x] 系统检测工具库（SystemInfoKit）
 - [x] macOS 平台适配（基础版，跨平台编译）
-- [ ] 属性速查的 Xcode 代码片段（Snippets）版本
+- [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.7.0**：新增「骨架屏」「刷新与搜索」「流式布局」「触觉反馈」四个类别封装（`skeleton` / `shimmer`、`pullToRefresh` / `searchableText`、`FlowLayout`（`Layout` 协议标签自动换行，iOS 16+ / macOS 13+）、`Haptics`（`impact` / `selection` / `notification` / `success` / `warning` / `error`，仅 iOS）），均含中文别名。
 
 - **0.6.0**：新增「布局强化」「形状与裁剪」「阴影与渐变」「生命周期」四个类别封装（`frameSize` / `frameMaxWidth` / `frameMaxHeight` / `scaledAspect` / `ignoreSafeArea` / `safeAreaContent` / `fixedToContent` / `clippedContent` 及 `GridItem` 中文列定义、`circleClip` / `capsuleClip` / `roundedCorners` / `circleStroke` / `capsuleStroke` / `dashedBorder` / `maskWith`（含 `RectCorner` / `RoundedCorner`）、`customShadow` / `glow` / `radialBackgroundGradient` / `angularBackgroundGradient`、`didAppear` / `didDisappear` / `didChange` / `didReceive` / `asyncTask`），均含中文别名。
 - **0.5.0**：新增「控件样式」「标签页」「键盘与焦点」「颜色工具」四个类别封装（`toggleStyleSwitch` / `toggleStyleButton` / `toggleStyleCheckbox` / `controlTint` / `menuStyleButton`、`tabViewStyleAutomatic` / `tabViewStylePage` / `tabItemLabel`、`dismissKeyboardOnTap` / `keyboardToolbarDone` / `textEditorPlaceholder`、`Color(hex:)` / `Color(hexString:)` / `Color.random()` / `hexString`），均含中文别名。

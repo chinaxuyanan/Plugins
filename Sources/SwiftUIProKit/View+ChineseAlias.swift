@@ -754,3 +754,51 @@ public extension View {
         asyncTask(priority: 优先级, 操作)
     }
 }
+
+// MARK: 骨架屏
+
+public extension View {
+    /// 骨架占位（等同 `skeleton`）
+    /// - Parameter 显示: 是否进入骨架占位状态，默认 `true`
+    @ViewBuilder
+    func 骨架屏(_ 显示: Bool = true) -> some View {
+        skeleton(显示)
+    }
+
+    /// 扫光效果（等同 `shimmer`）
+    /// - Parameters:
+    ///   - 显示: 是否播放扫光动画，默认 `true`
+    ///   - 底色: 渐变两端的基色，默认 `Color.gray.opacity(0.25)`
+    ///   - 高亮色: 扫光带的高亮色，默认 `Color.white.opacity(0.6)`
+    ///   - 时长: 单次扫光动画时长（秒），默认 `1.2`
+    @ViewBuilder
+    func 扫光(显示: Bool = true,
+              底色: Color = Color.gray.opacity(0.25),
+              高亮色: Color = Color.white.opacity(0.6),
+              时长: Double = 1.2) -> some View {
+        shimmer(isActive: 显示, baseColor: 底色, highlightColor: 高亮色, duration: 时长)
+    }
+}
+
+// MARK: 刷新与搜索
+
+public extension View {
+    /// 下拉刷新（等同 `pullToRefresh`）
+    /// - Parameter 操作: 下拉触发的异步刷新操作
+    @ViewBuilder
+    func 下拉刷新(_ 操作: @escaping () async -> Void) -> some View {
+        pullToRefresh(操作)
+    }
+
+    /// 搜索框（等同 `searchableText`）
+    /// - Parameters:
+    ///   - 文本: 搜索文本的绑定值
+    ///   - 位置: 搜索框位置，默认 `.automatic`
+    ///   - 提示: 搜索框占位提示文字
+    @ViewBuilder
+    func 搜索框(_ 文本: Binding<String>,
+               位置: SearchFieldPlacement = .automatic,
+               提示: String? = nil) -> some View {
+        searchableText(文本, placement: 位置, prompt: 提示)
+    }
+}
