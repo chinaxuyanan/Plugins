@@ -7,14 +7,15 @@
 
 - **系统信息**：系统名称 / 版本号 / 完整版本
 - **设备信息**：标识符 / 名称 / 类型
-- **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）
+- **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
 - **电池**：电量 / 是否充电（iOS + macOS）
+- **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕**：分辨率 / 缩放因子
 - **运行信息**：运行时长 / 是否模拟器
 - **App 信息**：名称 / 版本 / 构建号
 - **网络信息**：本机 IP / 是否联网 / 网络类型
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
-- **资源占用**：CPU 使用率 / 内存已用 / 内存使用率
+- **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 内存压力（macOS）
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
 - **纯 Foundation + Darwin 系统接口**，iOS 15+ / macOS 12+
 
@@ -26,7 +27,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.3.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.4.0")
 ]
 ```
 
@@ -61,12 +62,16 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `processorCount` | 处理器逻辑核心数 | `Int` |
 | `activeProcessorCount` | 处理器可用核心数 | `Int` |
 | `processorName` | 处理器型号 | 仅 macOS |
+| `cpuArchitecture` | CPU 架构 | `arm64` / `x86_64` |
 | `diskTotalBytes` / `diskFreeBytes` | 磁盘总 / 剩余（字节） | `UInt64` |
 | `diskTotal` / `diskFree` | 磁盘总 / 剩余 | 人类可读 |
 | `diskUsedBytes` / `diskUsed` | 磁盘已用（字节 / 可读） | `UInt64` / 人类可读 |
 | `diskUsagePercent` | 磁盘使用率 | `0.0`~`1.0` |
 | `batteryLevel` | 电池电量 | `0.0`~`1.0`，iOS + macOS |
 | `isCharging` | 是否充电 | iOS + macOS |
+| `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |
+| `thermalStateName` | 热状态中文名 | 正常 / 尚可 / 严重 / 危急 |
+| `isLowPowerModeEnabled` | 低功耗模式 | 仅 iOS |
 | `screenSize` | 屏幕分辨率 | 逻辑点 |
 | `screenScale` | 屏幕缩放因子 | `1.0` / `2.0` / `3.0` |
 | `systemUptime` | 系统运行时长（秒） | `TimeInterval` |
@@ -83,6 +88,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `cpuUsage` | CPU 使用率 | `0.0`~`1.0` |
 | `memoryUsedBytes` / `memoryUsed` | 内存已用（字节 / 可读） | `UInt64` / 人类可读 |
 | `memoryUsagePercent` | 内存使用率 | `0.0`~`1.0` |
+| `memoryPressure` | 内存压力 | 仅 macOS |
+| `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 |
 
 ## 中文命名别名
 
@@ -90,19 +97,20 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | --- | --- |
 | `系统名称` / `系统版本` / `系统完整版本` | `systemName` / `systemVersion` / `systemVersionString` |
 | `设备标识符` / `设备名称` / `设备类型` | `deviceIdentifier` / `deviceName` / `deviceType` |
-| `内存总量` / `处理器核心数` / `处理器型号` | `memoryTotal` / `processorCount` / `processorName` |
+| `内存总量` / `处理器核心数` / `处理器型号` / `CPU架构` | `memoryTotal` / `processorCount` / `processorName` / `cpuArchitecture` |
 | `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
-| `电池电量` / `是否充电` | `batteryLevel` / `isCharging` |
+| `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
 | `屏幕分辨率` / `屏幕缩放` | `screenSize` / `screenScale` |
 | `系统运行时长` / `是否模拟器` | `systemUptimeString` / `isSimulator` |
 | `应用名称` / `应用版本` / `应用构建号` | `appName` / `appVersion` / `appBuildNumber` |
 | `本机IP地址` / `是否联网` / `网络类型` | `localIPAddress` / `isNetworkConnected` / `networkType` |
 | `语言代码` / `区域代码` / `地区标识` | `languageCode` / `regionCode` / `localeIdentifier` |
 | `时区标识` / `日历标识` | `timeZoneIdentifier` / `calendarIdentifier` |
-| `CPU使用率` / `内存已用` / `内存使用率` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` |
+| `CPU使用率` / `内存已用` / `内存使用率` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `memoryPressure` / `memoryPressureName` |
 
 ## 更新日志
 
+- **0.4.0**：新增 CPU 架构（`cpuArchitecture`，编译期 `arch()` 判断 `arm64` / `x86_64`）、热状态与电源（`thermalState` / `thermalStateName` / `isLowPowerModeEnabled`，基于 `ProcessInfo`，低功耗模式仅 iOS）、内存压力（`memoryPressure` / `memoryPressureName`，基于 macOS Dispatch 内存压力源），均含中文别名。
 - **0.3.0**：新增网络信息（`localIPAddress` / `isNetworkConnected` / `networkType`，基于 getifaddrs）、本地化信息（`languageCode` / `regionCode` / `localeIdentifier` / `timeZoneIdentifier` / `calendarIdentifier`）、资源占用（`cpuUsage` / `memoryUsedBytes` / `memoryUsed` / `memoryUsagePercent`，基于 mach 接口），均含中文别名。
 - **0.2.0**：macOS 电池检测（IOKit，`batteryLevel` / `isCharging` 双平台）；新增磁盘已用 / 使用率（`diskUsedBytes` / `diskUsed` / `diskUsagePercent`）、系统运行时长（`systemUptime` / `systemUptimeString`）、是否模拟器（`isSimulator`）、App 信息（`appName` / `appVersion` / `appBuildNumber`），均含中文别名。
 - **0.1.0**：首个版本，覆盖系统 / 设备 / 硬件 / 电池 / 屏幕五类检测，含中文别名。

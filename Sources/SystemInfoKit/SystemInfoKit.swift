@@ -1,4 +1,5 @@
 import Foundation
+import Dispatch
 import Darwin
 #if canImport(UIKit)
 import UIKit
@@ -27,7 +28,7 @@ import IOKit.ps
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.3.0"
+    public static let version = "0.4.0"
 
     // MARK: - 系统信息
 
@@ -125,6 +126,17 @@ public enum SystemInfoKit {
         #endif
     }
 
+    /// 当前进程的 CPU 架构（编译期决定，形如 `arm64` / `x86_64`）
+    public static var cpuArchitecture: String {
+        #if arch(arm64)
+        return "arm64"
+        #elseif arch(x86_64)
+        return "x86_64"
+        #else
+        return "unknown"
+        #endif
+    }
+
     /// 磁盘总容量（字节）
     public static var diskTotalBytes: UInt64 {
         fileSystemAttribute(.systemSize) ?? 0
@@ -202,6 +214,36 @@ public enum SystemInfoKit {
         return state == (kIOPSACPowerValue as String)
         #else
         return nil
+        #endif
+    }
+
+    // MARK: - 热状态与电源
+
+    /// 设备热状态（`ProcessInfo.ThermalState` 枚举）
+    ///
+    /// 系统根据设备温度与负载给出的散热状态：正常 / 尚可 / 严重 / 危急。
+    /// 通常用于在设备过热时主动降载（暂停后台任务、降低帧率等）。
+    public static var thermalState: ProcessInfo.ThermalState {
+        ProcessInfo.processInfo.thermalState
+    }
+
+    /// 热状态中文名（「正常」「尚可」「严重」「危急」）
+    public static var thermalStateName: String {
+        switch thermalState {
+        case .nominal: return "正常"
+        case .fair: return "尚可"
+        case .serious: return "严重"
+        case .critical: return "危急"
+        @unknown default: return "未知"
+        }
+    }
+
+    /// 是否开启低功耗模式（仅 iOS 支持；macOS 恒为 `false`）
+    public static var isLowPowerModeEnabled: Bool {
+        #if canImport(UIKit)
+        return ProcessInfo.processInfo.isLowPowerModeEnabled
+        #else
+        return false
         #endif
     }
 
@@ -368,6 +410,28 @@ public enum SystemInfoKit {
     /// 内存使用率（`0.0` ~ `1.0`）
     public static var memoryUsagePercent: Double {
         memoryStats()?.percent ?? 0
+    }
+
+    /// 当前内存压力（仅 macOS 支持；iOS 返回 `nil`）
+    ///
+    /// 通过 Dispatch 内存压力源读取系统当前的内存压力级别（正常 / 警告 / 严重）。
+    public static var memoryPressure: DispatchSource.MemoryPressureEvent? {
+        #if os(macOS)
+        let source = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: nil)
+        let event = source.data
+        source.cancel()
+        return event
+        #else
+        return nil
+        #endif
+    }
+
+    /// 内存压力中文名（「正常」「警告」「严重」；不支持时返回「不支持」）
+    public static var memoryPressureName: String {
+        guard let pressure = memoryPressure else { return "不支持" }
+        if pressure.contains(.critical) { return "严重" }
+        if pressure.contains(.warning) { return "警告" }
+        return "正常"
     }
 
     // MARK: - 内部工具

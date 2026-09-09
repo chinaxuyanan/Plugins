@@ -1,4 +1,5 @@
 import Foundation
+import Dispatch
 
 // MARK: - 中文命名别名
 //
@@ -31,6 +32,8 @@ public extension SystemInfoKit {
     static var 处理器可用核心数: Int { activeProcessorCount }
     /// 处理器型号（等同 `processorName`）
     static var 处理器型号: String? { processorName }
+    /// 当前进程 CPU 架构（等同 `cpuArchitecture`）
+    static var CPU架构: String { cpuArchitecture }
 
     /// 磁盘总容量字节（等同 `diskTotalBytes`）
     static var 磁盘总字节数: UInt64 { diskTotalBytes }
@@ -51,6 +54,12 @@ public extension SystemInfoKit {
     static var 电池电量: Float? { batteryLevel }
     /// 是否正在充电（等同 `isCharging`）
     static var 是否充电: Bool? { isCharging }
+    /// 设备热状态（等同 `thermalState`）
+    static var 热状态: ProcessInfo.ThermalState { thermalState }
+    /// 热状态中文名（等同 `thermalStateName`）
+    static var 热状态名: String { thermalStateName }
+    /// 是否开启低功耗模式（等同 `isLowPowerModeEnabled`，仅 iOS）
+    static var 低功耗模式: Bool { isLowPowerModeEnabled }
 
     /// 屏幕分辨率（等同 `screenSize`）
     static var 屏幕分辨率: String { screenSize }
@@ -103,4 +112,8 @@ public extension SystemInfoKit {
     static var 内存已用: String { memoryUsed }
     /// 内存使用率（等同 `memoryUsagePercent`）
     static var 内存使用率: Double { memoryUsagePercent }
+    /// 当前内存压力（等同 `memoryPressure`，仅 macOS）
+    static var 内存压力: DispatchSource.MemoryPressureEvent? { memoryPressure }
+    /// 内存压力中文名（等同 `memoryPressureName`）
+    static var 内存压力名: String { memoryPressureName }
 }
