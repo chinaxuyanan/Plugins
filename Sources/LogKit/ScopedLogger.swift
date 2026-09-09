@@ -53,35 +53,35 @@ public final class ScopedLogger {
     public func debug(_ message: @autoclosure () -> Any,
                       fields: [String: Any] = [:],
                       file: String = #file, line: Int = #line) {
-        LogKit.debug(message(), category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.debug, message, category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 信息日志（自动使用本日志器的默认分类）
     public func info(_ message: @autoclosure () -> Any,
                      fields: [String: Any] = [:],
                      file: String = #file, line: Int = #line) {
-        LogKit.info(message(), category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.info, message, category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 警告日志（自动使用本日志器的默认分类）
     public func warning(_ message: @autoclosure () -> Any,
                         fields: [String: Any] = [:],
                         file: String = #file, line: Int = #line) {
-        LogKit.warning(message(), category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.warning, message, category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 错误日志（自动使用本日志器的默认分类）
     public func error(_ message: @autoclosure () -> Any,
                       fields: [String: Any] = [:],
                       file: String = #file, line: Int = #line) {
-        LogKit.error(message(), category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.error, message, category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 严重日志（自动使用本日志器的默认分类）
     public func critical(_ message: @autoclosure () -> Any,
                          fields: [String: Any] = [:],
                          file: String = #file, line: Int = #line) {
-        LogKit.critical(message(), category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.critical, message, category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     // MARK: 计时测量
@@ -144,27 +144,27 @@ public extension ScopedLogger {
 
     /// 调试日志（等同 `debug`）
     func 调试(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        debug(消息(), fields: 字段, file: 文件, line: 行)
+        LogKit.log(.debug, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 信息日志（等同 `info`）
     func 信息(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        info(消息(), fields: 字段, file: 文件, line: 行)
+        LogKit.log(.info, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 警告日志（等同 `warning`）
     func 警告(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        warning(消息(), fields: 字段, file: 文件, line: 行)
+        LogKit.log(.warning, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 错误日志（等同 `error`）
     func 错误(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        error(消息(), fields: 字段, file: 文件, line: 行)
+        LogKit.log(.error, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 严重日志（等同 `critical`）
     func 严重(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        critical(消息(), fields: 字段, file: 文件, line: 行)
+        LogKit.log(.critical, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 计时测量（等同 `measure`）

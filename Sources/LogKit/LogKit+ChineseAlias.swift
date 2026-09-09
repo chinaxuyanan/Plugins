@@ -18,7 +18,7 @@ public extension LogKit {
                     分类: String = "通用",
                     字段: [String: Any] = [:],
                     文件: String = #file, 行: Int = #line) {
-        debug(消息(), category: 分类, fields: 字段, file: 文件, line: 行)
+        log(.debug, 消息, category: 分类, fields: 字段, file: 文件, line: 行)
     }
 
     /// 信息日志（等同 `info`）
@@ -30,7 +30,7 @@ public extension LogKit {
                     分类: String = "通用",
                     字段: [String: Any] = [:],
                     文件: String = #file, 行: Int = #line) {
-        info(消息(), category: 分类, fields: 字段, file: 文件, line: 行)
+        log(.info, 消息, category: 分类, fields: 字段, file: 文件, line: 行)
     }
 
     /// 警告日志（等同 `warning`）
@@ -42,7 +42,7 @@ public extension LogKit {
                     分类: String = "通用",
                     字段: [String: Any] = [:],
                     文件: String = #file, 行: Int = #line) {
-        warning(消息(), category: 分类, fields: 字段, file: 文件, line: 行)
+        log(.warning, 消息, category: 分类, fields: 字段, file: 文件, line: 行)
     }
 
     /// 错误日志（等同 `error`）
@@ -54,7 +54,7 @@ public extension LogKit {
                     分类: String = "通用",
                     字段: [String: Any] = [:],
                     文件: String = #file, 行: Int = #line) {
-        error(消息(), category: 分类, fields: 字段, file: 文件, line: 行)
+        log(.error, 消息, category: 分类, fields: 字段, file: 文件, line: 行)
     }
 
     /// 严重日志（等同 `critical`）
@@ -66,7 +66,7 @@ public extension LogKit {
                     分类: String = "通用",
                     字段: [String: Any] = [:],
                     文件: String = #file, 行: Int = #line) {
-        critical(消息(), category: 分类, fields: 字段, file: 文件, line: 行)
+        log(.critical, 消息, category: 分类, fields: 字段, file: 文件, line: 行)
     }
 
     /// 计时测量（等同 `measure`）

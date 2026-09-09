@@ -131,7 +131,7 @@ public enum LogKit {
                              category: String = "通用",
                              fields: [String: Any] = [:],
                              file: String = #file, line: Int = #line) {
-        log(.debug, message(), category: category, fields: fields, file: file, line: line)
+        log(.debug, message, category: category, fields: fields, file: file, line: line)
     }
 
     /// 信息日志
@@ -144,7 +144,7 @@ public enum LogKit {
                             category: String = "通用",
                             fields: [String: Any] = [:],
                             file: String = #file, line: Int = #line) {
-        log(.info, message(), category: category, fields: fields, file: file, line: line)
+        log(.info, message, category: category, fields: fields, file: file, line: line)
     }
 
     /// 警告日志
@@ -157,7 +157,7 @@ public enum LogKit {
                                category: String = "通用",
                                fields: [String: Any] = [:],
                                file: String = #file, line: Int = #line) {
-        log(.warning, message(), category: category, fields: fields, file: file, line: line)
+        log(.warning, message, category: category, fields: fields, file: file, line: line)
     }
 
     /// 错误日志
@@ -170,7 +170,7 @@ public enum LogKit {
                              category: String = "通用",
                              fields: [String: Any] = [:],
                              file: String = #file, line: Int = #line) {
-        log(.error, message(), category: category, fields: fields, file: file, line: line)
+        log(.error, message, category: category, fields: fields, file: file, line: line)
     }
 
     /// 严重日志
@@ -183,7 +183,7 @@ public enum LogKit {
                                 category: String = "通用",
                                 fields: [String: Any] = [:],
                                 file: String = #file, line: Int = #line) {
-        log(.critical, message(), category: category, fields: fields, file: file, line: line)
+        log(.critical, message, category: category, fields: fields, file: file, line: line)
     }
 
     // MARK: - 计时测量
@@ -218,11 +218,11 @@ public enum LogKit {
         let start = Date()
         do {
             let result = try block()
-            log(level, "\(message) 耗时 \(formatDuration(Date().timeIntervalSince(start)))",
+            log(level, { "\(message) 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
                 category: category, fields: fields, file: file, line: line)
             return result
         } catch {
-            log(level, "\(message) 失败 · 耗时 \(formatDuration(Date().timeIntervalSince(start)))",
+            log(level, { "\(message) 失败 · 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
                 category: category, fields: fields, file: file, line: line)
             throw error
         }
@@ -248,11 +248,11 @@ public enum LogKit {
         let start = Date()
         do {
             let result = try await block()
-            log(level, "\(message) 耗时 \(formatDuration(Date().timeIntervalSince(start)))",
+            log(level, { "\(message) 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
                 category: category, fields: fields, file: file, line: line)
             return result
         } catch {
-            log(level, "\(message) 失败 · 耗时 \(formatDuration(Date().timeIntervalSince(start)))",
+            log(level, { "\(message) 失败 · 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
                 category: category, fields: fields, file: file, line: line)
             throw error
         }
@@ -297,12 +297,14 @@ public enum LogKit {
 
     // MARK: - 内部实现
 
-    private static func log(_ level: LogLevel, _ message: Any,
-                            category: String, fields: [String: Any], file: String, line: Int) {
+    /// 内部统一输出入口：`message` 为普通闭包（非 `@autoclosure`），供各输出方法转发其 `@autoclosure` 参数，
+    /// 保证先过滤、后求值。
+    static func log(_ level: LogLevel, _ message: () -> Any,
+                    category: String, fields: [String: Any], file: String, line: Int) {
         guard level >= minimumLevel else { return }
         if let enabled = enabledCategories, !enabled.contains(category) { return }
         if ignoredCategories.contains(category) { return }
-        let text = formatLine(level: level, message: message, category: category, file: file, line: line, fields: fields)
+        let text = formatLine(level: level, message: message(), category: category, file: file, line: line, fields: fields)
         if consoleOutput { print(text) }
         if fileOutput { enqueueWrite(level: level, text) }
     }
