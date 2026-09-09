@@ -8,6 +8,7 @@
 - **系统信息**：系统名称 / 版本号 / 完整版本
 - **设备信息**：标识符 / 名称 / 类型
 - **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
+- **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
 - **电池**：电量 / 是否充电（iOS + macOS）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕**：分辨率 / 缩放因子
@@ -15,7 +16,8 @@
 - **App 信息**：名称 / 版本 / 构建号
 - **网络信息**：本机 IP / 是否联网 / 网络类型
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
-- **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 内存压力（macOS）
+- **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
+- **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
 - **纯 Foundation + Darwin 系统接口**，iOS 15+ / macOS 12+
 
@@ -27,7 +29,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.4.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.5.0")
 ]
 ```
 
@@ -67,6 +69,10 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `diskTotal` / `diskFree` | 磁盘总 / 剩余 | 人类可读 |
 | `diskUsedBytes` / `diskUsed` | 磁盘已用（字节 / 可读） | `UInt64` / 人类可读 |
 | `diskUsagePercent` | 磁盘使用率 | `0.0`~`1.0` |
+| `availableCapacityBytes` / `availableCapacity` | 重要用途可用容量（字节 / 可读） | 计入可清除空间 |
+| `opportunisticCapacityBytes` / `opportunisticCapacity` | 机会性可用容量（字节 / 可读） | 可清理出的空间 |
+| `volumeName` | 主卷名 | 形如 `Macintosh HD` |
+| `fileSystemName` | 文件系统类型 | 形如 `apfs` |
 | `batteryLevel` | 电池电量 | `0.0`~`1.0`，iOS + macOS |
 | `isCharging` | 是否充电 | iOS + macOS |
 | `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |
@@ -90,6 +96,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `memoryUsagePercent` | 内存使用率 | `0.0`~`1.0` |
 | `memoryPressure` | 内存压力 | 仅 macOS |
 | `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 |
+| `availableMemoryBytes` / `availableMemory` | 可用内存（字节 / 可读） | `UInt64?` / 人类可读 |
+| `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
 
 ## 中文命名别名
 
@@ -99,6 +107,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `设备标识符` / `设备名称` / `设备类型` | `deviceIdentifier` / `deviceName` / `deviceType` |
 | `内存总量` / `处理器核心数` / `处理器型号` / `CPU架构` | `memoryTotal` / `processorCount` / `processorName` / `cpuArchitecture` |
 | `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
+| `可用容量` / `机会容量` / `卷名` / `文件系统名称` | `availableCapacity` / `opportunisticCapacity` / `volumeName` / `fileSystemName` |
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
 | `屏幕分辨率` / `屏幕缩放` | `screenSize` / `screenScale` |
 | `系统运行时长` / `是否模拟器` | `systemUptimeString` / `isSimulator` |
@@ -107,8 +116,11 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `语言代码` / `区域代码` / `地区标识` | `languageCode` / `regionCode` / `localeIdentifier` |
 | `时区标识` / `日历标识` | `timeZoneIdentifier` / `calendarIdentifier` |
 | `CPU使用率` / `内存已用` / `内存使用率` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `memoryPressure` / `memoryPressureName` |
+| `可用内存` / `内存压力监听器` | `availableMemory` / `MemoryPressureMonitor`（`.当前压力/.压力变化回调/.开始监听/.停止监听`）|
 
 ## 更新日志
+
+- **0.5.0**：新增可用内存（`availableMemoryBytes` / `availableMemory`，封装 `os_proc_available_memory()`）、内存压力监听器（`MemoryPressureMonitor`，实时回调压力变化，仅 macOS）、存储详情（`availableCapacityBytes` / `availableCapacity` / `opportunisticCapacityBytes` / `opportunisticCapacity` / `volumeName` / `fileSystemName`，基于 URL 资源值与文件系统属性），均含中文别名。
 
 - **0.4.0**：新增 CPU 架构（`cpuArchitecture`，编译期 `arch()` 判断 `arm64` / `x86_64`）、热状态与电源（`thermalState` / `thermalStateName` / `isLowPowerModeEnabled`，基于 `ProcessInfo`，低功耗模式仅 iOS）、内存压力（`memoryPressure` / `memoryPressureName`，基于 macOS Dispatch 内存压力源），均含中文别名。
 - **0.3.0**：新增网络信息（`localIPAddress` / `isNetworkConnected` / `networkType`，基于 getifaddrs）、本地化信息（`languageCode` / `regionCode` / `localeIdentifier` / `timeZoneIdentifier` / `calendarIdentifier`）、资源占用（`cpuUsage` / `memoryUsedBytes` / `memoryUsed` / `memoryUsagePercent`，基于 mach 接口），均含中文别名。

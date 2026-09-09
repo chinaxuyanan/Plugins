@@ -1,6 +1,7 @@
 import Foundation
 import Dispatch
 import Darwin
+import os
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -14,7 +15,7 @@ import IOKit.ps
 /// SystemInfoKit —— 中文友好的系统检测工具库
 ///
 /// 解决「查系统信息要记各种零散 API」的痛点：
-/// - 把系统版本、设备型号、硬件信息、屏幕、电池等常用检测项集中封装；
+/// - 把系统版本、设备型号、硬件、电池、热状态、屏幕、网络、本地化、资源占用、存储详情等常用检测项集中封装；
 /// - 每个属性都带中文文档注释 + 中文命名别名，见名即用。
 ///
 /// 快速开始：
@@ -28,7 +29,7 @@ import IOKit.ps
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.4.0"
+    public static let version = "0.5.0"
 
     // MARK: - 系统信息
 
@@ -174,6 +175,45 @@ public enum SystemInfoKit {
         let total = diskTotalBytes
         guard total > 0 else { return 0 }
         return Double(diskUsedBytes) / Double(total)
+    }
+
+    // MARK: - 存储详情
+
+    /// 重要用途可用容量（字节）
+    ///
+    /// 通过 URL 资源值 `volumeAvailableCapacityForImportantUsageKey` 读取，
+    /// 相比 `diskFreeBytes`（严格剩余）更贴近系统「可用空间」口径——已把可清除内容计入。
+    /// iOS 11+ / macOS 10.13+（本库基线之上）。
+    public static var availableCapacityBytes: UInt64 {
+        let value = homeVolumeValues()?.volumeAvailableCapacityForImportantUsage ?? 0
+        return UInt64(max(0, value))
+    }
+
+    /// 重要用途可用容量（人类可读，形如 `100 GB`）
+    public static var availableCapacity: String {
+        ByteCountFormatter.string(fromByteCount: Int64(availableCapacityBytes), countStyle: .file)
+    }
+
+    /// 机会性可用容量（字节）：系统认为可随时清理出的空间（含缓存等）
+    public static var opportunisticCapacityBytes: UInt64 {
+        let value = homeVolumeValues()?.volumeAvailableCapacityForOpportunisticUsage ?? 0
+        return UInt64(max(0, value))
+    }
+
+    /// 机会性可用容量（人类可读）
+    public static var opportunisticCapacity: String {
+        ByteCountFormatter.string(fromByteCount: Int64(opportunisticCapacityBytes), countStyle: .file)
+    }
+
+    /// 主卷名（形如 `Macintosh HD`）
+    public static var volumeName: String {
+        homeVolumeValues()?.volumeName ?? "未知"
+    }
+
+    /// 文件系统类型（形如 `apfs`）
+    public static var fileSystemName: String {
+        let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory())
+        return (attrs?[.systemName] as? String) ?? "未知"
     }
 
     // MARK: - 电池
@@ -434,6 +474,21 @@ public enum SystemInfoKit {
         return "正常"
     }
 
+    /// 当前进程可用内存（字节）
+    ///
+    /// 通过 `os_proc_available_memory()` 读取，比 mach 采样更简单、更准确。
+    /// iOS 13+ / macOS 10.15+（本库基线之上）。无法获取时返回 `nil`。
+    public static var availableMemoryBytes: UInt64? {
+        let available = os_proc_available_memory()
+        return available < 0 ? nil : UInt64(available)
+    }
+
+    /// 当前进程可用内存（人类可读，形如 `2.1 GB`；无法获取时返回「未知」）
+    public static var availableMemory: String {
+        guard let bytes = availableMemoryBytes else { return "未知" }
+        return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .memory)
+    }
+
     // MARK: - 内部工具
 
     private static func sysctlString(_ name: String) -> String? {
@@ -448,6 +503,15 @@ public enum SystemInfoKit {
     private static func fileSystemAttribute(_ key: FileAttributeKey) -> UInt64? {
         let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory())
         return (attrs?[key] as? NSNumber)?.uint64Value
+    }
+
+    /// 读取主目录所在卷的 URL 资源值（容量 / 卷名）
+    private static func homeVolumeValues() -> URLResourceValues? {
+        try? URL(fileURLWithPath: NSHomeDirectory()).resourceValues(forKeys: [
+            .volumeAvailableCapacityForImportantUsageKey,
+            .volumeAvailableCapacityForOpportunisticUsageKey,
+            .volumeNameKey
+        ])
     }
 
     /// 枚举网络接口，返回活跃接口的名称与 IPv4 地址（Wi-Fi 优先）

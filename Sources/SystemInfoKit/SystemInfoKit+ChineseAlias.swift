@@ -50,6 +50,19 @@ public extension SystemInfoKit {
     /// 磁盘使用率（等同 `diskUsagePercent`）
     static var 磁盘使用率: Double { diskUsagePercent }
 
+    /// 重要用途可用容量字节（等同 `availableCapacityBytes`）
+    static var 可用容量字节数: UInt64 { availableCapacityBytes }
+    /// 重要用途可用容量（等同 `availableCapacity`）
+    static var 可用容量: String { availableCapacity }
+    /// 机会性可用容量字节（等同 `opportunisticCapacityBytes`）
+    static var 机会容量字节数: UInt64 { opportunisticCapacityBytes }
+    /// 机会性可用容量（等同 `opportunisticCapacity`）
+    static var 机会容量: String { opportunisticCapacity }
+    /// 主卷名（等同 `volumeName`）
+    static var 卷名: String { volumeName }
+    /// 文件系统类型（等同 `fileSystemName`）
+    static var 文件系统名称: String { fileSystemName }
+
     /// 电池电量（等同 `batteryLevel`）
     static var 电池电量: Float? { batteryLevel }
     /// 是否正在充电（等同 `isCharging`）
@@ -116,4 +129,8 @@ public extension SystemInfoKit {
     static var 内存压力: DispatchSource.MemoryPressureEvent? { memoryPressure }
     /// 内存压力中文名（等同 `memoryPressureName`）
     static var 内存压力名: String { memoryPressureName }
+    /// 当前进程可用内存字节（等同 `availableMemoryBytes`）
+    static var 可用内存字节数: UInt64? { availableMemoryBytes }
+    /// 当前进程可用内存（等同 `availableMemory`）
+    static var 可用内存: String { availableMemory }
 }
