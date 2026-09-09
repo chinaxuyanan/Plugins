@@ -43,8 +43,11 @@ import SwiftUI
 /// - `View+Badge.swift`       徽标角标
 /// - `View+EmptyState.swift`  空状态视图
 /// - `View+Toast.swift`       Toast 轻提示
+/// - `LoadingButton.swift`    加载按钮（转圈 + 禁用）
+/// - `RatingView.swift`       评分视图（星级，只读 / 可交互）
+/// - `CollapsibleView.swift`  可折叠面板（手风琴）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.9.0"
+    public static let version = "0.10.0"
 }

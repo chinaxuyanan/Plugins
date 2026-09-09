@@ -205,6 +205,15 @@ public extension View {
         if 条件 { 变换(self) } else { self }
     }
 
+    /// 值存在时执行（等同 `ifLet`）
+    /// - Parameters:
+    ///   - 值: 待判断的可选值
+    ///   - 变换: 值非 `nil` 时应用的变换，闭包参数为解包后的值
+    @ViewBuilder
+    func 如果存在<Value, Content: View>(_ 值: Value?, 变换: (Self, Value) -> Content) -> some View {
+        ifLet(值, transform: 变换)
+    }
+
     /// 按压反馈（等同 `pressable`）
     /// - Parameter 缩放: 按压时缩放比例，默认 `0.95`
     func 按压反馈(缩放: CGFloat = 0.95) -> some View { pressable(scale: 缩放) }

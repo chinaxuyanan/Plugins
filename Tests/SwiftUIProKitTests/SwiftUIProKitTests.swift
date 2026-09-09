@@ -31,4 +31,30 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = Color.systemBackground
         _ = Color.cardBackground
     }
+
+    // MARK: - 复合组件冒烟（只实例化，不渲染，验证构造器与中文别名可解析）
+
+    func testLoadingButtonConstructs() {
+        let button = LoadingButton(title: "提交", isLoading: true) {}
+        _ = button
+        let chinese = 加载按钮("提交", 加载中: true) {}
+        _ = chinese
+    }
+
+    func testRatingViewConstructs() {
+        _ = RatingView(rating: 4.5)
+        _ = RatingView(rating: .constant(3.0))
+        _ = RatingView(rating: 2.0) { _ in }
+        _ = 评分视图(评分: 4.5)
+        _ = 评分视图(评分: .constant(3.5))
+    }
+
+    func testCollapsibleViewConstructs() {
+        _ = CollapsibleView("更多设置", isExpanded: .constant(false)) {
+            Text("折叠内容")
+        }
+        _ = 可折叠面板("更多设置", 展开: .constant(false)) {
+            Text("折叠内容")
+        }
+    }
 }

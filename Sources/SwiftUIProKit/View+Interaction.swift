@@ -74,6 +74,30 @@ public extension View {
         }
     }
 
+    /// 值存在时执行变换
+    ///
+    /// 当可选值非 `nil` 时，用解包后的值对视图应用变换；为 `nil` 时原样返回。
+    /// 适合「有可选数据时套用某种修饰符」的场景，避免先 `if let` 再写两遍视图。
+    ///
+    /// - Parameters:
+    ///   - value: 待判断的可选值。
+    ///   - transform: 值非 `nil` 时应用的变换，闭包参数为解包后的值。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   Text("用户").ifLet(userName) { view, name in
+    ///       view.textColor(.primary) + Text(name) // 有名字时额外显示
+    ///   }
+    ///   ```
+    @ViewBuilder
+    func ifLet<Value, Content: View>(_ value: Value?, transform: (Self, Value) -> Content) -> some View {
+        if let value = value {
+            transform(self, value)
+        } else {
+            self
+        }
+    }
+
     /// 按压反馈（缩放动画）
     ///
     /// 让视图在按压时轻微缩小、松开时回弹，提供按下按钮的直观反馈。

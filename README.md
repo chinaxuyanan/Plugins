@@ -8,6 +8,7 @@
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
 - **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -19,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.9.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.10.0")
 ]
 ```
 
@@ -84,6 +85,8 @@ VStack {
 | `文字颜色` / `文字对齐` / `最大行数` / `文字行间距` / `加粗` / `文字样式` | `textColor` / `textAlignment` / `maxLines` / `textLineSpacing` / `boldText` / `textStyle` |
 | `自适应图片` / `填充图片` / `圆形图片` / `圆角图片` | `fitImage` / `fillImage` / `circleImage` / `roundedImage` |
 | `轻点` / `不透明度` / `条件隐藏` / `条件执行` / `按压反馈` / `按钮按压反馈` | `onTap` / `viewOpacity` / `hiddenIf` / `if` / `pressable` / `pressableButtonStyle` |
+| `如果存在` | `ifLet`（可选值存在时执行变换）|
+| `加载按钮` / `评分视图` / `可折叠面板` | `LoadingButton` / `RatingView` / `CollapsibleView` |
 | `卡片样式` / `徽标样式` | `cardStyle` / `badgeStyle` |
 | `动画` / `淡入淡出过渡` / `滑动过渡` / `缩放过渡` / `淡入缩放过渡` | `animate` / `fadeTransition` / `slideTransition` / `scaleTransition` / `fadeScaleTransition` |
 | `双击` / `长按` / `滑动` | `onDoubleTap` / `onLongPress` / `onSwipe` |
@@ -416,6 +419,21 @@ VStack {
 | --- | --- |
 | `toast(_:position:duration:icon:)` | 顶部 / 底部浮出轻提示，自动消失（`ToastPosition` 位置）|
 
+### 条件修饰符
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `if(_:transform:)` | 条件为真时执行变换（链式辅助）|
+| `ifLet(_:transform:)` | 可选值存在时执行变换 |
+
+### 复合组件
+
+| 组件 | 中文含义 |
+| --- | --- |
+| `LoadingButton(title:isLoading:icon:action:)` | 加载按钮（加载中转圈 + 禁用）|
+| `RatingView(rating:maximum:...)` | 星级评分视图（只读 / `Binding` / 闭包可交互，支持半星）|
+| `CollapsibleView(_:icon:isExpanded:content:)` | 可折叠面板（手风琴）|
+
 ## 路线图
 
 - [x] UI 控件属性封装（第一期，本库）
@@ -427,6 +445,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.10.0**：新增条件修饰符 `ifLet` / `如果存在`（可选值存在时执行变换，补齐原有 `if` / `条件执行`）、加载按钮 `LoadingButton` / `加载按钮`（加载中转圈 + 禁用）、评分视图 `RatingView` / `评分视图`（只读 / `Binding` / 闭包三种可交互方式，支持半星）、可折叠面板 `CollapsibleView` / `可折叠面板`（手风琴），均含中文别名与文档注释。
 
 - **0.9.0**：新增「文字渐变」「徽标角标」「空状态视图」「Toast 轻提示」四个类别封装（`textGradient` / `文字渐变`、`cornerBadge` / `角标`、`EmptyStateView` / `空状态视图`（图标 + 标题 + 描述 + 可选操作按钮）、`toast` / `轻提示`（含 `ToastPosition` / `轻提示位置`，顶部 / 底部自动消失）），均含中文别名。
 
