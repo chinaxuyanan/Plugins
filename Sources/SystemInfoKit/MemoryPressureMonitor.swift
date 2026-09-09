@@ -20,15 +20,19 @@ import Dispatch
 ///   ```
 public final class MemoryPressureMonitor {
 
-    /// 当前内存压力（等同 `SystemInfoKit.memoryPressure`；无法确定时返回「正常」）
+    /// 当前内存压力（最近一次上报的压力级别；尚未收到任何变化事件时视为「正常」）
     public var currentPressure: DispatchSource.MemoryPressureEvent {
-        SystemInfoKit.currentMemoryPressureEvent() ?? .normal
+        lock.lock()
+        defer { lock.unlock() }
+        return lastEvent
     }
 
     /// 内存压力变化回调（在 `start` 指定的队列上执行）
     public var onPressureChange: ((DispatchSource.MemoryPressureEvent) -> Void)?
 
     private var source: DispatchSourceMemoryPressure?
+    private let lock = NSLock()
+    private var lastEvent: DispatchSource.MemoryPressureEvent = .normal
 
     public init() {}
 
@@ -40,9 +44,16 @@ public final class MemoryPressureMonitor {
     /// - Parameter queue: 回调执行的队列，默认主队列
     public func start(queue: DispatchQueue = .main) {
         stop()
+        lock.lock()
+        lastEvent = .normal
+        lock.unlock()
         let newSource = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: queue)
         newSource.setEventHandler { [weak self] in
-            self?.onPressureChange?(newSource.data)
+            guard let self = self else { return }
+            self.lock.lock()
+            self.lastEvent = newSource.data
+            self.lock.unlock()
+            self.onPressureChange?(newSource.data)
         }
         newSource.resume()
         source = newSource
