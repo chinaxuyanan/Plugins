@@ -378,6 +378,7 @@ final class LogKitTests: XCTestCase {
 
     func testSearchWithinFile() throws {
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let file = dir.appendingPathComponent("test.log")
         let content = "第一行 启动完成\n第二行 网络请求失败\n第三行 网络重试成功\n"
         try content.write(to: file, atomically: true, encoding: .utf8)
