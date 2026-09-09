@@ -11,6 +11,7 @@ let package = Package(
         .library(name: "SwiftUIProKit", targets: ["SwiftUIProKit"])
     ],
     targets: [
-        .target(name: "SwiftUIProKit")
+        .target(name: "SwiftUIProKit"),
+        .testTarget(name: "SwiftUIProKitTests", dependencies: ["SwiftUIProKit"])
     ]
 )
