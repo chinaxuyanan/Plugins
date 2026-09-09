@@ -456,10 +456,7 @@ public enum SystemInfoKit {
     /// 通过 Dispatch 内存压力源读取系统当前的内存压力级别（正常 / 警告 / 严重）。
     public static var memoryPressure: DispatchSource.MemoryPressureEvent? {
         #if os(macOS)
-        let source = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: nil)
-        let event = source.data
-        source.cancel()
-        return event
+        return currentMemoryPressureEvent()
         #else
         return nil
         #endif
@@ -592,6 +589,24 @@ public enum SystemInfoKit {
     }
 
     #if os(macOS)
+    /// 同步读取系统当前内存压力级别（内部工具）
+    ///
+    /// `DispatchSource` 需 `resume()` 后由事件回调上报当前值，故用信号量等待首次回调，
+    /// 拿到当前压力后立即取消；超时（约 0.5 秒）未回调时返回 `nil`（表示无法确定，避免误报「正常」）。
+    static func currentMemoryPressureEvent() -> DispatchSource.MemoryPressureEvent? {
+        let source = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: nil)
+        let semaphore = DispatchSemaphore(value: 0)
+        var event: DispatchSource.MemoryPressureEvent?
+        source.setEventHandler {
+            event = source.data
+            semaphore.signal()
+        }
+        source.resume()
+        let result = semaphore.wait(timeout: .now() + 0.5)
+        source.cancel()
+        return result == .success ? event : nil
+    }
+
     /// 读取 Mac 内置电池的电源信息（IOKit）
     private static func macBatteryDescription() -> [String: Any]? {
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else { return nil }

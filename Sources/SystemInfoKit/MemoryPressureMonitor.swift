@@ -20,12 +20,9 @@ import Dispatch
 ///   ```
 public final class MemoryPressureMonitor {
 
-    /// 当前内存压力（等同 `SystemInfoKit.memoryPressure`）
+    /// 当前内存压力（等同 `SystemInfoKit.memoryPressure`；无法确定时返回「正常」）
     public var currentPressure: DispatchSource.MemoryPressureEvent {
-        let source = DispatchSource.makeMemoryPressureSource(eventMask: .all, queue: nil)
-        let event = source.data
-        source.cancel()
-        return event
+        SystemInfoKit.currentMemoryPressureEvent() ?? .normal
     }
 
     /// 内存压力变化回调（在 `start` 指定的队列上执行）
