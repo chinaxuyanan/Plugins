@@ -35,7 +35,7 @@ final class SwiftUIProKitTests: XCTestCase {
     // MARK: - 复合组件冒烟（只实例化，不渲染，验证构造器与中文别名可解析）
 
     func testLoadingButtonConstructs() {
-        let button = LoadingButton(title: "提交", isLoading: true) {}
+        let button = LoadingButton("提交", isLoading: true) {}
         _ = button
         let chinese = 加载按钮("提交", 加载中: true) {}
         _ = chinese

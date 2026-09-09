@@ -7,7 +7,7 @@ import SwiftUI
 /// 圆角位置集合
 ///
 /// 用于指定哪些角需要圆角，支持任意组合。
-public struct RectCorner: OptionSet {
+public struct RectCorner: OptionSet, Sendable {
     public let rawValue: Int
     public init(rawValue: Int) { self.rawValue = rawValue }
 

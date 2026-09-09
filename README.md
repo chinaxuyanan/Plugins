@@ -430,7 +430,7 @@ VStack {
 
 | 组件 | 中文含义 |
 | --- | --- |
-| `LoadingButton(title:isLoading:icon:action:)` | 加载按钮（加载中转圈 + 禁用）|
+| `LoadingButton(_:isLoading:icon:action:)` | 加载按钮（加载中转圈 + 禁用）|
 | `RatingView(rating:maximum:...)` | 星级评分视图（只读 / `Binding` / 闭包可交互，支持半星）|
 | `CollapsibleView(_:icon:isExpanded:content:)` | 可折叠面板（手风琴）|
 
