@@ -247,7 +247,7 @@ VStack {
 | 方法 | 中文含义 |
 | --- | --- |
 | `tabViewStyleAutomatic()` | 自动标签栏样式 |
-| `tabViewStylePage(indexDisplayMode:)` | 分页标签样式 |
+| `tabViewStylePage(indexDisplayMode:)` | 分页标签样式（仅 iOS）|
 | `tabItemLabel(title:systemImage:)` | 标签项（图标 + 文字）|
 
 ### 键盘与焦点

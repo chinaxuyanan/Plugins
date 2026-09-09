@@ -18,9 +18,11 @@ public extension View {
         tabViewStyle(.automatic)
     }
 
+    #if os(iOS)
     /// 分页标签页样式
     ///
     /// 使用可左右滑动的分页样式，等效于 `.tabViewStyle(.page(indexDisplayMode:))`。
+    /// 仅 iOS 可用（`PageTabViewStyle` 为 iOS 专有）。
     ///
     /// - Parameter indexDisplayMode: 页码指示器显示方式，默认 `.automatic`
     ///
@@ -33,6 +35,7 @@ public extension View {
     func tabViewStylePage(indexDisplayMode: PageTabViewStyle.IndexDisplayMode = .automatic) -> some View {
         tabViewStyle(.page(indexDisplayMode: indexDisplayMode))
     }
+    #endif
 
     /// 标签项（图标 + 文字）
     ///

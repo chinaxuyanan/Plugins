@@ -490,12 +490,14 @@ public extension View {
     @ViewBuilder
     func 标签页自动样式() -> some View { tabViewStyleAutomatic() }
 
-    /// 分页标签页样式（等同 `tabViewStylePage`）
+    #if os(iOS)
+    /// 分页标签页样式（等同 `tabViewStylePage`，仅 iOS）
     /// - Parameter 页码指示器: 显示方式，默认 `.automatic`
     @ViewBuilder
     func 标签页分页样式(页码指示器: PageTabViewStyle.IndexDisplayMode = .automatic) -> some View {
         tabViewStylePage(indexDisplayMode: 页码指示器)
     }
+    #endif
 
     /// 标签项（图标 + 文字，等同 `tabItemLabel`）
     /// - Parameters:
