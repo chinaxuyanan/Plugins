@@ -29,7 +29,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.5.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.5.1")
 ]
 ```
 
@@ -149,6 +149,7 @@ let 系统日志 = OSLogger(subsystem: "com.example.app", category: "网络")
 
 ## 更新日志
 
+- **0.5.1**：修复惰性求值失效（被级别 / 分类过滤的日志不再提前执行消息构造），并新增单元测试（Tests target，14 用例）。
 - **0.5.0**：新增作用域日志器 `ScopedLogger`（`模块/分类` 绑定默认分类，`debug/info/warning/error/critical` 免传分类 + `measure/measureAsync/child`）、性能计数器 `PerformanceCounter`（`record/measure/measureAsync` 累计 + `callCount/totalDuration/averageDuration/maxDuration/minDuration` + `summary/report/reset`）、系统日志桥接 `OSLogger`（封装 `os.Logger`，`subsystem/category` + `debug/info/notice/error/critical/fault`，消息 `.public` 隐私级），均含中文别名。
 
 - **0.4.0**：新增耗时测量（`measure` / `measureAsync` / `计时` / `异步计时`，执行代码块并输出耗时，抛错时记录「失败 · 耗时」）、结构化字段（五级日志方法新增 `fields` 参数，JSON 输出成为 `fields` 子对象，文本输出追加 `[key=value]`）、自定义格式闭包（`customFormatter` / `自定义格式`，接收 `LogEntry` 完全接管日志拼装），均含中文别名。
