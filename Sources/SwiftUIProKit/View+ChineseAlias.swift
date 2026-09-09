@@ -436,3 +436,99 @@ public extension View {
                      confirmTitle: 确定文字, onConfirm: 确认时)
     }
 }
+
+// MARK: 颜色工具
+
+public extension Color {
+    /// 用十六进制整数创建颜色（等同 `init(hex:alpha:)`）
+    /// - Parameters:
+    ///   - 十六进制: 十六进制颜色值，如 `0xFF5733`
+    ///   - 透明度: 不透明度，默认 `1`
+    init(十六进制 hex: UInt32, 透明度 alpha: Double = 1) {
+        self.init(hex: hex, alpha: alpha)
+    }
+
+    /// 用十六进制字符串创建颜色（等同 `init(hexString:)`）
+    /// - Parameter 十六进制字符串: 如 `"#FF5733"`
+    init(十六进制字符串 hexString: String) {
+        self.init(hexString: hexString)
+    }
+
+    /// 随机颜色（等同 `random()`）
+    static func 随机颜色() -> Color { random() }
+
+    /// 当前颜色的十六进制字符串（等同 `hexString`）
+    var 十六进制字符串: String { hexString }
+}
+
+// MARK: 键盘与焦点
+
+public extension View {
+    /// 点击空白处收起键盘（等同 `dismissKeyboardOnTap`）
+    @ViewBuilder
+    func 点击收起键盘() -> some View { dismissKeyboardOnTap() }
+
+    /// 键盘工具栏「完成」按钮（等同 `keyboardToolbarDone`）
+    /// - Parameter 文字: 按钮文字，默认「完成」
+    @ViewBuilder
+    func 键盘完成按钮(文字: String = "完成") -> some View { keyboardToolbarDone(title: 文字) }
+
+    /// TextEditor 占位文字（等同 `textEditorPlaceholder`）
+    /// - Parameters:
+    ///   - 占位: 占位文字内容
+    ///   - 为空: 内容是否为空
+    @ViewBuilder
+    func 文本域占位(_ 占位: String, 为空: Bool) -> some View {
+        textEditorPlaceholder(占位, isEmpty: 为空)
+    }
+}
+
+// MARK: 标签页
+
+public extension View {
+    /// 自动标签页样式（等同 `tabViewStyleAutomatic`）
+    @ViewBuilder
+    func 标签页自动样式() -> some View { tabViewStyleAutomatic() }
+
+    /// 分页标签页样式（等同 `tabViewStylePage`）
+    /// - Parameter 页码指示器: 显示方式，默认 `.automatic`
+    @ViewBuilder
+    func 标签页分页样式(页码指示器: PageTabViewStyle.IndexDisplayMode = .automatic) -> some View {
+        tabViewStylePage(indexDisplayMode: 页码指示器)
+    }
+
+    /// 标签项（图标 + 文字，等同 `tabItemLabel`）
+    /// - Parameters:
+    ///   - 标题: 标签文字
+    ///   - 系统图标: SF Symbol 图标名
+    @ViewBuilder
+    func 标签项(标题: String, 系统图标: String) -> some View {
+        tabItemLabel(title: 标题, systemImage: 系统图标)
+    }
+}
+
+// MARK: 控件样式
+
+public extension View {
+    /// 开关样式 switch（等同 `toggleStyleSwitch`）
+    @ViewBuilder
+    func 开关样式() -> some View { toggleStyleSwitch() }
+
+    /// 开关样式 button（等同 `toggleStyleButton`）
+    @ViewBuilder
+    func 开关按钮样式() -> some View { toggleStyleButton() }
+
+    /// 开关样式 checkbox（等同 `toggleStyleCheckbox`，仅 macOS）
+    @ViewBuilder
+    func 开关复选样式() -> some View { toggleStyleCheckbox() }
+
+    /// 控件主题色（等同 `controlTint`）
+    /// - Parameter 颜色: 主题色
+    @ViewBuilder
+    func 控件主题色(_ 颜色: Color) -> some View { controlTint(颜色) }
+
+    /// 菜单按钮样式（等同 `menuStyleButton`，需 iOS 16 / macOS 13+）
+    @available(iOS 16.0, macOS 13.0, *)
+    @ViewBuilder
+    func 菜单按钮样式() -> some View { menuStyleButton() }
+}

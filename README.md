@@ -6,7 +6,7 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式、控件样式、标签页、键盘与焦点、颜色工具，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
@@ -19,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.4.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.5.0")
 ]
 ```
 
@@ -94,6 +94,10 @@ VStack {
 | `分段选择器` / `菜单选择器` / `行内选择器` | `pickerStyleSegmented` / `pickerStyleMenu` / `pickerStyleInline` |
 | `线性进度` / `圆形进度` | `progressStyleLinear` / `progressStyleCircular` |
 | `弹出面板` / `确认提示框` | `presentSheet` / `confirmAlert` |
+| `开关样式` / `开关按钮样式` / `开关复选样式` / `控件主题色` / `菜单按钮样式` | `toggleStyleSwitch` / `toggleStyleButton` / `toggleStyleCheckbox` / `controlTint` / `menuStyleButton` |
+| `标签页自动样式` / `标签页分页样式` / `标签项` | `tabViewStyleAutomatic` / `tabViewStylePage` / `tabItemLabel` |
+| `点击收起键盘` / `键盘完成按钮` / `文本域占位` | `dismissKeyboardOnTap` / `keyboardToolbarDone` / `textEditorPlaceholder` |
+| `随机颜色` / `十六进制字符串` | `Color.random()` / `hexString` |
 
 ## 属性速查表
 
@@ -228,6 +232,41 @@ VStack {
 | `cardStyle(cornerRadius:padding:shadowLevel:)` | 卡片样式 |
 | `badgeStyle(color:textColor:)` | 徽标样式 |
 
+### 控件样式
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `toggleStyleSwitch()` | 开关样式（系统开关）|
+| `toggleStyleButton()` | 开关样式（按钮外观）|
+| `toggleStyleCheckbox()` | 开关样式（复选框，仅 macOS）|
+| `controlTint(_:)` | 控件主题色（开关 / 滑块 / 步进器 / 进度条）|
+| `menuStyleButton()` | 菜单按钮样式（iOS 16+ / macOS 13+）|
+
+### 标签页
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `tabViewStyleAutomatic()` | 自动标签栏样式 |
+| `tabViewStylePage(indexDisplayMode:)` | 分页标签样式 |
+| `tabItemLabel(title:systemImage:)` | 标签项（图标 + 文字）|
+
+### 键盘与焦点
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `dismissKeyboardOnTap()` | 点击空白处收起键盘（iOS）|
+| `keyboardToolbarDone(title:)` | 键盘工具栏「完成」按钮（iOS）|
+| `textEditorPlaceholder(_:isEmpty:)` | TextEditor 占位文字 |
+
+### 颜色工具
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `Color(hex:alpha:)` | 十六进制整数创建颜色 |
+| `Color(hexString:)` | 十六进制字符串创建颜色 |
+| `Color.random()` | 随机颜色 |
+| `hexString` | 颜色转十六进制字符串 |
+
 ## 路线图
 
 - [x] UI 控件属性封装（第一期，本库）
@@ -240,6 +279,7 @@ VStack {
 
 ## 更新日志
 
+- **0.5.0**：新增「控件样式」「标签页」「键盘与焦点」「颜色工具」四个类别封装（`toggleStyleSwitch` / `toggleStyleButton` / `toggleStyleCheckbox` / `controlTint` / `menuStyleButton`、`tabViewStyleAutomatic` / `tabViewStylePage` / `tabItemLabel`、`dismissKeyboardOnTap` / `keyboardToolbarDone` / `textEditorPlaceholder`、`Color(hex:)` / `Color(hexString:)` / `Color.random()` / `hexString`），均含中文别名。
 - **0.4.0**：新增「列表与滚动」「导航与标题」「选择器」「进度」「弹窗」五个类别封装（`listStylePlain` / `listStyleInset` / `listRowSeparatorHidden` / `scrollIndicatorsHidden`、`inlineTitle` / `largeTitle` / `hideNavigationBar` / `navigationBarBackground`、`pickerStyleSegmented` / `pickerStyleMenu` / `pickerStyleInline`、`progressStyleLinear` / `progressStyleCircular`、`presentSheet` / `confirmAlert`），均含中文别名。
 - **0.3.0**：新增「动画与过渡」「手势」「输入框」「按钮样式」四个类别封装（`animate` / `fadeTransition` / `slideTransition` / `scaleTransition` / `fadeScaleTransition`、`onDoubleTap` / `onLongPress` / `onSwipe`、`inputStyle`、`filledButtonStyle`），均含中文别名。
 - **0.2.0**：`foregroundColor` 全部替换为 `foregroundStyle`（消除 macOS 14+ 弃用警告）；`cardStyle` 背景改用跨平台 `Color.cardBackground`（macOS 使用控件背景色）；新增按钮按压样式 `pressableButtonStyle()` 及中文别名 `按钮按压反馈`。

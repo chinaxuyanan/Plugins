@@ -23,8 +23,12 @@ import SwiftUI
 /// - `View+Progress.swift`    进度
 /// - `View+Sheet.swift`       弹窗
 /// - `View+Card.swift`        复合样式
+/// - `View+Controls.swift`    控件样式（开关 / 菜单 / 主题色）
+/// - `View+Tab.swift`         标签页
+/// - `View+Keyboard.swift`    键盘与焦点
+/// - `Color+Hex.swift`        颜色工具（十六进制 / 随机色）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.4.0"
+    public static let version = "0.5.0"
 }
