@@ -20,7 +20,7 @@ import Foundation
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.1.0"
+    public static let version = "0.2.0"
 
     // MARK: - 配置
 
@@ -45,6 +45,38 @@ public enum LogKit {
 
     /// 时间戳格式（默认 `yyyy-MM-dd HH:mm:ss.SSS`）
     public static var dateFormat: String = "yyyy-MM-dd HH:mm:ss.SSS"
+
+    /// 单个日志文件大小上限（字节）
+    ///
+    /// 当前日志文件达到该大小时，会自动归档（重命名为带时间戳的文件）并开启新文件。
+    /// 设为 `0` 表示不按大小轮转（默认 `0`）。
+    public static var maxFileSize: Int = 0
+
+    /// 最多保留的日志文件数量
+    ///
+    /// 日志目录里 `LogKit-*.log` 文件超过该数量时，自动删除最旧的。
+    /// 设为 `0` 表示不清理（默认 `0`）。
+    public static var maxLogFiles: Int = 0
+
+    /// 分类白名单：只输出这些分类的日志
+    ///
+    /// `nil` 表示全部输出（默认 `nil`）。设置后，不在名单里的分类会被直接跳过。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.enabledCategories = ["网络", "存储"]
+    ///   ```
+    public static var enabledCategories: Set<String>? = nil
+
+    /// 分类黑名单：跳过这些分类的日志
+    ///
+    /// 默认空集合。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.ignoredCategories = ["轮询"]
+    ///   ```
+    public static var ignoredCategories: Set<String> = []
 
     // MARK: - 输出方法
 
@@ -101,11 +133,26 @@ public enum LogKit {
         try? FileManager.default.removeItem(at: logFileURL)
     }
 
+    /// 立即轮转当前日志文件
+    ///
+    /// 把当前日志文件归档（重命名为带时间戳的文件），下一个日志会写入全新的文件。
+    /// 一般用于主动切分日志，比如 App 启动时调用一次。
+    public static func rotateLogFile() {
+        fileLock.lock()
+        defer { fileLock.unlock() }
+        if FileManager.default.fileExists(atPath: logFileURL.path) {
+            archiveCurrentFile(logFileURL)
+        }
+        cleanupOldFiles()
+    }
+
     // MARK: - 内部实现
 
     private static func log(_ level: LogLevel, _ message: Any,
                             category: String, file: String, line: Int) {
         guard level >= minimumLevel else { return }
+        if let enabled = enabledCategories, !enabled.contains(category) { return }
+        if ignoredCategories.contains(category) { return }
         let text = formatLine(level: level, message: message, category: category, file: file, line: line)
         if consoleOutput { print(text) }
         if fileOutput { writeToFile(text) }
@@ -144,11 +191,22 @@ public enum LogKit {
         return f.string(from: Date())
     }
 
+    private static let fileLock = NSLock()
+
     private static func writeToFile(_ text: String) {
+        fileLock.lock()
+        defer { fileLock.unlock() }
         let fm = FileManager.default
         do {
             try fm.createDirectory(at: logDirectory, withIntermediateDirectories: true)
             let url = logFileURL
+            // 大小轮转：当前文件达到上限时先归档
+            if maxFileSize > 0, fm.fileExists(atPath: url.path),
+               let attrs = try? fm.attributesOfItem(atPath: url.path),
+               let size = (attrs[.size] as? NSNumber)?.intValue,
+               size >= maxFileSize {
+                archiveCurrentFile(url)
+            }
             if !fm.fileExists(atPath: url.path) {
                 try "".write(to: url, atomically: true, encoding: .utf8)
             }
@@ -158,9 +216,48 @@ public enum LogKit {
             if let data = (text + "\n").data(using: .utf8) {
                 try handle.write(contentsOf: data)
             }
+            cleanupOldFiles()
         } catch {
             // 文件写入失败时回退到控制台提示，避免日志库自身崩溃
             print("[LogKit] 日志文件写入失败: \(error)")
+        }
+    }
+
+    /// 把当前日志文件归档为带时间戳的文件
+    private static func archiveCurrentFile(_ url: URL) {
+        let base = url.deletingPathExtension().lastPathComponent
+        let ext = url.pathExtension
+        let archived = logDirectory.appendingPathComponent("\(base)-\(archiveStamp()).\(ext)")
+        try? FileManager.default.moveItem(at: url, to: archived)
+    }
+
+    /// 归档文件名的时间戳（毫秒级，避免同秒冲突）
+    private static func archiveStamp() -> String {
+        archiveFormatter.string(from: Date())
+    }
+
+    private static let archiveFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "HHmmssSSS"
+        return f
+    }()
+
+    /// 清理超出 `maxLogFiles` 的最旧日志文件
+    private static func cleanupOldFiles() {
+        guard maxLogFiles > 0 else { return }
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(at: logDirectory,
+                                                      includingPropertiesForKeys: [.contentModificationDateKey],
+                                                      options: []) else { return }
+        let logs = files.filter { $0.pathExtension == "log" && $0.lastPathComponent.hasPrefix("LogKit-") }
+        guard logs.count > maxLogFiles else { return }
+        let sorted = logs.sorted { (a: URL, b: URL) -> Bool in
+            let ta = (try? a.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+            let tb = (try? b.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+            return ta < tb
+        }
+        for url in sorted.prefix(logs.count - maxLogFiles) {
+            try? fm.removeItem(at: url)
         }
     }
 }

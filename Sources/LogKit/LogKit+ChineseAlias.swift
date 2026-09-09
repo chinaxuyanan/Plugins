@@ -49,4 +49,7 @@ public extension LogKit {
 
     /// 清空日志文件（等同 `clearLog`）
     static func 清空日志() { clearLog() }
+
+    /// 立即轮转日志文件（等同 `rotateLogFile`）
+    static func 轮转日志() { rotateLogFile() }
 }
