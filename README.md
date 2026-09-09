@@ -72,7 +72,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `availableCapacityBytes` / `availableCapacity` | 重要用途可用容量（字节 / 可读） | 计入可清除空间 |
 | `opportunisticCapacityBytes` / `opportunisticCapacity` | 机会性可用容量（字节 / 可读） | 可清理出的空间 |
 | `volumeName` | 主卷名 | 形如 `Macintosh HD` |
-| `fileSystemName` | 文件系统类型 | 形如 `apfs` |
+| `fileSystemName` | 文件系统类型 | 形如 `APFS` |
 | `batteryLevel` | 电池电量 | `0.0`~`1.0`，iOS + macOS |
 | `isCharging` | 是否充电 | iOS + macOS |
 | `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |

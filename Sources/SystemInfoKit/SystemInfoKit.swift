@@ -210,10 +210,9 @@ public enum SystemInfoKit {
         homeVolumeValues()?.volumeName ?? "未知"
     }
 
-    /// 文件系统类型（形如 `apfs`）
+    /// 文件系统类型（形如 `APFS`）
     public static var fileSystemName: String {
-        let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory())
-        return (attrs?[.systemName] as? String) ?? "未知"
+        homeVolumeValues()?.volumeLocalizedFormatDescription ?? "未知"
     }
 
     // MARK: - 电池
@@ -476,11 +475,16 @@ public enum SystemInfoKit {
 
     /// 当前进程可用内存（字节）
     ///
-    /// 通过 `os_proc_available_memory()` 读取，比 mach 采样更简单、更准确。
-    /// iOS 13+ / macOS 10.15+（本库基线之上）。无法获取时返回 `nil`。
+    /// iOS 通过 `os_proc_available_memory()` 读取（iOS 13+，macOS 无此 API）；
+    /// macOS 通过 mach 采样计算（free + inactive + purgeable + speculative）。
+    /// 无法获取时返回 `nil`。
     public static var availableMemoryBytes: UInt64? {
+        #if os(iOS)
         let available = os_proc_available_memory()
         return available < 0 ? nil : UInt64(available)
+        #else
+        return memoryStats()?.availableBytes
+        #endif
     }
 
     /// 当前进程可用内存（人类可读，形如 `2.1 GB`；无法获取时返回「未知」）
@@ -505,12 +509,13 @@ public enum SystemInfoKit {
         return (attrs?[key] as? NSNumber)?.uint64Value
     }
 
-    /// 读取主目录所在卷的 URL 资源值（容量 / 卷名）
+    /// 读取主目录所在卷的 URL 资源值（容量 / 卷名 / 文件系统类型）
     private static func homeVolumeValues() -> URLResourceValues? {
         try? URL(fileURLWithPath: NSHomeDirectory()).resourceValues(forKeys: [
             .volumeAvailableCapacityForImportantUsageKey,
             .volumeAvailableCapacityForOpportunisticUsageKey,
-            .volumeNameKey
+            .volumeNameKey,
+            .volumeLocalizedFormatDescriptionKey
         ])
     }
 
@@ -564,8 +569,8 @@ public enum SystemInfoKit {
         return (user, system, idle, nice)
     }
 
-    /// 读取内存统计（`host_statistics64`），返回已用字节与使用率
-    private static func memoryStats() -> (usedBytes: UInt64, percent: Double)? {
+    /// 读取内存统计（`host_statistics64`），返回已用字节、使用率、可用字节
+    private static func memoryStats() -> (usedBytes: UInt64, percent: Double, availableBytes: UInt64)? {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.stride / MemoryLayout<integer_t>.stride)
         let result = withUnsafeMutablePointer(to: &stats) { ptr in
@@ -583,7 +588,7 @@ public enum SystemInfoKit {
         let speculative = UInt64(stats.speculative_count) * pageSize
         let available = free + inactive + purgeable + speculative
         let used = total > available ? total - available : 0
-        return (used, Double(used) / Double(total))
+        return (used, Double(used) / Double(total), available)
     }
 
     #if os(macOS)
