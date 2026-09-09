@@ -125,7 +125,10 @@ final class SystemInfoKitTests: XCTestCase {
 
     func testChineseAliasesForNewFeatures() {
         XCTAssertEqual(SystemInfoKit.显示器数量, SystemInfoKit.displayCount)
-        XCTAssertEqual(SystemInfoKit.系统启动时间, SystemInfoKit.bootTime)
+        // bootTime 每次访问都重新计算「当前时间 − 运行时长」，两次取值有亚毫秒差异，
+        // 故用「时间戳误差 ≤ 2 秒」代替精确相等。
+        XCTAssertEqual(SystemInfoKit.系统启动时间.timeIntervalSince1970,
+                       SystemInfoKit.bootTime.timeIntervalSince1970, accuracy: 2.0)
         XCTAssertEqual(SystemInfoKit.系统启动时间字符串, SystemInfoKit.bootTimeString)
         XCTAssertEqual(SystemInfoKit.进程内存, SystemInfoKit.processMemory)
         XCTAssertEqual(SystemInfoKit.WiFi信号强度名, SystemInfoKit.wifiSignalStrengthName)
