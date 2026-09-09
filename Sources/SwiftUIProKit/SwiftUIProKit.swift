@@ -39,8 +39,12 @@ import SwiftUI
 /// - `View+Grid.swift`        网格（等宽列 / 自适应列 / Grid 容器，部分 iOS 16 / macOS 13+）
 /// - `View+Form.swift`        表单与分组（分组卡片 / 表单样式）
 /// - `View+Material.swift`    毛玻璃与材质
+/// - `View+TextGradient.swift` 文字渐变
+/// - `View+Badge.swift`       徽标角标
+/// - `View+EmptyState.swift`  空状态视图
+/// - `View+Toast.swift`       Toast 轻提示
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.8.0"
+    public static let version = "0.9.0"
 }

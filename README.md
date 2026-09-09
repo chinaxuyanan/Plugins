@@ -6,7 +6,7 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
@@ -19,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.8.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.9.0")
 ]
 ```
 
@@ -113,6 +113,10 @@ VStack {
 | `表单样式` | `formStyleCustom`（iOS 16+ / macOS 13+）|
 | `毛玻璃` / `材质背景` | `frostedGlass` / `materialBackground` |
 | `冲击` / `选择` / `通知` / `成功` / `警告` / `错误` | `Haptics.impact` / `selection` / `notification` / `success` / `warning` / `error`（仅 iOS）|
+| `文字渐变` | `textGradient` |
+| `角标` | `cornerBadge` |
+| `空状态视图` | `EmptyStateView`（`.图标/.标题/.描述/.操作文字/.操作`）|
+| `轻提示` / `轻提示位置` | `toast` / `ToastPosition` |
 
 ## 属性速查表
 
@@ -388,6 +392,30 @@ VStack {
 | `Haptics.notification(_:)` | 通知触感 |
 | `Haptics.success() / warning() / error()` | 成功 / 警告 / 错误触感（仅 iOS）|
 
+### 文字渐变
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `textGradient(_:startPoint:endPoint:)` | 文字 / 图标线性渐变（渐变叠加 + 蒙版）|
+
+### 徽标角标
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `cornerBadge(_:color:textColor:alignment:offset:)` | 在视图角落叠加小圆角徽标（未读数 / NEW 标签）|
+
+### 空状态视图
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `EmptyStateView(icon:title:message:actionTitle:action:)` | 空状态占位视图（图标 + 标题 + 描述 + 可选按钮）|
+
+### Toast 轻提示
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `toast(_:position:duration:icon:)` | 顶部 / 底部浮出轻提示，自动消失（`ToastPosition` 位置）|
+
 ## 路线图
 
 - [x] UI 控件属性封装（第一期，本库）
@@ -399,6 +427,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.9.0**：新增「文字渐变」「徽标角标」「空状态视图」「Toast 轻提示」四个类别封装（`textGradient` / `文字渐变`、`cornerBadge` / `角标`、`EmptyStateView` / `空状态视图`（图标 + 标题 + 描述 + 可选操作按钮）、`toast` / `轻提示`（含 `ToastPosition` / `轻提示位置`，顶部 / 底部自动消失）），均含中文别名。
 
 - **0.8.0**：新增「弹窗进阶」「网格」「表单与分组」「毛玻璃与材质」四个类别封装（`multiAlert` / `destructiveAlert` / `actionDialog` / `showPopover` / `contextualMenu`、`EqualColumnGrid` / `AdaptiveGrid`（含 `Grid` / `GridRow` 中文别名，iOS 16+ / macOS 13+）、`GroupCard` / `formStyleCustom`（iOS 16+ / macOS 13+）、`frostedGlass` / `materialBackground`），均含中文别名。
 

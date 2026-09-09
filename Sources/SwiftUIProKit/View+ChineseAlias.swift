@@ -899,3 +899,57 @@ public extension View {
         searchableText(文本, placement: 位置, prompt: 提示)
     }
 }
+
+// MARK: 文字渐变
+
+public extension View {
+    /// 文字渐变（等同 `textGradient`）
+    /// - Parameters:
+    ///   - 颜色: 渐变颜色数组（至少两个颜色）
+    ///   - 起点: 渐变起点，默认 `.leading`
+    ///   - 终点: 渐变终点，默认 `.trailing`
+    @ViewBuilder
+    func 文字渐变(_ 颜色: [Color],
+                  起点: UnitPoint = .leading,
+                  终点: UnitPoint = .trailing) -> some View {
+        textGradient(颜色, startPoint: 起点, endPoint: 终点)
+    }
+}
+
+// MARK: 徽标角标
+
+public extension View {
+    /// 角标（等同 `cornerBadge`）
+    /// - Parameters:
+    ///   - 文字: 角标文字（如 `"99+"`、`"NEW"`）
+    ///   - 颜色: 角标背景色，默认 `.red`
+    ///   - 文字颜色: 角标文字颜色，默认 `.white`
+    ///   - 对齐: 角标贴靠的角落，默认 `.topTrailing`（右上角）
+    ///   - 偏移: 角标相对角落的偏移量，默认略向外移
+    @ViewBuilder
+    func 角标(_ 文字: String,
+              颜色: Color = .red,
+              文字颜色: Color = .white,
+              对齐: Alignment = .topTrailing,
+              偏移: CGSize = CGSize(width: 6, height: -6)) -> some View {
+        cornerBadge(文字, color: 颜色, textColor: 文字颜色, alignment: 对齐, offset: 偏移)
+    }
+}
+
+// MARK: Toast 轻提示
+
+public extension View {
+    /// 轻提示（等同 `toast`）
+    /// - Parameters:
+    ///   - 消息: 提示文字的绑定值；置为非空即弹出，自动消失后自动置回 `nil`
+    ///   - 位置: 显示位置（顶部 / 底部），默认 `.bottom`
+    ///   - 时长: 展示时长（秒），默认 `2`
+    ///   - 图标: 可选 SF Symbol 图标名，默认 `nil`
+    @ViewBuilder
+    func 轻提示(_ 消息: Binding<String?>,
+               位置: ToastPosition = .bottom,
+               时长: TimeInterval = 2,
+               图标: String? = nil) -> some View {
+        toast(消息, position: 位置, duration: 时长, icon: 图标)
+    }
+}
