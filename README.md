@@ -12,6 +12,9 @@
 - **结构化字段**：日志可附加 `fields` 键值对，JSON 输出时成为 `fields` 子对象
 - **自定义格式**：`customFormatter` 闭包完全接管每条日志的拼装
 - **耗时测量**：`measure` / `计时` 一行代码计时并输出耗时，同步 / 异步皆可
+- **作用域日志器**：`ScopedLogger` 绑定默认分类，分模块各持一个，实例方法免传分类，可派生 `child` 子分类
+- **性能计数器**：`PerformanceCounter` 累计调用次数 / 总耗时 / 平均 / 最大 / 最小，按需 `report()` 汇总不刷屏
+- **系统日志桥接**：`OSLogger` 封装 `os.Logger`，日志直达 Console.app（子系统 / 分类 / 隐私等级）
 - **异步写文件**：后台串行队列落盘不阻塞主线程，`严重` 日志始终同步落盘防丢失
 - **双通道输出**：控制台 + 可选日志文件（按天分文件，可按大小轮转、按数量清理）
 - **分类过滤**：白名单 / 黑名单按分类过滤日志
@@ -26,7 +29,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.4.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.5.0")
 ]
 ```
 
@@ -113,8 +116,40 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.输出格式` | `LogKit.outputFormat` |
 | `LogKit.异步写入` | `LogKit.asyncWrite` |
 | `LogKit.自定义格式` | `LogKit.customFormatter` |
+| `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
+| `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
+| `系统日志器` | `OSLogger`（`.调试/.信息/.通知/.错误/.严重/.故障`）|
+
+## 高级用法：作用域日志器 / 性能计数器 / 系统日志
+
+**作用域日志器 `ScopedLogger`**：每个模块各持一个，绑定默认分类，实例方法免传分类：
+
+```swift
+let 网络 = ScopedLogger(module: "网络", category: "请求")
+网络.调试("开始拉取用户信息")          // 分类自动为「网络.请求」
+网络.警告("请求超时")
+let 重试 = 网络.child("重试")           // 分类 → 网络.请求.重试
+```
+
+**性能计数器 `PerformanceCounter`**：持续累计、按需汇总，不刷屏：
+
+```swift
+let 解码 = PerformanceCounter("图片解码")
+for _ in 0..<100 { 解码.measure { imageLoader.decode(data) } }
+解码.输出报告()   // 「图片解码」调用 100 次 · 总耗时 1.20 s · 平均 12.0 ms · ...
+```
+
+**系统日志桥接 `OSLogger`**：封装 `os.Logger`，日志直达 Console.app：
+
+```swift
+let 系统日志 = OSLogger(subsystem: "com.example.app", category: "网络")
+系统日志.信息("用户登录成功")
+系统日志.错误("请求失败")
+```
 
 ## 更新日志
+
+- **0.5.0**：新增作用域日志器 `ScopedLogger`（`模块/分类` 绑定默认分类，`debug/info/warning/error/critical` 免传分类 + `measure/measureAsync/child`）、性能计数器 `PerformanceCounter`（`record/measure/measureAsync` 累计 + `callCount/totalDuration/averageDuration/maxDuration/minDuration` + `summary/report/reset`）、系统日志桥接 `OSLogger`（封装 `os.Logger`，`subsystem/category` + `debug/info/notice/error/critical/fault`，消息 `.public` 隐私级），均含中文别名。
 
 - **0.4.0**：新增耗时测量（`measure` / `measureAsync` / `计时` / `异步计时`，执行代码块并输出耗时，抛错时记录「失败 · 耗时」）、结构化字段（五级日志方法新增 `fields` 参数，JSON 输出成为 `fields` 子对象，文本输出追加 `[key=value]`）、自定义格式闭包（`customFormatter` / `自定义格式`，接收 `LogEntry` 完全接管日志拼装），均含中文别名。
 - **0.3.0**：新增 JSON 结构化输出（`outputFormat = .json`，含时间/级别/级别值/分类/消息/位置字段）与异步写文件（`asyncWrite` 后台串行队列落盘，`flush` / `刷新缓冲` 等待落盘，`严重` 日志始终同步），均含中文别名。

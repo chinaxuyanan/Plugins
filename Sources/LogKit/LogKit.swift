@@ -8,6 +8,7 @@ import Dispatch
 /// - 统一输出格式（时间 / 级别 / 分类 / 消息 / 位置），可选控制台或文件输出；
 /// - 支持单行文本 / JSON 两种输出格式，文件写入可异步，避免阻塞主线程；
 /// - 支持 `measure` 耗时测量、附加结构化字段 `fields`、自定义格式闭包 `customFormatter`；
+/// - 支持 `ScopedLogger` 作用域日志器（分模块分类）、`PerformanceCounter` 性能计数器（累计耗时）、`OSLogger` 系统日志桥接（os.Logger）；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -29,7 +30,7 @@ import Dispatch
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.4.0"
+    public static let version = "0.5.0"
 
     // MARK: - 配置
 
