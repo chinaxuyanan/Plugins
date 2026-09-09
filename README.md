@@ -7,9 +7,11 @@
 
 - **系统信息**：系统名称 / 版本号 / 完整版本
 - **设备信息**：标识符 / 名称 / 类型
-- **硬件信息**：内存 / 处理器 / 磁盘
-- **电池**：电量 / 是否充电（iOS）
+- **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）
+- **电池**：电量 / 是否充电（iOS + macOS）
 - **屏幕**：分辨率 / 缩放因子
+- **运行信息**：运行时长 / 是否模拟器
+- **App 信息**：名称 / 版本 / 构建号
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
 - **纯 Foundation + 平台条件编译**，iOS 15+ / macOS 12+
 
@@ -21,7 +23,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.1.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.2.0")
 ]
 ```
 
@@ -58,10 +60,17 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `processorName` | 处理器型号 | 仅 macOS |
 | `diskTotalBytes` / `diskFreeBytes` | 磁盘总 / 剩余（字节） | `UInt64` |
 | `diskTotal` / `diskFree` | 磁盘总 / 剩余 | 人类可读 |
-| `batteryLevel` | 电池电量 | `0.0`~`1.0`，仅 iOS |
-| `isCharging` | 是否充电 | 仅 iOS |
+| `diskUsedBytes` / `diskUsed` | 磁盘已用（字节 / 可读） | `UInt64` / 人类可读 |
+| `diskUsagePercent` | 磁盘使用率 | `0.0`~`1.0` |
+| `batteryLevel` | 电池电量 | `0.0`~`1.0`，iOS + macOS |
+| `isCharging` | 是否充电 | iOS + macOS |
 | `screenSize` | 屏幕分辨率 | 逻辑点 |
 | `screenScale` | 屏幕缩放因子 | `1.0` / `2.0` / `3.0` |
+| `systemUptime` | 系统运行时长（秒） | `TimeInterval` |
+| `systemUptimeString` | 系统运行时长 | 形如 `3 天 5 小时` |
+| `isSimulator` | 是否模拟器 | `Bool` |
+| `appName` | App 显示名称 | `String` |
+| `appVersion` / `appBuildNumber` | App 版本 / 构建号 | `String` |
 
 ## 中文命名别名
 
@@ -70,12 +79,15 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `系统名称` / `系统版本` / `系统完整版本` | `systemName` / `systemVersion` / `systemVersionString` |
 | `设备标识符` / `设备名称` / `设备类型` | `deviceIdentifier` / `deviceName` / `deviceType` |
 | `内存总量` / `处理器核心数` / `处理器型号` | `memoryTotal` / `processorCount` / `processorName` |
-| `磁盘总容量` / `磁盘剩余容量` | `diskTotal` / `diskFree` |
+| `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
 | `电池电量` / `是否充电` | `batteryLevel` / `isCharging` |
 | `屏幕分辨率` / `屏幕缩放` | `screenSize` / `screenScale` |
+| `系统运行时长` / `是否模拟器` | `systemUptimeString` / `isSimulator` |
+| `应用名称` / `应用版本` / `应用构建号` | `appName` / `appVersion` / `appBuildNumber` |
 
 ## 更新日志
 
+- **0.2.0**：macOS 电池检测（IOKit，`batteryLevel` / `isCharging` 双平台）；新增磁盘已用 / 使用率（`diskUsedBytes` / `diskUsed` / `diskUsagePercent`）、系统运行时长（`systemUptime` / `systemUptimeString`）、是否模拟器（`isSimulator`）、App 信息（`appName` / `appVersion` / `appBuildNumber`），均含中文别名。
 - **0.1.0**：首个版本，覆盖系统 / 设备 / 硬件 / 电池 / 屏幕五类检测，含中文别名。
 
 ## License

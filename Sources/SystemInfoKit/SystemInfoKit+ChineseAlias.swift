@@ -40,6 +40,12 @@ public extension SystemInfoKit {
     static var 磁盘总容量: String { diskTotal }
     /// 磁盘剩余容量（等同 `diskFree`）
     static var 磁盘剩余容量: String { diskFree }
+    /// 磁盘已用容量字节（等同 `diskUsedBytes`）
+    static var 磁盘已用字节数: UInt64 { diskUsedBytes }
+    /// 磁盘已用容量（等同 `diskUsed`）
+    static var 磁盘已用: String { diskUsed }
+    /// 磁盘使用率（等同 `diskUsagePercent`）
+    static var 磁盘使用率: Double { diskUsagePercent }
 
     /// 电池电量（等同 `batteryLevel`）
     static var 电池电量: Float? { batteryLevel }
@@ -50,4 +56,18 @@ public extension SystemInfoKit {
     static var 屏幕分辨率: String { screenSize }
     /// 屏幕缩放因子（等同 `screenScale`）
     static var 屏幕缩放: CGFloat { screenScale }
+
+    /// 系统运行秒数（等同 `systemUptime`）
+    static var 系统运行秒数: TimeInterval { systemUptime }
+    /// 系统运行时长（等同 `systemUptimeString`）
+    static var 系统运行时长: String { systemUptimeString }
+    /// 是否模拟器（等同 `isSimulator`）
+    static var 是否模拟器: Bool { isSimulator }
+
+    /// App 显示名称（等同 `appName`）
+    static var 应用名称: String { appName }
+    /// App 版本号（等同 `appVersion`）
+    static var 应用版本: String { appVersion }
+    /// App 构建号（等同 `appBuildNumber`）
+    static var 应用构建号: String { appBuildNumber }
 }

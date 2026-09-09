@@ -6,6 +6,9 @@ import UIKit
 #if canImport(AppKit)
 import AppKit
 #endif
+#if os(macOS)
+import IOKit.ps
+#endif
 
 /// SystemInfoKit —— 中文友好的系统检测工具库
 ///
@@ -24,7 +27,7 @@ import AppKit
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.1.0"
+    public static let version = "0.2.0"
 
     // MARK: - 系统信息
 
@@ -142,20 +145,48 @@ public enum SystemInfoKit {
         ByteCountFormatter.string(fromByteCount: Int64(diskFreeBytes), countStyle: .file)
     }
 
-    // MARK: - 电池（仅 iOS 支持）
+    /// 磁盘已用容量（字节）
+    public static var diskUsedBytes: UInt64 {
+        let total = diskTotalBytes
+        let free = diskFreeBytes
+        return total >= free ? total - free : 0
+    }
 
-    /// 电池电量（`0.0` ~ `1.0`；未知或不支持时返回 `nil`，macOS 暂不支持）
+    /// 磁盘已用容量（人类可读，形如 `200 GB`）
+    public static var diskUsed: String {
+        ByteCountFormatter.string(fromByteCount: Int64(diskUsedBytes), countStyle: .file)
+    }
+
+    /// 磁盘使用率（`0.0` ~ `1.0`）
+    public static var diskUsagePercent: Double {
+        let total = diskTotalBytes
+        guard total > 0 else { return 0 }
+        return Double(diskUsedBytes) / Double(total)
+    }
+
+    // MARK: - 电池
+
+    /// 电池电量（`0.0` ~ `1.0`；未知或不支持时返回 `nil`）
+    ///
+    /// iOS 取 `UIDevice`，macOS 通过 IOKit 读取内置电池。
     public static var batteryLevel: Float? {
         #if canImport(UIKit)
         UIDevice.current.isBatteryMonitoringEnabled = true
         let level = UIDevice.current.batteryLevel
         return level < 0 ? nil : level
+        #elseif os(macOS)
+        guard let desc = macBatteryDescription() else { return nil }
+        guard let current = desc[kIOPSCurrentCapacityKey as String] as? Int,
+              let max = desc[kIOPSMaxCapacityKey as String] as? Int, max > 0 else { return nil }
+        return Float(current) / Float(max)
         #else
         return nil
         #endif
     }
 
-    /// 是否正在充电（未知或不支持时返回 `nil`，macOS 暂不支持）
+    /// 是否正在充电 / 接通电源（未知或不支持时返回 `nil`）
+    ///
+    /// iOS 取 `UIDevice` 的充电状态，macOS 通过 IOKit 判断是否接通交流电源。
     public static var isCharging: Bool? {
         #if canImport(UIKit)
         UIDevice.current.isBatteryMonitoringEnabled = true
@@ -165,6 +196,10 @@ public enum SystemInfoKit {
         case .unknown: return nil
         @unknown default: return nil
         }
+        #elseif os(macOS)
+        guard let desc = macBatteryDescription() else { return nil }
+        guard let state = desc[kIOPSPowerSourceStateKey as String] as? String else { return nil }
+        return state == (kIOPSACPowerValue as String)
         #else
         return nil
         #endif
@@ -198,6 +233,52 @@ public enum SystemInfoKit {
         #endif
     }
 
+    // MARK: - 运行时长与模拟器
+
+    /// 系统自启动以来的运行时长（秒）
+    public static var systemUptime: TimeInterval {
+        ProcessInfo.processInfo.systemUptime
+    }
+
+    /// 系统运行时长（人类可读，形如 `3 天 5 小时`）
+    public static var systemUptimeString: String {
+        let seconds = Int(systemUptime)
+        let days = seconds / 86400
+        let hours = (seconds % 86400) / 3600
+        let minutes = (seconds % 3600) / 60
+        if days > 0 { return "\(days) 天 \(hours) 小时" }
+        if hours > 0 { return "\(hours) 小时 \(minutes) 分钟" }
+        return "\(minutes) 分钟"
+    }
+
+    /// 是否运行在模拟器上
+    public static var isSimulator: Bool {
+        #if targetEnvironment(simulator)
+        return true
+        #else
+        return false
+        #endif
+    }
+
+    // MARK: - App 信息
+
+    /// App 显示名称（从 Info.plist 读取，取不到时回退进程名）
+    public static var appName: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+            ?? ProcessInfo.processInfo.processName
+    }
+
+    /// App 版本号（形如 `1.2.3`）
+    public static var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "未知"
+    }
+
+    /// App 构建号（形如 `42`）
+    public static var appBuildNumber: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "未知"
+    }
+
     // MARK: - 内部工具
 
     private static func sysctlString(_ name: String) -> String? {
@@ -213,4 +294,19 @@ public enum SystemInfoKit {
         let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory())
         return (attrs?[key] as? NSNumber)?.uint64Value
     }
+
+    #if os(macOS)
+    /// 读取 Mac 内置电池的电源信息（IOKit）
+    private static func macBatteryDescription() -> [String: Any]? {
+        guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else { return nil }
+        guard let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef] else { return nil }
+        for source in sources {
+            guard let desc = IOPSGetPowerSourceDescription(info, source)?.takeUnretainedValue() as? [String: Any] else { continue }
+            if (desc[kIOPSTypeKey as String] as? String) == (kIOPSInternalBatteryType as String) {
+                return desc
+            }
+        }
+        return nil
+    }
+    #endif
 }
