@@ -133,4 +133,52 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(SystemInfoKit.进程内存, SystemInfoKit.processMemory)
         XCTAssertEqual(SystemInfoKit.WiFi信号强度名, SystemInfoKit.wifiSignalStrengthName)
     }
+
+    // MARK: - 系统负载 load average
+
+    func testLoadAverage() {
+        let loads = SystemInfoKit.loadAverage
+        XCTAssertEqual(loads.count, 3, "load average 应为 1/5/15 分钟三值")
+        XCTAssertGreaterThanOrEqual(SystemInfoKit.loadAverage1Min, 0)
+        XCTAssertGreaterThanOrEqual(SystemInfoKit.loadAverage5Min, 0)
+        XCTAssertGreaterThanOrEqual(SystemInfoKit.loadAverage15Min, 0)
+        // 各分量应与数组对应项一致
+        XCTAssertEqual(SystemInfoKit.loadAverage1Min, loads[0])
+        XCTAssertEqual(SystemInfoKit.loadAverage5Min, loads[1])
+        XCTAssertEqual(SystemInfoKit.loadAverage15Min, loads[2])
+    }
+
+    // MARK: - 电池扩展
+
+    func testBatteryExtension() {
+        // macOS 可读循环次数与健康度；iOS 恒为 nil。健康度百分比有值时应在 0~1 之间。
+        _ = SystemInfoKit.batteryCycleCount
+        if let health = SystemInfoKit.batteryHealthPercent {
+            XCTAssertGreaterThanOrEqual(health, 0)
+            XCTAssertLessThanOrEqual(health, 1)
+        }
+        XCTAssertFalse(SystemInfoKit.batteryHealth.isEmpty)
+    }
+
+    // MARK: - 网络扩展
+
+    func testNetworkExtension() {
+        // macOS 解析 /etc/resolv.conf 与默认路由；iOS 返回空 / nil。冒烟不崩溃即可。
+        _ = SystemInfoKit.dnsServers
+        _ = SystemInfoKit.defaultGateway
+    }
+
+    // MARK: - 新增中文别名
+
+    func testChineseAliasesForExtensions() {
+        XCTAssertEqual(SystemInfoKit.系统负载, SystemInfoKit.loadAverage)
+        XCTAssertEqual(SystemInfoKit.负载1分钟, SystemInfoKit.loadAverage1Min)
+        XCTAssertEqual(SystemInfoKit.负载5分钟, SystemInfoKit.loadAverage5Min)
+        XCTAssertEqual(SystemInfoKit.负载15分钟, SystemInfoKit.loadAverage15Min)
+        XCTAssertEqual(SystemInfoKit.DNS服务器, SystemInfoKit.dnsServers)
+        XCTAssertEqual(SystemInfoKit.默认网关, SystemInfoKit.defaultGateway)
+        XCTAssertEqual(SystemInfoKit.电池循环次数, SystemInfoKit.batteryCycleCount)
+        XCTAssertEqual(SystemInfoKit.电池健康度, SystemInfoKit.batteryHealthPercent)
+        XCTAssertEqual(SystemInfoKit.电池健康, SystemInfoKit.batteryHealth)
+    }
 }

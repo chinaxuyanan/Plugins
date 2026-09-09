@@ -67,6 +67,12 @@ public extension SystemInfoKit {
     static var 电池电量: Float? { batteryLevel }
     /// 是否正在充电（等同 `isCharging`）
     static var 是否充电: Bool? { isCharging }
+    /// 电池循环次数（等同 `batteryCycleCount`，仅 macOS）
+    static var 电池循环次数: Int? { batteryCycleCount }
+    /// 电池健康度（等同 `batteryHealthPercent`，`0.0`~`1.0`，仅 macOS）
+    static var 电池健康度: Double? { batteryHealthPercent }
+    /// 电池健康（等同 `batteryHealth`，人类可读，形如 `98%`）
+    static var 电池健康: String { batteryHealth }
     /// 设备热状态（等同 `thermalState`）
     static var 热状态: ProcessInfo.ThermalState { thermalState }
     /// 热状态中文名（等同 `thermalStateName`）
@@ -115,6 +121,14 @@ public extension SystemInfoKit {
     static var WiFi信号强度: Int? { wifiSignalStrength }
     /// Wi-Fi 信号强度中文名（等同 `wifiSignalStrengthName`）
     static var WiFi信号强度名: String { wifiSignalStrengthName }
+    /// DNS 服务器列表（等同 `dnsServers`，仅 macOS）
+    static var DNS服务器: [String] { dnsServers }
+    /// 默认网关（等同 `defaultGateway`，仅 macOS）
+    static var 默认网关: String? { defaultGateway }
+    /// 公网 IP 地址（等同 `publicIPAddress`，异步请求，失败抛错）
+    static func 公网IP地址() async throws -> String {
+        try await publicIPAddress()
+    }
 
     // MARK: 本地化信息
 
@@ -153,4 +167,12 @@ public extension SystemInfoKit {
     static var 可用内存字节数: UInt64? { availableMemoryBytes }
     /// 当前进程可用内存（等同 `availableMemory`）
     static var 可用内存: String { availableMemory }
+    /// 系统负载（等同 `loadAverage`，1/5/15 分钟三值）
+    static var 系统负载: [Double] { loadAverage }
+    /// 1 分钟平均负载（等同 `loadAverage1Min`）
+    static var 负载1分钟: Double { loadAverage1Min }
+    /// 5 分钟平均负载（等同 `loadAverage5Min`）
+    static var 负载5分钟: Double { loadAverage5Min }
+    /// 15 分钟平均负载（等同 `loadAverage15Min`）
+    static var 负载15分钟: Double { loadAverage15Min }
 }

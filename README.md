@@ -9,14 +9,15 @@
 - **设备信息**：标识符 / 名称 / 类型
 - **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
 - **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
-- **电池**：电量 / 是否充电（iOS + macOS）
+- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放
 - **运行信息**：运行时长 / 启动时间 / 是否模拟器
 - **App 信息**：名称 / 版本 / 构建号
-- **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 信号强度（macOS）
+- **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 信号强度（macOS）/ DNS / 默认网关（macOS）/ 公网 IP（异步）
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
 - **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
+- **系统负载**：1 / 5 / 15 分钟平均负载（`getloadavg`）
 - **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
@@ -30,7 +31,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.6.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.7.0")
 ]
 ```
 
@@ -76,6 +77,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `fileSystemName` | 文件系统类型 | 形如 `APFS` |
 | `batteryLevel` | 电池电量 | `0.0`~`1.0`，iOS + macOS |
 | `isCharging` | 是否充电 | iOS + macOS |
+| `batteryCycleCount` | 电池循环次数 | `Int?`，仅 macOS |
+| `batteryHealthPercent` | 电池健康度 | `Double?`，`0.0`~`1.0`，仅 macOS |
+| `batteryHealth` | 电池健康 | 人类可读，形如 `98%`，非 macOS 返回「不支持」 |
 | `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |
 | `thermalStateName` | 热状态中文名 | 正常 / 尚可 / 严重 / 危急 |
 | `isLowPowerModeEnabled` | 低功耗模式 | 仅 iOS |
@@ -96,6 +100,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `networkType` | 网络类型 | `String?` |
 | `wifiSignalStrength` | Wi-Fi 信号强度（RSSI） | `Int?`，仅 macOS |
 | `wifiSignalStrengthName` | Wi-Fi 信号强度中文名 | 强 / 中 / 弱 / 不支持 |
+| `dnsServers` | DNS 服务器 | `[String]`，仅 macOS |
+| `defaultGateway` | 默认网关 | `String?`，仅 macOS |
+| `publicIPAddress()` | 公网 IP | `async throws`，请求 api.ipify.org |
 | `languageCode` / `regionCode` | 语言 / 区域代码 | `String` |
 | `localeIdentifier` | 完整地区标识 | `String` |
 | `timeZoneIdentifier` / `calendarIdentifier` | 时区 / 日历标识 | `String` |
@@ -105,6 +112,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `memoryPressure` | 内存压力 | 仅 macOS |
 | `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 / 不支持 |
 | `availableMemoryBytes` / `availableMemory` | 可用内存（字节 / 可读） | `UInt64?` / 人类可读 |
+| `loadAverage` | 系统负载 | `[Double]`，1/5/15 分钟三值 |
+| `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` | 1/5/15 分钟负载 | `Double` |
 | `processCPUUsage` | 当前进程 CPU 使用率 | 相对单核，多线程可 >`1.0` |
 | `processMemoryBytes` / `processMemory` | 当前进程内存占用（字节 / 可读） | `UInt64` / 人类可读 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
@@ -119,16 +128,21 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
 | `可用容量` / `机会容量` / `卷名` / `文件系统名称` | `availableCapacity` / `opportunisticCapacity` / `volumeName` / `fileSystemName` |
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
+| `电池循环次数` / `电池健康度` / `电池健康` | `batteryCycleCount` / `batteryHealthPercent` / `batteryHealth` |
 | `屏幕分辨率` / `屏幕缩放` / `显示器数量` / `显示器分辨率` / `显示器缩放` | `screenSize` / `screenScale` / `displayCount` / `displayResolutions` / `displayScales` |
 | `系统运行时长` / `系统启动时间` / `是否模拟器` | `systemUptimeString` / `bootTime` / `isSimulator` |
 | `应用名称` / `应用版本` / `应用构建号` | `appName` / `appVersion` / `appBuildNumber` |
 | `本机IP地址` / `是否联网` / `网络类型` / `WiFi信号强度` / `WiFi信号强度名` | `localIPAddress` / `isNetworkConnected` / `networkType` / `wifiSignalStrength` / `wifiSignalStrengthName` |
+| `DNS服务器` / `默认网关` / `公网IP地址()` | `dnsServers` / `defaultGateway` / `publicIPAddress()` |
 | `语言代码` / `区域代码` / `地区标识` | `languageCode` / `regionCode` / `localeIdentifier` |
 | `时区标识` / `日历标识` | `timeZoneIdentifier` / `calendarIdentifier` |
 | `CPU使用率` / `内存已用` / `内存使用率` / `进程CPU使用率` / `进程内存` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `processCPUUsage` / `processMemory` / `memoryPressure` / `memoryPressureName` |
 | `可用内存` / `内存压力监听器` | `availableMemory` / `MemoryPressureMonitor`（`.当前压力/.压力变化回调/.开始监听/.停止监听`）|
+| `系统负载` / `负载1分钟` / `负载5分钟` / `负载15分钟` | `loadAverage` / `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` |
 
 ## 更新日志
+
+- **0.7.0**：新增系统负载（`loadAverage` / `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min`，`getloadavg` 三值）、网络扩展（`dnsServers` 解析 `/etc/resolv.conf`、`defaultGateway` 通过 sysctl 路由表定位、`publicIPAddress()` 异步请求公网 IP，另含 `SystemInfoError`）、电池扩展（`batteryCycleCount` / `batteryHealthPercent` / `batteryHealth`，IOKit `AppleSmartBattery` 读循环次数与健康度），均含中文别名并补冒烟测试。
 
 - **0.6.0**：新增系统启动时间（`bootTime` / `bootTimeString`，`Date` + 人类可读）、本进程信息（`processCPUUsage` / `processMemoryBytes` / `processMemory`，mach `task_info` 采样）、显示器信息（`displayCount` / `displayResolutions` / `displayScales`）、Wi-Fi 信号强度（`wifiSignalStrength` / `wifiSignalStrengthName`，macOS CoreWLAN，iOS 返回「不支持」），均含中文别名。
 

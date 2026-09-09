@@ -9,6 +9,7 @@ import UIKit
 import AppKit
 #endif
 #if os(macOS)
+import IOKit
 import IOKit.ps
 import CoreWLAN
 #endif
@@ -30,7 +31,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.6.0"
+    public static let version = "0.7.0"
 
     // MARK: - 系统信息
 
@@ -257,6 +258,32 @@ public enum SystemInfoKit {
         #endif
     }
 
+    /// 电池循环次数（仅 macOS，通过 IOKit `AppleSmartBattery` 读取；iOS 返回 `nil`）
+    public static var batteryCycleCount: Int? {
+        #if os(macOS)
+        return smartBatteryNumber("CycleCount") ?? smartBatteryNumber("Cycle Count")
+        #else
+        return nil
+        #endif
+    }
+
+    /// 电池健康度（`0.0` ~ `1.0`，当前最大容量 / 设计容量；仅 macOS，读取不到返回 `nil`）
+    public static var batteryHealthPercent: Double? {
+        #if os(macOS)
+        guard let max = smartBatteryNumber("AppleRawMaxCapacity") ?? smartBatteryNumber("MaxCapacity"),
+              let design = smartBatteryNumber("DesignCapacity"), design > 0, max >= 0 else { return nil }
+        return min(1.0, Double(max) / Double(design))
+        #else
+        return nil
+        #endif
+    }
+
+    /// 电池健康度（人类可读，形如 `98%`；读取不到或非 macOS 返回「不支持」）
+    public static var batteryHealth: String {
+        guard let percent = batteryHealthPercent else { return "不支持" }
+        return "\(Int(percent * 100))%"
+    }
+
     // MARK: - 热状态与电源
 
     /// 设备热状态（`ProcessInfo.ThermalState` 枚举）
@@ -445,6 +472,58 @@ public enum SystemInfoKit {
         return "弱"
     }
 
+    /// DNS 服务器地址列表（macOS 解析 `/etc/resolv.conf`；iOS 返回空数组）
+    public static var dnsServers: [String] {
+        #if os(macOS)
+        guard let content = try? String(contentsOfFile: "/etc/resolv.conf", encoding: .utf8) else { return [] }
+        return content.components(separatedBy: .newlines).compactMap { line -> String? in
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard trimmed.hasPrefix("nameserver") else { return nil }
+            let parts = trimmed.split(separator: " ", omittingEmptySubsequences: true)
+            guard parts.count >= 2 else { return nil }
+            return String(parts[1])
+        }
+        #else
+        return []
+        #endif
+    }
+
+    /// 默认网关地址（形如 `192.168.1.1`；仅 macOS，读取不到返回 `nil`）
+    ///
+    /// 通过 `sysctl` 拉取带 `RTF_GATEWAY` 标志的路由表，定位目标为 `0.0.0.0` 的默认路由。
+    public static var defaultGateway: String? {
+        #if os(macOS)
+        return routeGateway()
+        #else
+        return nil
+        #endif
+    }
+
+    /// 公网出口 IP 地址（异步请求）
+    ///
+    /// 通过公共接口（api.ipify.org）获取本机当前出口的公网 IP。需要网络，失败时抛错。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   Task {
+    ///       let ip = try await SystemInfoKit.publicIPAddress()
+    ///       print("公网 IP：\(ip)")
+    ///   }
+    ///   ```
+    public static func publicIPAddress() async throws -> String {
+        guard let url = URL(string: "https://api.ipify.org") else {
+            throw SystemInfoError.invalidResponse
+        }
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse, http.statusCode == 200,
+              let ip = String(data: data, encoding: .utf8)?
+                  .trimmingCharacters(in: .whitespacesAndNewlines),
+              !ip.isEmpty else {
+            throw SystemInfoError.invalidResponse
+        }
+        return ip
+    }
+
     // MARK: - 本地化信息
 
     /// 当前语言代码（形如 `zh` / `en`）
@@ -582,6 +661,28 @@ public enum SystemInfoKit {
         guard let bytes = availableMemoryBytes else { return "未知" }
         return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .memory)
     }
+
+    /// 系统负载（1 / 5 / 15 分钟平均负载，`getloadavg` 三值）
+    ///
+    /// 负载值表示「平均可运行线程数」：多核机器上数值可超过 `1.0`。
+    /// 与 `cpuUsage`（瞬时占用率）不同，负载反映一段时间内的平均排队压力。
+    public static var loadAverage: [Double] {
+        var loads = [Double](repeating: 0, count: 3)
+        let result = loads.withUnsafeMutableBufferPointer { buffer in
+            getloadavg(buffer.baseAddress, 3)
+        }
+        guard result == 3 else { return [0, 0, 0] }
+        return loads
+    }
+
+    /// 1 分钟平均负载
+    public static var loadAverage1Min: Double { loadAverage[0] }
+
+    /// 5 分钟平均负载
+    public static var loadAverage5Min: Double { loadAverage[1] }
+
+    /// 15 分钟平均负载
+    public static var loadAverage15Min: Double { loadAverage[2] }
 
     // MARK: - 内部工具
 
@@ -746,5 +847,92 @@ public enum SystemInfoKit {
         }
         return nil
     }
+
+    /// 读取 AppleSmartBattery 注册表里某个属性的值（IOKit）
+    private static func smartBatteryProperty(_ key: String) -> CFTypeRef? {
+        guard let matching = IOServiceMatching("AppleSmartBattery") else { return nil }
+        let service = IOServiceGetMatchingService(kIOMasterPortDefault, matching)
+        guard service != 0 else { return nil }
+        defer { IOObjectRelease(service) }
+        let value = IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0)
+        return value?.takeRetainedValue()
+    }
+
+    /// 读取 AppleSmartBattery 注册表里某个属性的数值
+    private static func smartBatteryNumber(_ key: String) -> Int? {
+        (smartBatteryProperty(key) as? NSNumber)?.intValue
+    }
+
+    /// 通过 sysctl 拉取默认网关（目标为 0.0.0.0 的默认路由）
+    private static func routeGateway() -> String? {
+        // MIB：CTL_NET(4), PF_ROUTE(17), 0, 0, NET_RT_FLAGS(2), RTF_GATEWAY(0x2)
+        var mib: [Int32] = [4, 17, 0, 0, 2, 2]
+        var length = 0
+        guard sysctl(&mib, u_int(mib.count), nil, &length, nil, 0) == 0, length > 0 else { return nil }
+        var buffer = [UInt8](repeating: 0, count: length)
+        guard sysctl(&mib, u_int(mib.count), &buffer, &length, nil, 0) == 0 else { return nil }
+
+        let headerSize = MemoryLayout<rt_msghdr>.size
+        var offset = 0
+        while offset + headerSize <= buffer.count {
+            var header = rt_msghdr()
+            _ = buffer.withUnsafeBytes { raw in
+                memcpy(&header, raw.baseAddress!.advanced(by: offset), headerSize)
+            }
+            let messageLength = Int(header.rtm_msglen)
+            guard messageLength > headerSize, offset + messageLength <= buffer.count else { break }
+
+            // 遍历 header 之后按 rtm_addrs 位掩码排列的 sockaddr
+            var bitmask = Int(header.rtm_addrs)
+            var sockOffset = offset + headerSize
+            var index = 0
+            var isDefaultRoute = false
+            var gateway: String?
+            while bitmask != 0, sockOffset < offset + messageLength {
+                if bitmask & 1 != 0 {
+                    let sockLen = Int(buffer[sockOffset])
+                    if sockLen >= MemoryLayout<sockaddr_in>.size,
+                       sockOffset + MemoryLayout<sockaddr_in>.size <= buffer.count {
+                        var sin = sockaddr_in()
+                        _ = buffer.withUnsafeBytes { raw in
+                            memcpy(&sin, raw.baseAddress!.advanced(by: sockOffset), MemoryLayout<sockaddr_in>.size)
+                        }
+                        if sin.sin_family == UInt8(AF_INET) {
+                            if index == 0 {                        // RTAX_DST：默认路由目标为 0.0.0.0
+                                isDefaultRoute = sin.sin_addr.s_addr == 0
+                            } else if index == 1, isDefaultRoute { // RTAX_GATEWAY
+                                gateway = formatIPv4(sin.sin_addr)
+                            }
+                        }
+                    }
+                    sockOffset += max(sockLen, 1)
+                    index += 1
+                }
+                bitmask >>= 1
+            }
+            if let gateway = gateway { return gateway }
+            offset += messageLength
+        }
+        return nil
+    }
+
+    /// 把 in_addr 格式化为点分十进制 IPv4
+    private static func formatIPv4(_ addr: in_addr) -> String {
+        let value = UInt32(bigEndian: addr.s_addr)
+        return "\(value >> 24 & 0xFF).\(value >> 16 & 0xFF).\(value >> 8 & 0xFF).\(value & 0xFF)"
+    }
     #endif
+}
+
+/// SystemInfoKit 抛出的错误
+public enum SystemInfoError: Error, LocalizedError {
+    /// 响应无效（非 200 或内容为空）
+    case invalidResponse
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidResponse:
+            return "获取公网 IP 失败：响应无效"
+        }
+    }
 }
