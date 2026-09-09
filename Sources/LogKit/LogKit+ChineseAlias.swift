@@ -181,7 +181,9 @@ public extension LogKit {
                         分类: String = "通用",
                         字段: [String: Any] = [:],
                         文件: String = #file, 行: Int = #line) {
-        throttled(消息, level: 级别, interval: 间隔, key: 键,
+        // 注意：`throttled` 的参数也是 @autoclosure，转发时须先求值 `消息()`，
+        // 否则会把 `() -> Any` 闭包当作值再次自动包裹，导致类型不匹配。
+        throttled(消息(), level: 级别, interval: 间隔, key: 键,
                   category: 分类, fields: 字段, file: 文件, line: 行)
     }
 
