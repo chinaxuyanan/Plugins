@@ -698,11 +698,11 @@ public enum SystemInfoKit {
 
     /// 读取当前进程的物理内存足迹（mach `task_info` + `phys_footprint`）
     private static func processMemoryFootprint() -> UInt64 {
-        var info = mach_task_vm_info()
-        var count = mach_msg_type_number_t(MemoryLayout<mach_task_vm_info>.size / MemoryLayout<natural_t>.size)
+        var info = task_vm_info_data_t()
+        var count = mach_msg_type_number_t(MemoryLayout<task_vm_info_data_t>.size / MemoryLayout<natural_t>.size)
         let result = withUnsafeMutablePointer(to: &info) { ptr in
             ptr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
-                task_info(mach_task_self_, task_flavor_t(MACH_TASK_VM_INFO), rebound, &count)
+                task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), rebound, &count)
             }
         }
         guard result == KERN_SUCCESS else { return 0 }
