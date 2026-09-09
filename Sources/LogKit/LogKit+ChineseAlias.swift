@@ -165,4 +165,69 @@ public extension LogKit {
     static func 重置计数() {
         resetCounts()
     }
+
+    /// 限流日志（等同 `throttled`）
+    /// - Parameters:
+    ///   - 消息: 日志内容（被限流时不会执行）
+    ///   - 级别: 日志级别，默认 `.debug`
+    ///   - 间隔: 限流窗口（秒），默认 `1`
+    ///   - 键: 自定义去重键（可选）；不传则用「文件:行:级别」
+    ///   - 分类: 分类名，默认「通用」
+    ///   - 字段: 附加的扩展字段（键值对）
+    static func 限流日志(_ 消息: @autoclosure () -> Any,
+                        级别: LogLevel = .debug,
+                        间隔: TimeInterval = 1,
+                        键: String? = nil,
+                        分类: String = "通用",
+                        字段: [String: Any] = [:],
+                        文件: String = #file, 行: Int = #line) {
+        throttled(消息, level: 级别, interval: 间隔, key: 键,
+                  category: 分类, fields: 字段, file: 文件, line: 行)
+    }
+
+    /// 清除限流记录（等同 `resetThrottle`）
+    static func 重置限流() {
+        resetThrottle()
+    }
+
+    /// 字段脱敏（等同 `redact`）
+    /// - Parameter 字段: 原始字段
+    static func 脱敏(_ 字段: [String: Any]) -> [String: Any] {
+        redact(字段)
+    }
+
+    /// 是否对敏感字段脱敏（等同 `redactSensitiveData`）
+    static var 脱敏敏感字段: Bool {
+        get { redactSensitiveData }
+        set { redactSensitiveData = newValue }
+    }
+
+    /// 敏感字段关键词（等同 `sensitiveFieldKeywords`）
+    static var 敏感字段关键词: Set<String> {
+        get { sensitiveFieldKeywords }
+        set { sensitiveFieldKeywords = newValue }
+    }
+
+    /// 是否控制台彩色输出（等同 `coloredConsoleOutput`）
+    static var 彩色控制台: Bool {
+        get { coloredConsoleOutput }
+        set { coloredConsoleOutput = newValue }
+    }
+
+    /// 检索日志（等同 `search`）
+    /// - Parameters:
+    ///   - 关键字: 关键字；传空字符串返回全部行
+    ///   - 文件: 日志文件路径；默认当前日志文件
+    ///   - 上限: 最多返回的行数，`0` 表示不限
+    static func 检索日志(_ 关键字: String, 文件: URL? = nil, 上限: Int = 0) -> [String] {
+        search(containing: 关键字, in: 文件, limit: 上限)
+    }
+
+    /// 检索全部日志文件（等同 `searchAllFiles`）
+    /// - Parameters:
+    ///   - 关键字: 关键字；传空字符串返回全部行
+    ///   - 上限: 最多返回的行数，`0` 表示不限
+    static func 检索全部日志(_ 关键字: String, 上限: Int = 0) -> [String] {
+        searchAllFiles(containing: 关键字, limit: 上限)
+    }
 }

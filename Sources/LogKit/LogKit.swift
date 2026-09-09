@@ -31,7 +31,7 @@ import Dispatch
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.6.0"
+    public static let version = "0.7.0"
 
     // MARK: - 配置
 
@@ -149,6 +149,26 @@ public enum LogKit {
     ///   ```
     public static var customFormatter: ((LogEntry) -> String)? = nil
 
+    /// 是否对敏感字段值脱敏（默认 `true`）
+    ///
+    /// 开启后，`fields` 里键名命中 `sensitiveFieldKeywords` 的值会被替换为 `***`，
+    /// 防止密码、令牌等敏感信息写进日志。关闭则不脱敏。
+    public static var redactSensitiveData: Bool = true
+
+    /// 敏感字段名关键词（不区分大小写，命中即脱敏）
+    ///
+    /// 键名包含任一关键词即视为敏感字段。可自行增删。
+    public static var sensitiveFieldKeywords: Set<String> = [
+        "password", "token", "secret", "authorization", "apikey", "api_key",
+        "privatekey", "private_key", "accesskey", "access_key", "credential"
+    ]
+
+    /// 是否在控制台按级别输出 ANSI 彩色（默认 `false`）
+    ///
+    /// 仅控制台、仅 `.text` 格式、且未设置 `customFormatter` 时生效；日志文件与 JSON 输出始终不含颜色码。
+    /// 在支持 ANSI 的终端里，不同级别显示不同颜色：调试灰 / 信息青 / 警告黄 / 错误红 / 严重红底白字。
+    public static var coloredConsoleOutput: Bool = false
+
     // MARK: - 输出方法
 
     /// 调试日志
@@ -216,6 +236,53 @@ public enum LogKit {
                                 fields: [String: Any] = [:],
                                 file: String = #file, line: Int = #line) {
         log(.critical, message, category: category, fields: fields, file: file, line: line)
+    }
+
+    // MARK: - 限流输出
+
+    /// 限流日志：同一调用点（或同一 `key`）在 `interval` 秒内只输出一次
+    ///
+    /// 用于高频日志防刷屏——轮询、手势拖动、逐帧回调等场景，只在窗口期内输出第一条，其余跳过。
+    /// 默认按「文件:行:级别」作为调用点标识；也可用 `key` 自定义去重维度。
+    ///
+    /// - Parameters:
+    ///   - message: 日志内容（惰性求值，被限流时不会执行）
+    ///   - level: 日志级别，默认 `.debug`
+    ///   - interval: 限流窗口（秒），默认 `1`
+    ///   - key: 自定义去重键（可选）；不传则用「文件:行:级别」
+    ///   - category: 分类名，默认「通用」
+    ///   - fields: 附加的扩展字段（键值对）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   // 同一调用点 1 秒内只输出一次
+    ///   LogKit.throttled("滚动位置 \(offset)", level: .debug, interval: 1)
+    ///   ```
+    public static func throttled(_ message: @autoclosure () -> Any,
+                                 level: LogLevel = .debug,
+                                 interval: TimeInterval = 1,
+                                 key: String? = nil,
+                                 category: String = "通用",
+                                 fields: [String: Any] = [:],
+                                 file: String = #file, line: Int = #line) {
+        let throttleKey = key ?? "\(file):\(line):\(level.rawValue)"
+        let now = Date()
+        throttleLock.lock()
+        defer { throttleLock.unlock() }
+        if let last = throttleLastEmit[throttleKey], now.timeIntervalSince(last) < interval {
+            return   // 限流窗口内，跳过
+        }
+        throttleLastEmit[throttleKey] = now
+        log(level, message, category: category, fields: fields, file: file, line: line)
+    }
+
+    /// 清除全部限流记录
+    ///
+    /// 清空后，下一次限流日志会立即输出。
+    public static func resetThrottle() {
+        throttleLock.lock()
+        defer { throttleLock.unlock() }
+        throttleLastEmit.removeAll()
     }
 
     // MARK: - 计时测量
@@ -336,6 +403,59 @@ public enum LogKit {
         levelCounts[level, default: 0] += 1
     }
 
+    // MARK: - 敏感信息脱敏
+
+    /// 对字段字典按敏感关键词脱敏（供外部单独使用）
+    ///
+    /// 键名命中 `sensitiveFieldKeywords` 的值会被替换为 `***`，其余原样保留。
+    /// 若 `redactSensitiveData` 关闭则原样返回。
+    ///
+    /// - Parameter fields: 原始字段
+    /// - Returns: 脱敏后的字段
+    public static func redact(_ fields: [String: Any]) -> [String: Any] {
+        redactedFields(fields)
+    }
+
+    /// 内部：按配置对字段脱敏
+    private static func redactedFields(_ fields: [String: Any]) -> [String: Any] {
+        guard redactSensitiveData, !fields.isEmpty else { return fields }
+        var result = fields
+        for key in fields.keys {
+            if isSensitiveKey(key) {
+                result[key] = "***"
+            }
+        }
+        return result
+    }
+
+    /// 判断字段名是否命中敏感关键词（不区分大小写、包含即命中）
+    private static func isSensitiveKey(_ key: String) -> Bool {
+        let lowered = key.lowercased()
+        return sensitiveFieldKeywords.contains { lowered.contains($0) }
+    }
+
+    // MARK: - 控制台彩色（内部）
+
+    /// 给控制台文本套上级别对应的 ANSI 颜色
+    private static func colored(_ text: String, level: LogLevel) -> String {
+        "\u{001B}[\(ansiCode(level))m\(text)\u{001B}[0m"
+    }
+
+    /// 级别对应的 ANSI 颜色码
+    private static func ansiCode(_ level: LogLevel) -> String {
+        switch level {
+        case .debug: return "90"        // 亮黑（灰）
+        case .info: return "36"         // 青
+        case .warning: return "33"      // 黄
+        case .error: return "31"        // 红
+        case .critical: return "41;97"  // 红底白字
+        }
+    }
+
+    /// 限流记录存储（键 → 上次输出时间）
+    private static let throttleLock = NSLock()
+    private static var throttleLastEmit: [String: Date] = [:]
+
     // MARK: - 文件管理
 
     /// 当前日志文件完整路径
@@ -373,6 +493,56 @@ public enum LogKit {
         writeQueue.sync {}
     }
 
+    // MARK: - 日志检索
+
+    /// 检索某个日志文件中包含关键字的行
+    ///
+    /// - Parameters:
+    ///   - keyword: 关键字；传空字符串返回全部行
+    ///   - fileURL: 日志文件路径；默认当前日志文件
+    ///   - limit: 最多返回的行数，`0` 表示不限（默认 `0`；非零时取匹配到的最后 `limit` 行）
+    /// - Returns: 匹配的日志行（含原始时间戳与级别）
+    public static func search(containing keyword: String,
+                              in fileURL: URL? = nil,
+                              limit: Int = 0) -> [String] {
+        let url = fileURL ?? logFileURL
+        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return [] }
+        var lines = content.components(separatedBy: .newlines).filter { !$0.isEmpty }
+        if !keyword.isEmpty {
+            lines = lines.filter { $0.contains(keyword) }
+        }
+        if limit > 0, lines.count > limit {
+            lines = Array(lines.suffix(limit))
+        }
+        return lines
+    }
+
+    /// 检索日志目录下所有 `LogKit-*.log` 文件中包含关键字的行
+    ///
+    /// 按文件名升序遍历（当前日志文件在后），行内不额外标注来源文件。
+    ///
+    /// - Parameters:
+    ///   - keyword: 关键字；传空字符串返回全部行
+    ///   - limit: 最多返回的行数，`0` 表示不限（默认 `0`）
+    /// - Returns: 匹配的日志行
+    public static func searchAllFiles(containing keyword: String, limit: Int = 0) -> [String] {
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(at: logDirectory,
+                                                      includingPropertiesForKeys: nil,
+                                                      options: []) else { return [] }
+        let logs = files
+            .filter { $0.pathExtension == "log" && $0.lastPathComponent.hasPrefix("LogKit-") }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        var results: [String] = []
+        for url in logs {
+            results.append(contentsOf: search(containing: keyword, in: url))
+        }
+        if limit > 0, results.count > limit {
+            results = Array(results.suffix(limit))
+        }
+        return results
+    }
+
     // MARK: - 内部实现
 
     /// 内部统一输出入口：`message` 为普通闭包（非 `@autoclosure`），供各输出方法转发其 `@autoclosure` 参数，
@@ -385,9 +555,13 @@ public enum LogKit {
         if ignoredCategories.contains(category) { return }
         let effectiveTraceId = traceId ?? Self.traceId
         incrementCount(level: level)
+        let safeFields = redactedFields(fields)
         let text = formatLine(level: level, message: message(), traceId: effectiveTraceId,
-                              category: category, file: file, line: line, fields: fields)
-        if consoleOutput { print(text) }
+                              category: category, file: file, line: line, fields: safeFields)
+        if consoleOutput {
+            let shouldColor = coloredConsoleOutput && customFormatter == nil && outputFormat == .text
+            print(shouldColor ? colored(text, level: level) : text)
+        }
         if fileOutput { enqueueWrite(level: level, text) }
     }
 

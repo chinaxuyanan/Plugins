@@ -21,6 +21,9 @@ final class LogKitTests: XCTestCase {
         LogKit.maxLogFiles = 0
         LogKit.traceId = nil
         LogKit.resetCounts()
+        LogKit.resetThrottle()
+        LogKit.coloredConsoleOutput = false
+        LogKit.redactSensitiveData = true
     }
 
     override func tearDown() {
@@ -32,6 +35,7 @@ final class LogKitTests: XCTestCase {
         LogKit.ignoredCategories = []
         LogKit.traceId = nil
         LogKit.resetCounts()
+        LogKit.resetThrottle()
         super.tearDown()
     }
 
@@ -287,5 +291,126 @@ final class LogKitTests: XCTestCase {
         XCTAssertEqual(LogKit.totalCount(), 1)
         XCTAssertEqual(LogKit.totalCount(by: .error), 1)
         XCTAssertEqual(LogKit.totalCount(by: .debug), 0)
+    }
+
+    // MARK: - 限流 throttle
+
+    func testThrottleSkipsWithinInterval() {
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+
+        LogKit.throttled("滚动", key: "滚动-key", interval: 10)
+        LogKit.throttled("滚动", key: "滚动-key", interval: 10)
+        LogKit.throttled("滚动", key: "滚动-key", interval: 10)
+
+        XCTAssertEqual(captured, ["滚动"], "限流窗口内同一键只应输出一次")
+    }
+
+    func testThrottleDifferentKeysIndependent() {
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+
+        LogKit.throttled("a", key: "k1", interval: 10)
+        LogKit.throttled("b", key: "k2", interval: 10)
+
+        XCTAssertEqual(captured, ["a", "b"])
+    }
+
+    func testThrottleResetAllowsAgain() {
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+
+        LogKit.throttled("x", key: "reset-key", interval: 10)
+        LogKit.resetThrottle()
+        LogKit.throttled("x", key: "reset-key", interval: 10)
+
+        XCTAssertEqual(captured, ["x", "x"], "重置限流后同一键应立即再次输出")
+    }
+
+    // MARK: - 敏感信息脱敏
+
+    func testRedactSensitiveFields() {
+        let redacted = LogKit.redact([
+            "password": "123456",
+            "accessToken": "abc",
+            "userName": "张三",
+            "score": 98
+        ])
+        XCTAssertEqual(redacted["password"] as? String, "***")
+        XCTAssertEqual(redacted["accessToken"] as? String, "***")
+        XCTAssertEqual(redacted["userName"] as? String, "张三")
+        XCTAssertEqual(redacted["score"] as? Int, 98)
+    }
+
+    func testRedactDisabledReturnsOriginal() {
+        LogKit.redactSensitiveData = false
+        let redacted = LogKit.redact(["password": "123456"])
+        XCTAssertEqual(redacted["password"] as? String, "123456")
+    }
+
+    func testRedactCustomKeyword() {
+        LogKit.sensitiveFieldKeywords.insert("card")
+        let redacted = LogKit.redact(["cardNumber": "4111"])
+        XCTAssertEqual(redacted["cardNumber"] as? String, "***")
+    }
+
+    // MARK: - 终端彩色输出
+
+    func testColoredOutputDoesNotLeakToFile() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.outputFormat = .text
+        LogKit.coloredConsoleOutput = true   // 彩色只作用于控制台，不应写入文件
+
+        LogKit.info("彩色测试")
+        LogKit.flush()
+
+        let content = try String(contentsOf: LogKit.logFileURL, encoding: .utf8)
+        XCTAssertTrue(content.contains("彩色测试"))
+        XCTAssertFalse(content.contains("\u{001B}"), "文件输出不应包含 ANSI 转义序列")
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    // MARK: - 日志检索
+
+    func testSearchWithinFile() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        let file = dir.appendingPathComponent("test.log")
+        let content = "第一行 启动完成\n第二行 网络请求失败\n第三行 网络重试成功\n"
+        try content.write(to: file, atomically: true, encoding: .utf8)
+
+        let matches = LogKit.search(containing: "网络", in: file)
+        XCTAssertEqual(matches, ["第二行 网络请求失败", "第三行 网络重试成功"])
+
+        let all = LogKit.search(containing: "", in: file)
+        XCTAssertEqual(all.count, 3)
+
+        let limited = LogKit.search(containing: "网络", in: file, limit: 1)
+        XCTAssertEqual(limited, ["第三行 网络重试成功"], "limit 非零时取最后 N 行")
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    func testSearchMissingFileReturnsEmpty() {
+        let missing = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString)
+            .appendingPathComponent("不存在.log")
+        XCTAssertEqual(LogKit.search(containing: "任意", in: missing), [])
+    }
+
+    func testChineseAliasForNewFeatures() {
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+        LogKit.限流日志("限流", 键: "alias-key", 间隔: 10)
+        LogKit.限流日志("限流", 键: "alias-key", 间隔: 10)
+        XCTAssertEqual(captured, ["限流"])
+
+        XCTAssertEqual(LogKit.脱敏(["password": "1"])["password"] as? String, "***")
+        XCTAssertEqual(LogKit.敏感字段关键词, LogKit.sensitiveFieldKeywords)
+        XCTAssertEqual(LogKit.脱敏敏感字段, LogKit.redactSensitiveData)
+        XCTAssertEqual(LogKit.彩色控制台, LogKit.coloredConsoleOutput)
     }
 }

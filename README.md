@@ -21,6 +21,10 @@
 - **异步写文件**：后台串行队列落盘不阻塞主线程，`严重` 日志始终同步落盘防丢失
 - **双通道输出**：控制台 + 可选日志文件（按天分文件，可按大小轮转、按数量清理）
 - **分类过滤**：白名单 / 黑名单按分类过滤日志
+- **日志限流**：`throttled` / `限流日志` 同一键在时间窗口内只输出一次，抑制高频刷屏
+- **敏感信息脱敏**：按字段名关键词自动把 `password` / `token` 等值替换为 `***`，可关可配
+- **终端彩色输出**：`coloredConsoleOutput` 开启后控制台文本按级别着色（仅控制台，不写入文件）
+- **日志检索**：`search` / `searchAllFiles` 按关键字搜索当前 / 全部日志文件
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -32,7 +36,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.6.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.7.0")
 ]
 ```
 
@@ -103,6 +107,9 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `outputFormat` | `.text` | 输出格式：`.text` 单行文本 / `.json` 结构化 JSON |
 | `customFormatter` | `nil` | 自定义格式闭包 `(LogEntry) -> String`，设置后接管全部格式化 |
 | `asyncWrite` | `true` | 是否异步写文件；关闭则同步落盘 |
+| `redactSensitiveData` | `true` | 是否对敏感字段自动脱敏 |
+| `sensitiveFieldKeywords` | `["password", "token", ...]` | 敏感字段名关键词（不区分大小写，包含即命中）|
+| `coloredConsoleOutput` | `false` | 控制台文本是否按级别着色（仅 `.text` 输出、仅控制台）|
 
 ## 中文命名别名
 
@@ -123,6 +130,11 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.自定义格式` | `LogKit.customFormatter` |
 | `LogKit.追踪ID` | `LogKit.traceId` |
 | `LogKit.自适应最低级别` | `LogKit.adaptiveMinimumLevel` |
+| `LogKit.限流日志(...)` / `LogKit.重置限流()` | `LogKit.throttled(...)` / `LogKit.resetThrottle()` |
+| `LogKit.脱敏(字段)` | `LogKit.redact(...)` |
+| `LogKit.脱敏敏感字段` / `LogKit.敏感字段关键词` | `LogKit.redactSensitiveData` / `LogKit.sensitiveFieldKeywords` |
+| `LogKit.彩色控制台` | `LogKit.coloredConsoleOutput` |
+| `LogKit.检索日志(关键字)` / `LogKit.检索全部日志(关键字)` | `LogKit.search(containing:)` / `LogKit.searchAllFiles(containing:)` |
 | `LogKit.级别计数(级别)` / `LogKit.日志总数()` / `LogKit.重置计数()` | `LogKit.totalCount(by:)` / `LogKit.totalCount()` / `LogKit.resetCounts()` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
 | `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
@@ -155,7 +167,40 @@ let 系统日志 = OSLogger(subsystem: "com.example.app", category: "网络")
 系统日志.错误("请求失败")
 ```
 
+**日志限流 `throttled`**：同一键（默认「文件:行:级别」）在窗口内只输出一次，适合滚动回调等高频场景：
+
+```swift
+for offset in 0..<1000 {
+    LogKit.限流日志("滚动位置 \(offset)", 间隔: 1)   // 1 秒内只输出第一条
+}
+LogKit.重置限流()   // 清除全部限流记录，下次立即输出
+```
+
+**敏感信息脱敏**：默认开启，按字段名关键词把值替换为 `***`；可单独调用 `redact` 或关闭：
+
+```swift
+LogKit.info("登录", fields: ["账号": "张三", "password": "secret"])   // password → ***
+LogKit.redact(["token": "abc"])            // ["token": "***"]
+LogKit.脱敏敏感字段 = false                 // 关闭自动脱敏
+LogKit.敏感字段关键词.insert("card")        // 追加自定义关键词
+```
+
+**终端彩色输出**：仅作用于控制台的 `.text` 输出，按级别着色（调试灰 / 信息青 / 警告黄 / 错误红 / 严重红底白字），不影响文件与 JSON：
+
+```swift
+LogKit.彩色控制台 = true
+```
+
+**日志检索**：按关键字搜索当前或全部日志文件：
+
+```swift
+let 行 = LogKit.检索日志("网络请求失败")          // 当前日志文件
+let 全部 = LogKit.检索全部日志("错误", 上限: 50)   // 目录下全部日志文件，最多 50 行
+```
+
 ## 更新日志
+
+- **0.7.0**：新增日志限流（`throttled` / `限流日志` / `resetThrottle` / `重置限流`，按「文件:行:级别」或自定义键去重）、敏感信息脱敏（`redactSensitiveData` / `sensitiveFieldKeywords` / `redact` / `脱敏`，按字段名关键词替换为 `***`）、终端彩色输出（`coloredConsoleOutput` / `彩色控制台`，仅控制台 `.text` 按级别着色）、日志检索（`search` / `searchAllFiles` / `检索日志` / `检索全部日志`，按关键字搜当前 / 全部日志文件，含 `limit`），均含中文别名并补单元测试。
 
 - **0.6.0**：新增追踪 ID（`traceId` 全局 + `ScopedLogger.traceId` 两级，`LogEntry` 与 JSON 输出均带 `traceId` 字段，`ScopedLogger.child` 自动继承）、环境自适应默认级别（`minimumLevel` 默认 DEBUG `.debug` / RELEASE `.warning`，提供只读 `adaptiveMinimumLevel`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`，只统计通过过滤真正输出的日志），均含中文别名。
 
