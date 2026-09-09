@@ -9,6 +9,9 @@
 - **分级过滤**：设置 `minimumLevel` 自动屏蔽低级别日志
 - **统一格式**：`[时间] [级别] [分类] 消息 @ 文件:行`
 - **双格式输出**：单行文本（默认）+ 结构化 JSON，便于日志采集 / 机器解析
+- **结构化字段**：日志可附加 `fields` 键值对，JSON 输出时成为 `fields` 子对象
+- **自定义格式**：`customFormatter` 闭包完全接管每条日志的拼装
+- **耗时测量**：`measure` / `计时` 一行代码计时并输出耗时，同步 / 异步皆可
 - **异步写文件**：后台串行队列落盘不阻塞主线程，`严重` 日志始终同步落盘防丢失
 - **双通道输出**：控制台 + 可选日志文件（按天分文件，可按大小轮转、按数量清理）
 - **分类过滤**：白名单 / 黑名单按分类过滤日志
@@ -23,7 +26,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.3.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.4.0")
 ]
 ```
 
@@ -42,6 +45,13 @@ LogKit.信息("用户登录成功", 分类: "账号")
 LogKit.警告("网络请求超时", 分类: "网络")
 LogKit.错误("解析失败：\(reason)", 分类: "数据")
 LogKit.严重("数据库连接中断", 分类: "存储")
+
+// 耗时测量：执行代码块并自动输出耗时
+let 结果 = LogKit.计时("解析数据") { try parser.parse(data) }
+let 数据 = try await LogKit.异步计时("拉取用户信息") { try await api.fetchUser(id) }
+
+// 结构化字段（配合 JSON 输出）
+LogKit.info("请求完成", fields: ["接口": "/api/user", "状态码": 200])
 ```
 
 控制台输出示例：
@@ -83,6 +93,7 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `enabledCategories` | `nil`（全部） | 分类白名单，只输出名单内分类 |
 | `ignoredCategories` | `[]`（空） | 分类黑名单，跳过名单内分类 |
 | `outputFormat` | `.text` | 输出格式：`.text` 单行文本 / `.json` 结构化 JSON |
+| `customFormatter` | `nil` | 自定义格式闭包 `(LogEntry) -> String`，设置后接管全部格式化 |
 | `asyncWrite` | `true` | 是否异步写文件；关闭则同步落盘 |
 
 ## 中文命名别名
@@ -94,14 +105,18 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.警告(...)` | `LogKit.warning(...)` |
 | `LogKit.错误(...)` | `LogKit.error(...)` |
 | `LogKit.严重(...)` | `LogKit.critical(...)` |
+| `LogKit.计时(标签) { ... }` | `LogKit.measure(...)` |
+| `LogKit.异步计时(标签) { ... }` | `LogKit.measureAsync(...)` |
 | `LogKit.清空日志()` | `LogKit.clearLog()` |
 | `LogKit.轮转日志()` | `LogKit.rotateLogFile()` |
 | `LogKit.刷新缓冲()` | `LogKit.flush()` |
 | `LogKit.输出格式` | `LogKit.outputFormat` |
 | `LogKit.异步写入` | `LogKit.asyncWrite` |
+| `LogKit.自定义格式` | `LogKit.customFormatter` |
 
 ## 更新日志
 
+- **0.4.0**：新增耗时测量（`measure` / `measureAsync` / `计时` / `异步计时`，执行代码块并输出耗时，抛错时记录「失败 · 耗时」）、结构化字段（五级日志方法新增 `fields` 参数，JSON 输出成为 `fields` 子对象，文本输出追加 `[key=value]`）、自定义格式闭包（`customFormatter` / `自定义格式`，接收 `LogEntry` 完全接管日志拼装），均含中文别名。
 - **0.3.0**：新增 JSON 结构化输出（`outputFormat = .json`，含时间/级别/级别值/分类/消息/位置字段）与异步写文件（`asyncWrite` 后台串行队列落盘，`flush` / `刷新缓冲` 等待落盘，`严重` 日志始终同步），均含中文别名。
 - **0.2.0**：新增文件轮转（`maxFileSize` 按大小归档、`maxLogFiles` 按数量清理、`rotateLogFile` / `轮转日志` 主动轮转）与分类过滤（`enabledCategories` 白名单 / `ignoredCategories` 黑名单）。
 - **0.1.0**：首个版本，五级日志、分级过滤、控制台 / 文件双输出、中文命名别名。
