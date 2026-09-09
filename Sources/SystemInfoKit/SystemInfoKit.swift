@@ -29,7 +29,7 @@ import IOKit.ps
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.5.0"
+    public static let version = "0.5.1"
 
     // MARK: - 系统信息
 

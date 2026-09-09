@@ -29,7 +29,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.5.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.5.1")
 ]
 ```
 
@@ -95,7 +95,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `memoryUsedBytes` / `memoryUsed` | 内存已用（字节 / 可读） | `UInt64` / 人类可读 |
 | `memoryUsagePercent` | 内存使用率 | `0.0`~`1.0` |
 | `memoryPressure` | 内存压力 | 仅 macOS |
-| `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 |
+| `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 / 不支持 |
 | `availableMemoryBytes` / `availableMemory` | 可用内存（字节 / 可读） | `UInt64?` / 人类可读 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
 
@@ -120,6 +120,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 
 ## 更新日志
 
+- **0.5.1**：修复内存压力读取——一次性 `memoryPressure` 在 macOS 上拿不到当前值（内存压力源仅在压力变化时回调），现正确返回「不支持」并在文档说明，推荐用 `MemoryPressureMonitor` 监听实时值；`MemoryPressureMonitor.currentPressure` 改为记录最近一次压力事件（此前误用一次性读取器）。新增冒烟测试（Tests target，13 用例）。
 - **0.5.0**：新增可用内存（`availableMemoryBytes` / `availableMemory`，封装 `os_proc_available_memory()`）、内存压力监听器（`MemoryPressureMonitor`，实时回调压力变化，仅 macOS）、存储详情（`availableCapacityBytes` / `availableCapacity` / `opportunisticCapacityBytes` / `opportunisticCapacity` / `volumeName` / `fileSystemName`，基于 URL 资源值与文件系统属性），均含中文别名。
 
 - **0.4.0**：新增 CPU 架构（`cpuArchitecture`，编译期 `arch()` 判断 `arm64` / `x86_64`）、热状态与电源（`thermalState` / `thermalStateName` / `isLowPowerModeEnabled`，基于 `ProcessInfo`，低功耗模式仅 iOS）、内存压力（`memoryPressure` / `memoryPressureName`，基于 macOS Dispatch 内存压力源），均含中文别名。
