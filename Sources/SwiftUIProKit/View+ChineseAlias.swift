@@ -438,6 +438,103 @@ public extension View {
     }
 }
 
+// MARK: 弹窗进阶
+
+public extension View {
+    /// 多按钮弹窗（等同 `multiAlert`）
+    /// - Parameters:
+    ///   - 标题: 弹窗标题
+    ///   - 说明: 弹窗说明文字（可选）
+    ///   - 是否显示: 控制是否显示的绑定值
+    ///   - 按钮组: 按钮组
+    @ViewBuilder
+    func 多按钮弹窗<Actions: View>(_ 标题: String,
+                                  说明: String? = nil,
+                                  是否显示: Binding<Bool>,
+                                  @ViewBuilder 按钮组: @escaping () -> Actions) -> some View {
+        multiAlert(标题, message: 说明, isPresented: 是否显示, actions: 按钮组)
+    }
+
+    /// 破坏性确认弹窗（等同 `destructiveAlert`）
+    /// - Parameters:
+    ///   - 标题: 弹窗标题
+    ///   - 说明: 说明文字（可选）
+    ///   - 是否显示: 控制是否显示的绑定值
+    ///   - 破坏性文字: 破坏性按钮文字，默认「删除」
+    ///   - 破坏性操作: 点击破坏性按钮执行的操作
+    ///   - 取消文字: 取消按钮文字，默认「取消」
+    @ViewBuilder
+    func 破坏性确认(标题: String,
+                   说明: String? = nil,
+                   是否显示: Binding<Bool>,
+                   破坏性文字: String = "删除",
+                   破坏性操作: @escaping () -> Void,
+                   取消文字: String = "取消") -> some View {
+        destructiveAlert(标题, message: 说明, isPresented: 是否显示,
+                         destructiveTitle: 破坏性文字, onDestructive: 破坏性操作, cancelTitle: 取消文字)
+    }
+
+    /// 动作菜单（等同 `actionDialog`）
+    /// - Parameters:
+    ///   - 标题: 菜单标题
+    ///   - 是否显示: 控制是否显示的绑定值
+    ///   - 标题可见性: 标题可见性，默认 `.automatic`
+    ///   - 动作组: 动作按钮组
+    @ViewBuilder
+    func 动作菜单<Actions: View>(_ 标题: String,
+                               是否显示: Binding<Bool>,
+                               标题可见性: Visibility = .automatic,
+                               @ViewBuilder 动作组: @escaping () -> Actions) -> some View {
+        actionDialog(标题, isPresented: 是否显示, titleVisibility: 标题可见性, actions: 动作组)
+    }
+
+    /// 气泡弹窗（等同 `showPopover`）
+    /// - Parameters:
+    ///   - 是否显示: 控制是否显示的绑定值
+    ///   - 箭头方向: 气泡箭头方向，默认 `.top`
+    ///   - 内容: 气泡内容
+    @ViewBuilder
+    func 弹出气泡<Content: View>(是否显示: Binding<Bool>,
+                                 箭头方向: Edge = .top,
+                                 @ViewBuilder 内容: @escaping () -> Content) -> some View {
+        showPopover(isPresented: 是否显示, arrowEdge: 箭头方向, content: 内容)
+    }
+
+    /// 右键 / 长按菜单（等同 `contextualMenu`）
+    /// - Parameter 菜单项: 菜单项
+    @ViewBuilder
+    func 右键菜单<MenuItems: View>(@ViewBuilder 菜单项: @escaping () -> MenuItems) -> some View {
+        contextualMenu(menuItems: 菜单项)
+    }
+}
+
+// MARK: 表单与分组
+
+public extension View {
+    /// 表单样式（等同 `formStyleCustom`，iOS 16+ / macOS 13+）
+    /// - Parameter 样式: 表单样式
+    @available(iOS 16.0, macOS 13.0, *)
+    @ViewBuilder
+    func 表单样式(_ 样式: some FormStyle) -> some View {
+        formStyleCustom(样式)
+    }
+}
+
+// MARK: 毛玻璃与材质
+
+public extension View {
+    /// 毛玻璃背景（等同 `frostedGlass`）
+    @ViewBuilder
+    func 毛玻璃() -> some View { frostedGlass() }
+
+    /// 材质背景（等同 `materialBackground`）
+    /// - Parameter 材质: 系统材质，默认 `.regularMaterial`
+    @ViewBuilder
+    func 材质背景(_ 材质: Material = .regularMaterial) -> some View {
+        materialBackground(材质)
+    }
+}
+
 // MARK: 颜色工具
 
 public extension Color {

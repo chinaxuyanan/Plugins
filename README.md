@@ -6,7 +6,7 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、触觉反馈，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
@@ -19,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.7.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.8.0")
 ]
 ```
 
@@ -106,6 +106,12 @@ VStack {
 | `骨架屏` / `扫光` | `skeleton` / `shimmer` |
 | `下拉刷新` / `搜索框` | `pullToRefresh` / `searchableText` |
 | `流式布局` | `FlowLayout`（iOS 16+ / macOS 13+）|
+| `多按钮弹窗` / `破坏性确认` / `动作菜单` / `弹出气泡` / `右键菜单` | `multiAlert` / `destructiveAlert` / `actionDialog` / `showPopover` / `contextualMenu` |
+| `等宽网格` / `自适应网格` | `EqualColumnGrid` / `AdaptiveGrid` |
+| `网格` / `网格行` | `Grid` / `GridRow`（iOS 16+ / macOS 13+）|
+| `分组卡片` | `GroupCard` |
+| `表单样式` | `formStyleCustom`（iOS 16+ / macOS 13+）|
+| `毛玻璃` / `材质背景` | `frostedGlass` / `materialBackground` |
 | `冲击` / `选择` / `通知` / `成功` / `警告` / `错误` | `Haptics.impact` / `selection` / `notification` / `success` / `warning` / `error`（仅 iOS）|
 
 ## 属性速查表
@@ -234,6 +240,38 @@ VStack {
 | `presentSheet(isPresented:onDismiss:content:)` | 弹出底部面板 |
 | `confirmAlert(title:message:isPresented:confirmTitle:onConfirm:)` | 确认提示框（确定 / 取消）|
 
+### 弹窗进阶
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `multiAlert(_:message:isPresented:actions:)` | 多按钮弹窗（任意按钮组合）|
+| `destructiveAlert(_:message:isPresented:destructiveTitle:onDestructive:cancelTitle:)` | 破坏性操作确认弹窗（红色删除按钮）|
+| `actionDialog(_:isPresented:titleVisibility:actions:)` | 动作菜单（`confirmationDialog`）|
+| `showPopover(isPresented:arrowEdge:content:)` | 气泡弹窗（`popover`）|
+| `contextualMenu(menuItems:)` | 右键 / 长按菜单（`contextMenu`）|
+
+### 网格
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `EqualColumnGrid(columns:spacing:alignment:content:)` | 等宽网格（指定列数，每列等宽）|
+| `AdaptiveGrid(minimumWidth:spacing:alignment:content:)` | 自适应网格（按最小宽度自动算列数）|
+| `网格` / `网格行` | `Grid` / `GridRow` 中文别名（iOS 16+ / macOS 13+）|
+
+### 表单与分组
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `GroupCard(_:content:)` | 带标题的分组卡片（`GroupBox`）|
+| `formStyleCustom(_:)` | 表单样式（`formStyle`，iOS 16+ / macOS 13+）|
+
+### 毛玻璃与材质
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `frostedGlass()` | 毛玻璃背景（`ultraThinMaterial`）|
+| `materialBackground(_:)` | 材质背景（`regularMaterial` 等）|
+
 ### 复合样式
 
 | 方法 | 中文含义 |
@@ -361,6 +399,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.8.0**：新增「弹窗进阶」「网格」「表单与分组」「毛玻璃与材质」四个类别封装（`multiAlert` / `destructiveAlert` / `actionDialog` / `showPopover` / `contextualMenu`、`EqualColumnGrid` / `AdaptiveGrid`（含 `Grid` / `GridRow` 中文别名，iOS 16+ / macOS 13+）、`GroupCard` / `formStyleCustom`（iOS 16+ / macOS 13+）、`frostedGlass` / `materialBackground`），均含中文别名。
 
 - **0.7.0**：新增「骨架屏」「刷新与搜索」「流式布局」「触觉反馈」四个类别封装（`skeleton` / `shimmer`、`pullToRefresh` / `searchableText`、`FlowLayout`（`Layout` 协议标签自动换行，iOS 16+ / macOS 13+）、`Haptics`（`impact` / `selection` / `notification` / `success` / `warning` / `error`，仅 iOS）），均含中文别名。
 

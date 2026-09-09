@@ -35,8 +35,12 @@ import SwiftUI
 /// - `View+RefreshSearch.swift` 刷新与搜索（下拉刷新 / 搜索框）
 /// - `FlowLayout.swift`       流式布局（标签自动换行，iOS 16 / macOS 13+）
 /// - `Haptics.swift`          触觉反馈（冲击 / 选择 / 通知，仅 iOS）
+/// - `View+AdvancedAlert.swift` 弹窗进阶（多按钮 / 破坏性确认 / 动作菜单 / 气泡 / 右键菜单）
+/// - `View+Grid.swift`        网格（等宽列 / 自适应列 / Grid 容器，部分 iOS 16 / macOS 13+）
+/// - `View+Form.swift`        表单与分组（分组卡片 / 表单样式）
+/// - `View+Material.swift`    毛玻璃与材质
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.7.0"
+    public static let version = "0.8.0"
 }
