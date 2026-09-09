@@ -451,9 +451,11 @@ public enum SystemInfoKit {
         memoryStats()?.percent ?? 0
     }
 
-    /// 当前内存压力（仅 macOS 支持；iOS 返回 `nil`）
+    /// 当前内存压力（仅 macOS；iOS 返回 `nil`）
     ///
-    /// 通过 Dispatch 内存压力源读取系统当前的内存压力级别（正常 / 警告 / 严重）。
+    /// - Important: 内存压力源只在压力*变化*时回调，健康系统「正常」态没有事件，
+    ///   因此一次性读取在 macOS 上通常无法确定当前值、返回 `nil`（对应「不支持」）。
+    ///   需要实时压力请改用 `MemoryPressureMonitor` 长期监听。
     public static var memoryPressure: DispatchSource.MemoryPressureEvent? {
         #if os(macOS)
         return currentMemoryPressureEvent()
@@ -462,7 +464,10 @@ public enum SystemInfoKit {
         #endif
     }
 
-    /// 内存压力中文名（「正常」「警告」「严重」；不支持时返回「不支持」）
+    /// 内存压力中文名（「正常」「警告」「严重」；无法确定或非 macOS 时返回「不支持」）
+    ///
+    /// - Important: macOS 上一次性读取通常返回「不支持」（见 `memoryPressure` 说明）；
+    ///   要拿真实当前值请用 `MemoryPressureMonitor`。
     public static var memoryPressureName: String {
         guard let pressure = memoryPressure else { return "不支持" }
         if pressure.contains(.critical) { return "严重" }
