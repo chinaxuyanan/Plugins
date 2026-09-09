@@ -136,7 +136,11 @@ final class LogKitTests: XCTestCase {
 
     func testPerformanceCounterMeasure() {
         let counter = PerformanceCounter("测量")
-        let result = counter.measure { 42 }
+        // `{ 42 }` 瞬时完成，Date 的 Double 精度下耗时可能取到 0.0，故睡 10ms 保证非零。
+        let result = counter.measure {
+            Thread.sleep(forTimeInterval: 0.01)
+            return 42
+        }
         XCTAssertEqual(result, 42)
         XCTAssertEqual(counter.callCount, 1)
         XCTAssertGreaterThan(counter.totalDuration, 0)

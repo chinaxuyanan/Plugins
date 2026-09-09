@@ -452,7 +452,7 @@ public enum LogKit {
         guard let data = try? JSONSerialization.data(withJSONObject: dict, options: []),
               let json = String(data: data, encoding: .utf8) else {
             // JSON 序列化失败时回退为单行文本，保证日志不丢失
-            return formatText(level: level, message: message, category: category, file: file, line: line, fields: fields)
+            return formatText(level: level, message: message, traceId: traceId, category: category, file: file, line: line, fields: fields)
         }
         return json
     }
