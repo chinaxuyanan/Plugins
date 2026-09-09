@@ -299,9 +299,9 @@ final class LogKitTests: XCTestCase {
         var captured: [String] = []
         LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
 
-        LogKit.throttled("滚动", key: "滚动-key", interval: 10)
-        LogKit.throttled("滚动", key: "滚动-key", interval: 10)
-        LogKit.throttled("滚动", key: "滚动-key", interval: 10)
+        LogKit.throttled("滚动", interval: 10, key: "滚动-key")
+        LogKit.throttled("滚动", interval: 10, key: "滚动-key")
+        LogKit.throttled("滚动", interval: 10, key: "滚动-key")
 
         XCTAssertEqual(captured, ["滚动"], "限流窗口内同一键只应输出一次")
     }
@@ -310,8 +310,8 @@ final class LogKitTests: XCTestCase {
         var captured: [String] = []
         LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
 
-        LogKit.throttled("a", key: "k1", interval: 10)
-        LogKit.throttled("b", key: "k2", interval: 10)
+        LogKit.throttled("a", interval: 10, key: "k1")
+        LogKit.throttled("b", interval: 10, key: "k2")
 
         XCTAssertEqual(captured, ["a", "b"])
     }
@@ -320,9 +320,9 @@ final class LogKitTests: XCTestCase {
         var captured: [String] = []
         LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
 
-        LogKit.throttled("x", key: "reset-key", interval: 10)
+        LogKit.throttled("x", interval: 10, key: "reset-key")
         LogKit.resetThrottle()
-        LogKit.throttled("x", key: "reset-key", interval: 10)
+        LogKit.throttled("x", interval: 10, key: "reset-key")
 
         XCTAssertEqual(captured, ["x", "x"], "重置限流后同一键应立即再次输出")
     }
@@ -404,8 +404,8 @@ final class LogKitTests: XCTestCase {
     func testChineseAliasForNewFeatures() {
         var captured: [String] = []
         LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
-        LogKit.限流日志("限流", 键: "alias-key", 间隔: 10)
-        LogKit.限流日志("限流", 键: "alias-key", 间隔: 10)
+        LogKit.限流日志("限流", 间隔: 10, 键: "alias-key")
+        LogKit.限流日志("限流", 间隔: 10, 键: "alias-key")
         XCTAssertEqual(captured, ["限流"])
 
         XCTAssertEqual(LogKit.脱敏(["password": "1"])["password"] as? String, "***")
