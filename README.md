@@ -12,8 +12,11 @@
 - **屏幕**：分辨率 / 缩放因子
 - **运行信息**：运行时长 / 是否模拟器
 - **App 信息**：名称 / 版本 / 构建号
+- **网络信息**：本机 IP / 是否联网 / 网络类型
+- **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
+- **资源占用**：CPU 使用率 / 内存已用 / 内存使用率
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
-- **纯 Foundation + 平台条件编译**，iOS 15+ / macOS 12+
+- **纯 Foundation + Darwin 系统接口**，iOS 15+ / macOS 12+
 
 ## 安装
 
@@ -23,7 +26,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.2.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.3.0")
 ]
 ```
 
@@ -71,6 +74,15 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `isSimulator` | 是否模拟器 | `Bool` |
 | `appName` | App 显示名称 | `String` |
 | `appVersion` / `appBuildNumber` | App 版本 / 构建号 | `String` |
+| `localIPAddress` | 本机局域网 IP | `String?` |
+| `isNetworkConnected` | 是否联网 | `Bool` |
+| `networkType` | 网络类型 | `String?` |
+| `languageCode` / `regionCode` | 语言 / 区域代码 | `String` |
+| `localeIdentifier` | 完整地区标识 | `String` |
+| `timeZoneIdentifier` / `calendarIdentifier` | 时区 / 日历标识 | `String` |
+| `cpuUsage` | CPU 使用率 | `0.0`~`1.0` |
+| `memoryUsedBytes` / `memoryUsed` | 内存已用（字节 / 可读） | `UInt64` / 人类可读 |
+| `memoryUsagePercent` | 内存使用率 | `0.0`~`1.0` |
 
 ## 中文命名别名
 
@@ -84,9 +96,14 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `屏幕分辨率` / `屏幕缩放` | `screenSize` / `screenScale` |
 | `系统运行时长` / `是否模拟器` | `systemUptimeString` / `isSimulator` |
 | `应用名称` / `应用版本` / `应用构建号` | `appName` / `appVersion` / `appBuildNumber` |
+| `本机IP地址` / `是否联网` / `网络类型` | `localIPAddress` / `isNetworkConnected` / `networkType` |
+| `语言代码` / `区域代码` / `地区标识` | `languageCode` / `regionCode` / `localeIdentifier` |
+| `时区标识` / `日历标识` | `timeZoneIdentifier` / `calendarIdentifier` |
+| `CPU使用率` / `内存已用` / `内存使用率` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` |
 
 ## 更新日志
 
+- **0.3.0**：新增网络信息（`localIPAddress` / `isNetworkConnected` / `networkType`，基于 getifaddrs）、本地化信息（`languageCode` / `regionCode` / `localeIdentifier` / `timeZoneIdentifier` / `calendarIdentifier`）、资源占用（`cpuUsage` / `memoryUsedBytes` / `memoryUsed` / `memoryUsagePercent`，基于 mach 接口），均含中文别名。
 - **0.2.0**：macOS 电池检测（IOKit，`batteryLevel` / `isCharging` 双平台）；新增磁盘已用 / 使用率（`diskUsedBytes` / `diskUsed` / `diskUsagePercent`）、系统运行时长（`systemUptime` / `systemUptimeString`）、是否模拟器（`isSimulator`）、App 信息（`appName` / `appVersion` / `appBuildNumber`），均含中文别名。
 - **0.1.0**：首个版本，覆盖系统 / 设备 / 硬件 / 电池 / 屏幕五类检测，含中文别名。
 

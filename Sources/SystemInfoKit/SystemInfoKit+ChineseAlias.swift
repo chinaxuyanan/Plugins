@@ -70,4 +70,37 @@ public extension SystemInfoKit {
     static var 应用版本: String { appVersion }
     /// App 构建号（等同 `appBuildNumber`）
     static var 应用构建号: String { appBuildNumber }
+
+    // MARK: 网络信息
+
+    /// 本机局域网 IP 地址（等同 `localIPAddress`）
+    static var 本机IP地址: String? { localIPAddress }
+    /// 是否接入网络（等同 `isNetworkConnected`）
+    static var 是否联网: Bool { isNetworkConnected }
+    /// 网络类型（等同 `networkType`，近似判断）
+    static var 网络类型: String? { networkType }
+
+    // MARK: 本地化信息
+
+    /// 当前语言代码（等同 `languageCode`）
+    static var 语言代码: String { languageCode }
+    /// 当前区域代码（等同 `regionCode`）
+    static var 区域代码: String { regionCode }
+    /// 完整地区标识（等同 `localeIdentifier`）
+    static var 地区标识: String { localeIdentifier }
+    /// 当前时区标识（等同 `timeZoneIdentifier`）
+    static var 时区标识: String { timeZoneIdentifier }
+    /// 当前日历标识（等同 `calendarIdentifier`）
+    static var 日历标识: String { calendarIdentifier }
+
+    // MARK: 资源占用
+
+    /// CPU 使用率（等同 `cpuUsage`，调用会阻塞约 100ms 采样）
+    static var CPU使用率: Double { cpuUsage }
+    /// 内存已用容量字节（等同 `memoryUsedBytes`）
+    static var 内存已用字节数: UInt64 { memoryUsedBytes }
+    /// 内存已用容量（等同 `memoryUsed`）
+    static var 内存已用: String { memoryUsed }
+    /// 内存使用率（等同 `memoryUsagePercent`）
+    static var 内存使用率: Double { memoryUsagePercent }
 }

@@ -27,7 +27,7 @@ import IOKit.ps
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.2.0"
+    public static let version = "0.3.0"
 
     // MARK: - 系统信息
 
@@ -279,6 +279,97 @@ public enum SystemInfoKit {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "未知"
     }
 
+    // MARK: - 网络信息
+
+    /// 本机局域网 IP 地址（如 `192.168.1.8`；未接入网络时返回 `nil`）
+    public static var localIPAddress: String? {
+        activeNetworkInterface()?.ip
+    }
+
+    /// 是否接入网络（存在非回环的 IPv4 地址即为已接入）
+    public static var isNetworkConnected: Bool {
+        activeNetworkInterface() != nil
+    }
+
+    /// 网络类型（近似判断）
+    ///
+    /// iOS 上可区分「蜂窝网络」；`en` 开头接口近似视为「Wi-Fi」，其余为「其他」。
+    public static var networkType: String? {
+        guard let name = activeNetworkInterface()?.name else { return nil }
+        if name.hasPrefix("pdp") { return "蜂窝网络" }
+        if name.hasPrefix("en") { return "Wi-Fi" }
+        return "其他"
+    }
+
+    // MARK: - 本地化信息
+
+    /// 当前语言代码（形如 `zh` / `en`）
+    public static var languageCode: String {
+        if #available(iOS 16.0, macOS 13.0, *) {
+            return Locale.current.language.languageCode?.identifier ?? "未知"
+        } else {
+            return Locale.current.languageCode ?? "未知"
+        }
+    }
+
+    /// 当前区域代码（形如 `CN` / `US`）
+    public static var regionCode: String {
+        if #available(iOS 16.0, macOS 13.0, *) {
+            return Locale.current.region?.identifier ?? "未知"
+        } else {
+            return Locale.current.regionCode ?? "未知"
+        }
+    }
+
+    /// 完整地区标识（形如 `zh_CN`）
+    public static var localeIdentifier: String {
+        Locale.current.identifier
+    }
+
+    /// 当前时区标识（形如 `Asia/Shanghai`）
+    public static var timeZoneIdentifier: String {
+        TimeZone.current.identifier
+    }
+
+    /// 当前日历标识（形如 `gregorian`）
+    public static var calendarIdentifier: String {
+        String(describing: Calendar.current.identifier)
+    }
+
+    // MARK: - 资源占用
+
+    /// CPU 使用率（`0.0` ~ `1.0`）
+    ///
+    /// 通过两次采样（间隔约 100ms）计算瞬时占用，每次调用会短暂阻塞约 100ms。
+    public static var cpuUsage: Double {
+        guard let s1 = sampleCPUTicks() else { return 0 }
+        Thread.sleep(forTimeInterval: 0.1)
+        guard let s2 = sampleCPUTicks() else { return 0 }
+        let dUser = s2.user &- s1.user
+        let dSystem = s2.system &- s1.system
+        let dIdle = s2.idle &- s1.idle
+        let dNice = s2.nice &- s1.nice
+        let total = dUser &+ dSystem &+ dIdle &+ dNice
+        guard total > 0 else { return 0 }
+        let busy = dUser &+ dSystem &+ dNice
+        return Double(busy) / Double(total)
+    }
+
+    /// 内存已用容量（字节）
+    public static var memoryUsedBytes: UInt64 {
+        memoryStats()?.usedBytes ?? 0
+    }
+
+    /// 内存已用容量（人类可读，形如 `8 GB`）
+    public static var memoryUsed: String {
+        ByteCountFormatter.string(fromByteCount: Int64(memoryUsedBytes), countStyle: .memory)
+    }
+
+    /// 内存使用率（`0.0` ~ `1.0`）
+    public static var memoryUsagePercent: Double {
+        memoryStats()?.percent ?? 0
+    }
+
     // MARK: - 内部工具
 
     private static func sysctlString(_ name: String) -> String? {
@@ -293,6 +384,78 @@ public enum SystemInfoKit {
     private static func fileSystemAttribute(_ key: FileAttributeKey) -> UInt64? {
         let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory())
         return (attrs?[key] as? NSNumber)?.uint64Value
+    }
+
+    /// 枚举网络接口，返回活跃接口的名称与 IPv4 地址（Wi-Fi 优先）
+    private static func activeNetworkInterface() -> (name: String, ip: String)? {
+        var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddrPtr) == 0, let first = ifaddrPtr else { return nil }
+        defer { freeifaddrs(first) }
+
+        var fallback: (name: String, ip: String)?
+        var current: UnsafeMutablePointer<ifaddrs>? = first
+        while let ifa = current {
+            defer { current = ifa.pointee.ifa_next }
+            let flags = Int32(ifa.pointee.ifa_flags)
+            guard (flags & IFF_UP) == IFF_UP, (flags & IFF_LOOPBACK) == 0 else { continue }
+            guard let addr = ifa.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_INET) else { continue }
+
+            var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+            let r = getnameinfo(addr, socklen_t(addr.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST)
+            guard r == 0 else { continue }
+            let ip = String(cString: host)
+            let name = String(cString: ifa.pointee.ifa_name)
+
+            if name == "en0" { return (name, ip) }          // Wi-Fi 优先
+            if name.hasPrefix("pdp") { return (name, ip) }  // 蜂窝网络
+            if fallback == nil { fallback = (name, ip) }
+        }
+        return fallback
+    }
+
+    /// 采样一次全 CPU 的 tick（USER / SYSTEM / IDLE / NICE 各自累加）
+    private static func sampleCPUTicks() -> (user: UInt32, system: UInt32, idle: UInt32, nice: UInt32)? {
+        var cpuInfo: processor_info_array_t?
+        var numCpuInfo: mach_msg_type_number_t = 0
+        var numCPUs: natural_t = 0
+        let result = host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numCPUs, &cpuInfo, &numCpuInfo)
+        guard result == KERN_SUCCESS, let info = cpuInfo, numCPUs > 0 else { return nil }
+        defer {
+            vm_deallocate(mach_task_self_, vm_address_t(bitPattern: info),
+                          vm_size_t(numCpuInfo) * vm_size_t(MemoryLayout<integer_t>.size))
+        }
+        // PROCESSOR_CPU_LOAD_INFO：每个 CPU 依次是 USER(0) SYSTEM(1) IDLE(2) NICE(3) 四个 tick
+        let perCPU = 4
+        var user: UInt32 = 0, system: UInt32 = 0, idle: UInt32 = 0, nice: UInt32 = 0
+        for i in 0..<Int(numCPUs) {
+            user   &+= UInt32(bitPattern: info[i * perCPU + 0])
+            system &+= UInt32(bitPattern: info[i * perCPU + 1])
+            idle   &+= UInt32(bitPattern: info[i * perCPU + 2])
+            nice   &+= UInt32(bitPattern: info[i * perCPU + 3])
+        }
+        return (user, system, idle, nice)
+    }
+
+    /// 读取内存统计（`host_statistics64`），返回已用字节与使用率
+    private static func memoryStats() -> (usedBytes: UInt64, percent: Double)? {
+        var stats = vm_statistics64()
+        var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.stride / MemoryLayout<integer_t>.stride)
+        let result = withUnsafeMutablePointer(to: &stats) { ptr in
+            ptr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                host_statistics64(mach_host_self(), HOST_VM_INFO64, rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return nil }
+        let pageSize = UInt64(getpagesize())
+        let total = ProcessInfo.processInfo.physicalMemory
+        guard total > 0 else { return nil }
+        let free = UInt64(stats.free_count) * pageSize
+        let inactive = UInt64(stats.inactive_count) * pageSize
+        let purgeable = UInt64(stats.purgeable_count) * pageSize
+        let speculative = UInt64(stats.speculative_count) * pageSize
+        let available = free + inactive + purgeable + speculative
+        let used = total > available ? total - available : 0
+        return (used, Double(used) / Double(total))
     }
 
     #if os(macOS)
