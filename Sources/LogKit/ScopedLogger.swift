@@ -24,12 +24,20 @@ public final class ScopedLogger {
     /// 默认分类名（未指定模块时直接用，指定模块时拼成「模块.分类」）
     public let category: String
 
+    /// 本日志器的追踪 ID（可选）；为空时回退到全局 `LogKit.traceId`
+    ///
+    /// 与全局 `LogKit.traceId` 是两个层级：本值非空时优先于全局值。
+    /// 用于把该模块 / 组件产生的日志串联起来。
+    public var traceId: String?
+
     /// - Parameters:
     ///   - module: 所属模块名（可选），有值时日志分类会变成「模块.分类」
     ///   - category: 分类名，默认「通用」
-    public init(module: String? = nil, category: String = "通用") {
+    ///   - traceId: 本日志器的追踪 ID（可选）
+    public init(module: String? = nil, category: String = "通用", traceId: String? = nil) {
         self.module = module
         self.category = category
+        self.traceId = traceId
     }
 
     /// 实际用于输出的分类名
@@ -53,35 +61,40 @@ public final class ScopedLogger {
     public func debug(_ message: @autoclosure () -> Any,
                       fields: [String: Any] = [:],
                       file: String = #file, line: Int = #line) {
-        LogKit.log(.debug, message, category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.debug, message, traceId: traceId,
+                   category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 信息日志（自动使用本日志器的默认分类）
     public func info(_ message: @autoclosure () -> Any,
                      fields: [String: Any] = [:],
                      file: String = #file, line: Int = #line) {
-        LogKit.log(.info, message, category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.info, message, traceId: traceId,
+                   category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 警告日志（自动使用本日志器的默认分类）
     public func warning(_ message: @autoclosure () -> Any,
                         fields: [String: Any] = [:],
                         file: String = #file, line: Int = #line) {
-        LogKit.log(.warning, message, category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.warning, message, traceId: traceId,
+                   category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 错误日志（自动使用本日志器的默认分类）
     public func error(_ message: @autoclosure () -> Any,
                       fields: [String: Any] = [:],
                       file: String = #file, line: Int = #line) {
-        LogKit.log(.error, message, category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.error, message, traceId: traceId,
+                   category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     /// 严重日志（自动使用本日志器的默认分类）
     public func critical(_ message: @autoclosure () -> Any,
                          fields: [String: Any] = [:],
                          file: String = #file, line: Int = #line) {
-        LogKit.log(.critical, message, category: effectiveCategory, fields: fields, file: file, line: line)
+        LogKit.log(.critical, message, traceId: traceId,
+                   category: effectiveCategory, fields: fields, file: file, line: line)
     }
 
     // MARK: 计时测量
@@ -99,7 +112,7 @@ public final class ScopedLogger {
                            fields: [String: Any] = [:],
                            file: String = #file, line: Int = #line,
                            _ block: () throws -> T) rethrows -> T {
-        try LogKit.measure(message, level: level, category: effectiveCategory,
+        try LogKit.measure(message, level: level, traceId: traceId, category: effectiveCategory,
                            fields: fields, file: file, line: line, block)
     }
 
@@ -110,7 +123,7 @@ public final class ScopedLogger {
                                 fields: [String: Any] = [:],
                                 file: String = #file, line: Int = #line,
                                 _ block: () async throws -> T) async rethrows -> T {
-        try await LogKit.measureAsync(message, level: level, category: effectiveCategory,
+        try await LogKit.measureAsync(message, level: level, traceId: traceId, category: effectiveCategory,
                                       fields: fields, file: file, line: line, block)
     }
 
@@ -121,7 +134,7 @@ public final class ScopedLogger {
     /// - Parameter subcategory: 子分类名（如「重试」→ 父分类后追加「.重试」）
     /// - Returns: 新的作用域日志器
     public func child(_ subcategory: String) -> ScopedLogger {
-        ScopedLogger(category: "\(effectiveCategory).\(subcategory)")
+        ScopedLogger(category: "\(effectiveCategory).\(subcategory)", traceId: traceId)
     }
 }
 
@@ -135,36 +148,43 @@ public extension ScopedLogger {
     /// - Parameters:
     ///   - 模块: 所属模块名（可选），有值时日志分类会变成「模块.分类」
     ///   - 分类: 分类名，默认「通用」
-    convenience init(模块: String?, 分类: String = "通用") {
-        self.init(module: 模块, category: 分类)
+    ///   - 追踪ID: 本日志器的追踪 ID（可选）
+    convenience init(模块: String?, 分类: String = "通用", 追踪ID: String? = nil) {
+        self.init(module: 模块, category: 分类, traceId: 追踪ID)
     }
 
     /// 实际用于输出的分类名（等同 `effectiveCategory`）
     var 实际分类: String { effectiveCategory }
 
+    /// 本日志器的追踪 ID（等同 `traceId`）
+    var 追踪ID: String? {
+        get { traceId }
+        set { traceId = newValue }
+    }
+
     /// 调试日志（等同 `debug`）
     func 调试(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        LogKit.log(.debug, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
+        LogKit.log(.debug, 消息, traceId: traceId, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 信息日志（等同 `info`）
     func 信息(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        LogKit.log(.info, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
+        LogKit.log(.info, 消息, traceId: traceId, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 警告日志（等同 `warning`）
     func 警告(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        LogKit.log(.warning, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
+        LogKit.log(.warning, 消息, traceId: traceId, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 错误日志（等同 `error`）
     func 错误(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        LogKit.log(.error, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
+        LogKit.log(.error, 消息, traceId: traceId, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 严重日志（等同 `critical`）
     func 严重(_ 消息: @autoclosure () -> Any, 字段: [String: Any] = [:], 文件: String = #file, 行: Int = #line) {
-        LogKit.log(.critical, 消息, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
+        LogKit.log(.critical, 消息, traceId: traceId, category: effectiveCategory, fields: 字段, file: 文件, line: 行)
     }
 
     /// 计时测量（等同 `measure`）

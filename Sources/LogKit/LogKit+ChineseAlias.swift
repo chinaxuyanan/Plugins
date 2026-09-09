@@ -140,4 +140,29 @@ public extension LogKit {
         get { customFormatter }
         set { customFormatter = newValue }
     }
+
+    /// 全局追踪 ID（等同 `traceId`）
+    static var 追踪ID: String? {
+        get { traceId }
+        set { traceId = newValue }
+    }
+
+    /// 环境自适应的默认最低级别（等同 `adaptiveMinimumLevel`）
+    static var 自适应最低级别: LogLevel { adaptiveMinimumLevel }
+
+    /// 查询某级别累计输出条数（等同 `totalCount(by:)`）
+    /// - Parameter 级别: 日志级别
+    static func 级别计数(_ 级别: LogLevel) -> Int {
+        totalCount(by: 级别)
+    }
+
+    /// 所有级别累计输出总数（等同 `totalCount()`）
+    static func 日志总数() -> Int {
+        totalCount()
+    }
+
+    /// 清零各级别计数（等同 `resetCounts`）
+    static func 重置计数() {
+        resetCounts()
+    }
 }

@@ -19,6 +19,8 @@ final class LogKitTests: XCTestCase {
         LogKit.ignoredCategories = []
         LogKit.maxFileSize = 0
         LogKit.maxLogFiles = 0
+        LogKit.traceId = nil
+        LogKit.resetCounts()
     }
 
     override func tearDown() {
@@ -28,6 +30,8 @@ final class LogKitTests: XCTestCase {
         LogKit.minimumLevel = .debug
         LogKit.enabledCategories = nil
         LogKit.ignoredCategories = []
+        LogKit.traceId = nil
+        LogKit.resetCounts()
         super.tearDown()
     }
 
@@ -191,5 +195,93 @@ final class LogKitTests: XCTestCase {
         XCTAssertTrue(content.contains("文件输出测试"))
 
         try? FileManager.default.removeItem(at: dir)
+    }
+
+    // MARK: - 追踪 ID traceId
+
+    func testTraceIdInEntry() {
+        LogKit.traceId = "req-123"
+        var captured: String? = nil
+        LogKit.customFormatter = { entry in captured = entry.traceId; return entry.message }
+
+        LogKit.info("带追踪ID的消息")
+
+        XCTAssertEqual(captured, "req-123")
+    }
+
+    func testScopedLoggerTraceIdOverridesGlobal() {
+        LogKit.traceId = "全局"
+        let 网络 = ScopedLogger(module: "网络", traceId: "请求-1")
+        let 存储 = ScopedLogger(module: "存储")   // 未设置，应回退到全局
+
+        var captured: [(String?, String)] = []   // (traceId, category)
+        LogKit.customFormatter = { entry in captured.append((entry.traceId, entry.category)); return entry.message }
+
+        网络.info("a")
+        存储.info("b")
+
+        XCTAssertEqual(captured.count, 2)
+        XCTAssertEqual(captured[0].0, "请求-1")
+        XCTAssertEqual(captured[0].1, "网络")
+        XCTAssertEqual(captured[1].0, "全局")
+        XCTAssertEqual(captured[1].1, "存储")
+    }
+
+    func testTraceIdInJSONOutput() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.outputFormat = .json
+        LogKit.traceId = "trace-json"
+
+        LogKit.info("JSON追踪测试")
+        LogKit.flush()
+
+        let content = try String(contentsOf: LogKit.logFileURL, encoding: .utf8)
+        XCTAssertTrue(content.contains("\"traceId\":\"trace-json\""), "JSON 输出应包含 traceId 字段")
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    // MARK: - 环境自适应级别
+
+    func testAdaptiveMinimumLevelMatchesBuildConfig() {
+        #if DEBUG
+        XCTAssertEqual(LogKit.adaptiveMinimumLevel, .debug)
+        #else
+        XCTAssertEqual(LogKit.adaptiveMinimumLevel, .warning)
+        #endif
+    }
+
+    // MARK: - 级别计数统计
+
+    func testLevelCounting() {
+        LogKit.resetCounts()
+        LogKit.minimumLevel = .debug
+
+        LogKit.debug("d1")
+        LogKit.info("i1")
+        LogKit.error("e1")
+        LogKit.error("e2")
+
+        XCTAssertEqual(LogKit.totalCount(by: .debug), 1)
+        XCTAssertEqual(LogKit.totalCount(by: .info), 1)
+        XCTAssertEqual(LogKit.totalCount(by: .warning), 0)
+        XCTAssertEqual(LogKit.totalCount(by: .error), 2)
+        XCTAssertEqual(LogKit.totalCount(), 4)
+    }
+
+    func testLevelCountingSkipsFiltered() {
+        LogKit.resetCounts()
+        LogKit.minimumLevel = .error
+
+        LogKit.debug("被过滤")
+        LogKit.info("被过滤")
+        LogKit.error("通过")
+
+        XCTAssertEqual(LogKit.totalCount(), 1)
+        XCTAssertEqual(LogKit.totalCount(by: .error), 1)
+        XCTAssertEqual(LogKit.totalCount(by: .debug), 0)
     }
 }

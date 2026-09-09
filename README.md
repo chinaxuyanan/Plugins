@@ -15,6 +15,9 @@
 - **作用域日志器**：`ScopedLogger` 绑定默认分类，分模块各持一个，实例方法免传分类，可派生 `child` 子分类
 - **性能计数器**：`PerformanceCounter` 累计调用次数 / 总耗时 / 平均 / 最大 / 最小，按需 `report()` 汇总不刷屏
 - **系统日志桥接**：`OSLogger` 封装 `os.Logger`，日志直达 Console.app（子系统 / 分类 / 隐私等级）
+- **追踪 ID**：`traceId` 全局 / 作用域日志器两级，串联一次请求的全部日志（JSON 输出含 `traceId` 字段）
+- **自适应级别**：默认最低级别随构建环境自适应（DEBUG `.debug` 全输出 / RELEASE `.warning` 只输出警告及以上）
+- **级别计数**：`totalCount(by:)` / `totalCount()` 统计各级别输出条数，`resetCounts()` 清零
 - **异步写文件**：后台串行队列落盘不阻塞主线程，`严重` 日志始终同步落盘防丢失
 - **双通道输出**：控制台 + 可选日志文件（按天分文件，可按大小轮转、按数量清理）
 - **分类过滤**：白名单 / 黑名单按分类过滤日志
@@ -29,7 +32,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.5.1")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.6.0")
 ]
 ```
 
@@ -40,7 +43,7 @@ dependencies: [
 ```swift
 import LogKit
 
-LogKit.minimumLevel = .debug   // 只输出 debug 及以上级别（默认全部）
+LogKit.minimumLevel = .debug   // 手动指定最低级别；不设置时默认随构建环境自适应
 LogKit.fileOutput = true       // 同时写入日志文件
 
 LogKit.调试("视图加载完成，耗时 \(elapsed) ms")
@@ -85,7 +88,9 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 
 | 配置 | 默认值 | 说明 |
 | --- | --- | --- |
-| `minimumLevel` | `.debug` | 最低输出级别 |
+| `minimumLevel` | 自适应（DEBUG `.debug` / RELEASE `.warning`）| 最低输出级别 |
+| `adaptiveMinimumLevel` | — | 环境自适应的默认最低级别（只读，初始化时套用）|
+| `traceId` | `nil` | 全局追踪 ID，后续每条日志都附带（JSON 输出 `traceId` 字段）|
 | `consoleOutput` | `true` | 是否输出到控制台 |
 | `fileOutput` | `false` | 是否写入日志文件 |
 | `logDirectory` | Application Support/LogKit | 日志文件目录 |
@@ -116,6 +121,9 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.输出格式` | `LogKit.outputFormat` |
 | `LogKit.异步写入` | `LogKit.asyncWrite` |
 | `LogKit.自定义格式` | `LogKit.customFormatter` |
+| `LogKit.追踪ID` | `LogKit.traceId` |
+| `LogKit.自适应最低级别` | `LogKit.adaptiveMinimumLevel` |
+| `LogKit.级别计数(级别)` / `LogKit.日志总数()` / `LogKit.重置计数()` | `LogKit.totalCount(by:)` / `LogKit.totalCount()` / `LogKit.resetCounts()` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
 | `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
 | `系统日志器` | `OSLogger`（`.调试/.信息/.通知/.错误/.严重/.故障`）|
@@ -148,6 +156,8 @@ let 系统日志 = OSLogger(subsystem: "com.example.app", category: "网络")
 ```
 
 ## 更新日志
+
+- **0.6.0**：新增追踪 ID（`traceId` 全局 + `ScopedLogger.traceId` 两级，`LogEntry` 与 JSON 输出均带 `traceId` 字段，`ScopedLogger.child` 自动继承）、环境自适应默认级别（`minimumLevel` 默认 DEBUG `.debug` / RELEASE `.warning`，提供只读 `adaptiveMinimumLevel`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`，只统计通过过滤真正输出的日志），均含中文别名。
 
 - **0.5.1**：修复惰性求值失效（被级别 / 分类过滤的日志不再提前执行消息构造），并新增单元测试（Tests target，14 用例）。
 - **0.5.0**：新增作用域日志器 `ScopedLogger`（`模块/分类` 绑定默认分类，`debug/info/warning/error/critical` 免传分类 + `measure/measureAsync/child`）、性能计数器 `PerformanceCounter`（`record/measure/measureAsync` 累计 + `callCount/totalDuration/averageDuration/maxDuration/minDuration` + `summary/report/reset`）、系统日志桥接 `OSLogger`（封装 `os.Logger`，`subsystem/category` + `debug/info/notice/error/critical/fault`，消息 `.public` 隐私级），均含中文别名。

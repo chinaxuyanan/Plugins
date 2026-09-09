@@ -9,6 +9,7 @@ import Dispatch
 /// - 支持单行文本 / JSON 两种输出格式，文件写入可异步，避免阻塞主线程；
 /// - 支持 `measure` 耗时测量、附加结构化字段 `fields`、自定义格式闭包 `customFormatter`；
 /// - 支持 `ScopedLogger` 作用域日志器（分模块分类）、`PerformanceCounter` 性能计数器（累计耗时）、`OSLogger` 系统日志桥接（os.Logger）；
+/// - 支持追踪 ID `traceId`（全局 / 作用域日志器两级，串联一次请求的全部日志）、按构建环境自适应默认级别（DEBUG `.debug` / RELEASE `.warning`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`）；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -30,12 +31,43 @@ import Dispatch
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.5.1"
+    public static let version = "0.6.0"
 
     // MARK: - 配置
 
-    /// 最低输出级别：低于该级别的日志会被过滤（默认 `.debug`，全部输出）
-    public static var minimumLevel: LogLevel = .debug
+    /// 最低输出级别：低于该级别的日志会被过滤
+    ///
+    /// 默认值随构建环境自适应：DEBUG 构建为 `.debug`（全部输出），RELEASE 构建为 `.warning`（只输出警告及以上）。
+    /// 可随时手动覆盖为任意级别。
+    public static var minimumLevel: LogLevel = LogKit.adaptiveMinimumLevel
+
+    /// 环境自适应的默认最低级别：DEBUG 构建返回 `.debug`，RELEASE 构建返回 `.warning`
+    ///
+    /// 一般用于 App 启动时按构建环境初始化日志级别：
+    /// ```swift
+    /// LogKit.minimumLevel = LogKit.adaptiveMinimumLevel
+    /// ```
+    /// - Note: `minimumLevel` 的默认值本身就是这个自适应值；只有在你手动改过之后才需要重新套用。
+    public static var adaptiveMinimumLevel: LogLevel {
+        #if DEBUG
+        return .debug
+        #else
+        return .warning
+        #endif
+    }
+
+    /// 全局追踪 ID：设置后，后续每条日志都会附带该 ID
+    ///
+    /// 用于把同一次请求 / 同一次用户操作产生的多条日志串联起来（配合 JSON 输出的 `traceId` 字段）。
+    /// 作用域日志器 `ScopedLogger` 也可以单独设置 `traceId`，会覆盖此全局值。
+    /// 设为 `nil` 表示不带追踪 ID（默认 `nil`）。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.traceId = "req-\(UUID().uuidString)"
+    ///   LogKit.info("开始处理订单")   // → {"traceId":"req-...", ...}
+    ///   ```
+    public static var traceId: String? = nil
 
     /// 是否输出到控制台（默认 `true`）
     public static var consoleOutput: Bool = true
@@ -196,6 +228,7 @@ public enum LogKit {
     /// - Parameters:
     ///   - message: 计时标签（会拼进日志，如「解析数据」）
     ///   - level: 日志级别，默认 `.debug`
+    ///   - traceId: 追踪 ID（可选，默认用全局 `LogKit.traceId`）
     ///   - category: 分类名，默认「通用」
     ///   - fields: 附加到这条耗时日志的扩展字段
     ///   - file: 调用处文件名（默认自动填充）
@@ -211,6 +244,7 @@ public enum LogKit {
     @discardableResult
     public static func measure<T>(_ message: String,
                                   level: LogLevel = .debug,
+                                  traceId: String? = nil,
                                   category: String = "通用",
                                   fields: [String: Any] = [:],
                                   file: String = #file, line: Int = #line,
@@ -219,11 +253,11 @@ public enum LogKit {
         do {
             let result = try block()
             log(level, { "\(message) 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
-                category: category, fields: fields, file: file, line: line)
+                traceId: traceId, category: category, fields: fields, file: file, line: line)
             return result
         } catch {
             log(level, { "\(message) 失败 · 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
-                category: category, fields: fields, file: file, line: line)
+                traceId: traceId, category: category, fields: fields, file: file, line: line)
             throw error
         }
     }
@@ -241,6 +275,7 @@ public enum LogKit {
     @discardableResult
     public static func measureAsync<T>(_ message: String,
                                        level: LogLevel = .debug,
+                                       traceId: String? = nil,
                                        category: String = "通用",
                                        fields: [String: Any] = [:],
                                        file: String = #file, line: Int = #line,
@@ -249,13 +284,56 @@ public enum LogKit {
         do {
             let result = try await block()
             log(level, { "\(message) 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
-                category: category, fields: fields, file: file, line: line)
+                traceId: traceId, category: category, fields: fields, file: file, line: line)
             return result
         } catch {
             log(level, { "\(message) 失败 · 耗时 \(formatDuration(Date().timeIntervalSince(start)))" },
-                category: category, fields: fields, file: file, line: line)
+                traceId: traceId, category: category, fields: fields, file: file, line: line)
             throw error
         }
+    }
+
+    // MARK: - 级别计数统计
+
+    /// 查询某个级别累计输出的日志条数（只统计通过过滤、真正输出的日志）
+    ///
+    /// - Parameter level: 日志级别
+    /// - Returns: 该级别累计输出的条数
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.error("请求失败")
+    ///   LogKit.error("重试也失败")
+    ///   print(LogKit.totalCount(by: .error))   // 2
+    ///   ```
+    public static func totalCount(by level: LogLevel) -> Int {
+        countLock.lock()
+        defer { countLock.unlock() }
+        return levelCounts[level] ?? 0
+    }
+
+    /// 所有级别累计输出的日志总数
+    public static func totalCount() -> Int {
+        countLock.lock()
+        defer { countLock.unlock() }
+        return levelCounts.values.reduce(0, +)
+    }
+
+    /// 清零各级别计数
+    public static func resetCounts() {
+        countLock.lock()
+        defer { countLock.unlock() }
+        levelCounts.removeAll()
+    }
+
+    private static let countLock = NSLock()
+    private static var levelCounts: [LogLevel: Int] = [:]
+
+    /// 内部：某级别计数 +1（`log` 通过过滤后调用）
+    private static func incrementCount(level: LogLevel) {
+        countLock.lock()
+        defer { countLock.unlock() }
+        levelCounts[level, default: 0] += 1
     }
 
     // MARK: - 文件管理
@@ -300,16 +378,20 @@ public enum LogKit {
     /// 内部统一输出入口：`message` 为普通闭包（非 `@autoclosure`），供各输出方法转发其 `@autoclosure` 参数，
     /// 保证先过滤、后求值。
     static func log(_ level: LogLevel, _ message: () -> Any,
+                    traceId: String? = nil,
                     category: String, fields: [String: Any], file: String, line: Int) {
         guard level >= minimumLevel else { return }
         if let enabled = enabledCategories, !enabled.contains(category) { return }
         if ignoredCategories.contains(category) { return }
-        let text = formatLine(level: level, message: message(), category: category, file: file, line: line, fields: fields)
+        let effectiveTraceId = traceId ?? Self.traceId
+        incrementCount(level: level)
+        let text = formatLine(level: level, message: message(), traceId: effectiveTraceId,
+                              category: category, file: file, line: line, fields: fields)
         if consoleOutput { print(text) }
         if fileOutput { enqueueWrite(level: level, text) }
     }
 
-    private static func formatLine(level: LogLevel, message: Any,
+    private static func formatLine(level: LogLevel, message: Any, traceId: String?,
                                    category: String, file: String, line: Int,
                                    fields: [String: Any]) -> String {
         if let custom = customFormatter {
@@ -319,22 +401,26 @@ public enum LogKit {
                                    message: String(describing: message),
                                    file: showLocation ? fileName(file) : nil,
                                    line: showLocation ? line : nil,
-                                   fields: fields))
+                                   fields: fields,
+                                   traceId: traceId))
         }
         switch outputFormat {
         case .text:
-            return formatText(level: level, message: message, category: category, file: file, line: line, fields: fields)
+            return formatText(level: level, message: message, traceId: traceId, category: category, file: file, line: line, fields: fields)
         case .json:
-            return formatJSON(level: level, message: message, category: category, file: file, line: line, fields: fields)
+            return formatJSON(level: level, message: message, traceId: traceId, category: category, file: file, line: line, fields: fields)
         }
     }
 
-    private static func formatText(level: LogLevel, message: Any,
+    private static func formatText(level: LogLevel, message: Any, traceId: String?,
                                    category: String, file: String, line: Int,
                                    fields: [String: Any]) -> String {
         var base = "[\(timestamp())] [\(level.chineseName)] [\(category)] \(String(describing: message))"
         if showLocation {
             base += " @ \(fileName(file)):\(line)"
+        }
+        if let traceId = traceId {
+            base += " [traceId: \(traceId)]"
         }
         if !fields.isEmpty {
             let pairs = fields.keys.sorted().map { "\($0)=\(String(describing: fields[$0]!))" }
@@ -343,7 +429,7 @@ public enum LogKit {
         return base
     }
 
-    private static func formatJSON(level: LogLevel, message: Any,
+    private static func formatJSON(level: LogLevel, message: Any, traceId: String?,
                                    category: String, file: String, line: Int,
                                    fields: [String: Any]) -> String {
         var dict: [String: Any] = [
@@ -353,6 +439,9 @@ public enum LogKit {
             "category": category,
             "message": String(describing: message)
         ]
+        if let traceId = traceId {
+            dict["traceId"] = traceId
+        }
         if showLocation {
             dict["file"] = fileName(file)
             dict["line"] = line

@@ -26,4 +26,7 @@ public struct LogEntry {
 
     /// 本次日志附加的扩展字段（键值对）
     public let fields: [String: Any]
+
+    /// 追踪 ID（当设置了 `LogKit.traceId` 或日志器 `traceId` 时非空）
+    public let traceId: String?
 }
