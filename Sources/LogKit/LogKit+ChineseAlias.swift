@@ -52,4 +52,19 @@ public extension LogKit {
 
     /// 立即轮转日志文件（等同 `rotateLogFile`）
     static func 轮转日志() { rotateLogFile() }
+
+    /// 刷新日志缓冲，等待待写入日志落盘（等同 `flush`）
+    static func 刷新缓冲() { flush() }
+
+    /// 输出格式（等同 `outputFormat`）
+    static var 输出格式: LogOutputFormat {
+        get { outputFormat }
+        set { outputFormat = newValue }
+    }
+
+    /// 是否异步写文件（等同 `asyncWrite`）
+    static var 异步写入: Bool {
+        get { asyncWrite }
+        set { asyncWrite = newValue }
+    }
 }

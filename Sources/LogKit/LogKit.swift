@@ -1,10 +1,12 @@
 import Foundation
+import Dispatch
 
 /// LogKit —— 中文友好的日志打印工具库
 ///
 /// 解决「日志级别混乱、输出格式不统一」的痛点：
 /// - 内置调试 / 信息 / 警告 / 错误 / 严重五级日志，见名知意；
 /// - 统一输出格式（时间 / 级别 / 分类 / 消息 / 位置），可选控制台或文件输出；
+/// - 支持单行文本 / JSON 两种输出格式，文件写入可异步，避免阻塞主线程；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -20,7 +22,7 @@ import Foundation
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.2.0"
+    public static let version = "0.3.0"
 
     // MARK: - 配置
 
@@ -35,6 +37,20 @@ public enum LogKit {
 
     /// 是否在输出中附带「文件:行」位置（默认 `true`）
     public static var showLocation: Bool = true
+
+    /// 输出格式（默认 `.text` 单行文本）
+    ///
+    /// - `.text`：人类可读的单行文本，形如 `[时间] [级别] [分类] 消息 @ 文件:行`
+    /// - `.json`：结构化 JSON 对象，便于日志采集 / 机器解析
+    public static var outputFormat: LogOutputFormat = .text
+
+    /// 是否异步写文件（默认 `true`）
+    ///
+    /// 开启后，文件写入在后台串行队列执行，不阻塞当前线程（尤其是主线程）。
+    /// 关闭则同步写入，调用返回时日志已落盘。
+    ///
+    /// - Note: `.critical` 严重日志无论此开关如何，始终同步落盘，避免进程崩溃时丢失。
+    public static var asyncWrite: Bool = true
 
     /// 日志文件所在目录（默认 Application Support/LogKit）
     public static var logDirectory: URL = {
@@ -130,7 +146,9 @@ public enum LogKit {
 
     /// 清空当前日志文件
     public static func clearLog() {
-        try? FileManager.default.removeItem(at: logFileURL)
+        writeQueue.sync {
+            try? FileManager.default.removeItem(at: logFileURL)
+        }
     }
 
     /// 立即轮转当前日志文件
@@ -138,12 +156,22 @@ public enum LogKit {
     /// 把当前日志文件归档（重命名为带时间戳的文件），下一个日志会写入全新的文件。
     /// 一般用于主动切分日志，比如 App 启动时调用一次。
     public static func rotateLogFile() {
-        fileLock.lock()
-        defer { fileLock.unlock() }
-        if FileManager.default.fileExists(atPath: logFileURL.path) {
-            archiveCurrentFile(logFileURL)
+        writeQueue.sync {
+            fileLock.lock()
+            defer { fileLock.unlock() }
+            if FileManager.default.fileExists(atPath: logFileURL.path) {
+                archiveCurrentFile(logFileURL)
+            }
+            cleanupOldFiles()
         }
-        cleanupOldFiles()
+    }
+
+    /// 等待所有待写入的日志落盘
+    ///
+    /// 异步写入开启时，日志会先进入后台队列；调用本方法会阻塞直到队列排空，
+    /// 一般用于 App 即将进入后台 / 退出前，确保日志不丢失。
+    public static func flush() {
+        writeQueue.sync {}
     }
 
     // MARK: - 内部实现
@@ -155,16 +183,47 @@ public enum LogKit {
         if ignoredCategories.contains(category) { return }
         let text = formatLine(level: level, message: message, category: category, file: file, line: line)
         if consoleOutput { print(text) }
-        if fileOutput { writeToFile(text) }
+        if fileOutput { enqueueWrite(level: level, text) }
     }
 
     private static func formatLine(level: LogLevel, message: Any,
+                                   category: String, file: String, line: Int) -> String {
+        switch outputFormat {
+        case .text:
+            return formatText(level: level, message: message, category: category, file: file, line: line)
+        case .json:
+            return formatJSON(level: level, message: message, category: category, file: file, line: line)
+        }
+    }
+
+    private static func formatText(level: LogLevel, message: Any,
                                    category: String, file: String, line: Int) -> String {
         let base = "[\(timestamp())] [\(level.chineseName)] [\(category)] \(String(describing: message))"
         if showLocation {
             return base + " @ \(fileName(file)):\(line)"
         }
         return base
+    }
+
+    private static func formatJSON(level: LogLevel, message: Any,
+                                   category: String, file: String, line: Int) -> String {
+        var dict: [String: Any] = [
+            "time": timestamp(),
+            "level": level.chineseName,
+            "levelValue": level.rawValue,
+            "category": category,
+            "message": String(describing: message)
+        ]
+        if showLocation {
+            dict["file"] = fileName(file)
+            dict["line"] = line
+        }
+        guard let data = try? JSONSerialization.data(withJSONObject: dict, options: []),
+              let json = String(data: data, encoding: .utf8) else {
+            // JSON 序列化失败时回退为单行文本，保证日志不丢失
+            return formatText(level: level, message: message, category: category, file: file, line: line)
+        }
+        return json
     }
 
     private static func fileName(_ path: String) -> String {
@@ -192,6 +251,18 @@ public enum LogKit {
     }
 
     private static let fileLock = NSLock()
+
+    /// 文件写入专用串行队列：异步写入时在此队列落盘，保证顺序且不阻塞调用线程
+    private static let writeQueue = DispatchQueue(label: "com.LogKit.write")
+
+    /// 将日志入队写文件；严重日志始终同步落盘，避免进程崩溃时丢失
+    private static func enqueueWrite(level: LogLevel, _ text: String) {
+        if level == .critical || !asyncWrite {
+            writeQueue.sync { writeToFile(text) }
+        } else {
+            writeQueue.async { writeToFile(text) }
+        }
+    }
 
     private static func writeToFile(_ text: String) {
         fileLock.lock()

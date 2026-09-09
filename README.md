@@ -8,9 +8,11 @@
 - **五级日志**：调试 / 信息 / 警告 / 错误 / 严重，见名知意
 - **分级过滤**：设置 `minimumLevel` 自动屏蔽低级别日志
 - **统一格式**：`[时间] [级别] [分类] 消息 @ 文件:行`
+- **双格式输出**：单行文本（默认）+ 结构化 JSON，便于日志采集 / 机器解析
+- **异步写文件**：后台串行队列落盘不阻塞主线程，`严重` 日志始终同步落盘防丢失
 - **双通道输出**：控制台 + 可选日志文件（按天分文件，可按大小轮转、按数量清理）
 - **分类过滤**：白名单 / 黑名单按分类过滤日志
-- **中文别名**：`LogKit.调试(...)` 等，与英文方法一一等价
+- **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
 ## 安装
@@ -21,7 +23,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.2.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.3.0")
 ]
 ```
 
@@ -48,6 +50,14 @@ LogKit.严重("数据库连接中断", 分类: "存储")
 [2026-09-09 14:30:22.123] [信息] [账号] 用户登录成功 @ LoginViewModel.swift:42
 ```
 
+JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
+
+```json
+{"time":"2026-09-09 14:30:22.123","level":"信息","levelValue":1,"category":"账号","message":"用户登录成功","file":"LoginViewModel.swift","line":42}
+```
+
+异步写文件：默认开启（`asyncWrite = true`），日志在后台串行队列落盘，不阻塞主线程。App 进入后台 / 退出前可调用 `LogKit.flush()`（或 `刷新缓冲()`）确保全部落盘；`严重` 级别日志无论开关始终同步写入。
+
 ## 日志级别
 
 | 级别 | 中文名 | 说明 |
@@ -72,10 +82,12 @@ LogKit.严重("数据库连接中断", 分类: "存储")
 | `maxLogFiles` | `0`（不清理） | 最多保留的日志文件数，超出删最旧 |
 | `enabledCategories` | `nil`（全部） | 分类白名单，只输出名单内分类 |
 | `ignoredCategories` | `[]`（空） | 分类黑名单，跳过名单内分类 |
+| `outputFormat` | `.text` | 输出格式：`.text` 单行文本 / `.json` 结构化 JSON |
+| `asyncWrite` | `true` | 是否异步写文件；关闭则同步落盘 |
 
 ## 中文命名别名
 
-| 中文别名 | 等同英文方法 |
+| 中文别名 | 等同英文成员 |
 | --- | --- |
 | `LogKit.调试(...)` | `LogKit.debug(...)` |
 | `LogKit.信息(...)` | `LogKit.info(...)` |
@@ -84,9 +96,13 @@ LogKit.严重("数据库连接中断", 分类: "存储")
 | `LogKit.严重(...)` | `LogKit.critical(...)` |
 | `LogKit.清空日志()` | `LogKit.clearLog()` |
 | `LogKit.轮转日志()` | `LogKit.rotateLogFile()` |
+| `LogKit.刷新缓冲()` | `LogKit.flush()` |
+| `LogKit.输出格式` | `LogKit.outputFormat` |
+| `LogKit.异步写入` | `LogKit.asyncWrite` |
 
 ## 更新日志
 
+- **0.3.0**：新增 JSON 结构化输出（`outputFormat = .json`，含时间/级别/级别值/分类/消息/位置字段）与异步写文件（`asyncWrite` 后台串行队列落盘，`flush` / `刷新缓冲` 等待落盘，`严重` 日志始终同步），均含中文别名。
 - **0.2.0**：新增文件轮转（`maxFileSize` 按大小归档、`maxLogFiles` 按数量清理、`rotateLogFile` / `轮转日志` 主动轮转）与分类过滤（`enabledCategories` 白名单 / `ignoredCategories` 黑名单）。
 - **0.1.0**：首个版本，五级日志、分级过滤、控制台 / 文件双输出、中文命名别名。
 
