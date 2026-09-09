@@ -78,11 +78,21 @@ public extension SystemInfoKit {
     static var 屏幕分辨率: String { screenSize }
     /// 屏幕缩放因子（等同 `screenScale`）
     static var 屏幕缩放: CGFloat { screenScale }
+    /// 显示器数量（等同 `displayCount`）
+    static var 显示器数量: Int { displayCount }
+    /// 各显示器分辨率（等同 `displayResolutions`）
+    static var 显示器分辨率: [String] { displayResolutions }
+    /// 各显示器缩放因子（等同 `displayScales`）
+    static var 显示器缩放: [CGFloat] { displayScales }
 
     /// 系统运行秒数（等同 `systemUptime`）
     static var 系统运行秒数: TimeInterval { systemUptime }
     /// 系统运行时长（等同 `systemUptimeString`）
     static var 系统运行时长: String { systemUptimeString }
+    /// 系统本次开机时间点（等同 `bootTime`）
+    static var 系统启动时间: Date { bootTime }
+    /// 系统本次开机时间字符串（等同 `bootTimeString`）
+    static var 系统启动时间字符串: String { bootTimeString }
     /// 是否模拟器（等同 `isSimulator`）
     static var 是否模拟器: Bool { isSimulator }
 
@@ -101,6 +111,10 @@ public extension SystemInfoKit {
     static var 是否联网: Bool { isNetworkConnected }
     /// 网络类型（等同 `networkType`，近似判断）
     static var 网络类型: String? { networkType }
+    /// Wi-Fi 信号强度（等同 `wifiSignalStrength`，仅 macOS）
+    static var WiFi信号强度: Int? { wifiSignalStrength }
+    /// Wi-Fi 信号强度中文名（等同 `wifiSignalStrengthName`）
+    static var WiFi信号强度名: String { wifiSignalStrengthName }
 
     // MARK: 本地化信息
 
@@ -125,6 +139,12 @@ public extension SystemInfoKit {
     static var 内存已用: String { memoryUsed }
     /// 内存使用率（等同 `memoryUsagePercent`）
     static var 内存使用率: Double { memoryUsagePercent }
+    /// 当前进程 CPU 使用率（等同 `processCPUUsage`）
+    static var 进程CPU使用率: Double { processCPUUsage }
+    /// 当前进程内存占用字节（等同 `processMemoryBytes`）
+    static var 进程内存字节数: UInt64 { processMemoryBytes }
+    /// 当前进程内存占用（等同 `processMemory`）
+    static var 进程内存: String { processMemory }
     /// 当前内存压力（等同 `memoryPressure`，仅 macOS）
     static var 内存压力: DispatchSource.MemoryPressureEvent? { memoryPressure }
     /// 内存压力中文名（等同 `memoryPressureName`）

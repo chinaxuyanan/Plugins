@@ -10,6 +10,7 @@ import AppKit
 #endif
 #if os(macOS)
 import IOKit.ps
+import CoreWLAN
 #endif
 
 /// SystemInfoKit —— 中文友好的系统检测工具库
@@ -29,7 +30,7 @@ import IOKit.ps
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.5.1"
+    public static let version = "0.6.0"
 
     // MARK: - 系统信息
 
@@ -314,6 +315,39 @@ public enum SystemInfoKit {
         #endif
     }
 
+    /// 显示器数量（内置屏 + 外接屏）
+    public static var displayCount: Int {
+        #if canImport(UIKit)
+        return UIScreen.screens.count
+        #elseif canImport(AppKit)
+        return NSScreen.screens.count
+        #else
+        return 0
+        #endif
+    }
+
+    /// 各显示器分辨率（逻辑点，形如 `1512×982`，按系统屏幕顺序）
+    public static var displayResolutions: [String] {
+        #if canImport(UIKit)
+        return UIScreen.screens.map { "\(Int($0.bounds.width))×\(Int($0.bounds.height))" }
+        #elseif canImport(AppKit)
+        return NSScreen.screens.map { "\(Int($0.frame.width))×\(Int($0.frame.height))" }
+        #else
+        return []
+        #endif
+    }
+
+    /// 各显示器缩放因子（与 `displayResolutions` 一一对应）
+    public static var displayScales: [CGFloat] {
+        #if canImport(UIKit)
+        return UIScreen.screens.map { $0.scale }
+        #elseif canImport(AppKit)
+        return NSScreen.screens.map { $0.backingScaleFactor }
+        #else
+        return []
+        #endif
+    }
+
     // MARK: - 运行时长与模拟器
 
     /// 系统自启动以来的运行时长（秒）
@@ -330,6 +364,16 @@ public enum SystemInfoKit {
         if days > 0 { return "\(days) 天 \(hours) 小时" }
         if hours > 0 { return "\(hours) 小时 \(minutes) 分钟" }
         return "\(minutes) 分钟"
+    }
+
+    /// 系统本次开机的时间点（`Date`，由「当前时间 − 运行时长」推算）
+    public static var bootTime: Date {
+        Date(timeIntervalSinceNow: -systemUptime)
+    }
+
+    /// 系统本次开机时间（人类可读，形如 `2026-09-08 14:30:00`）
+    public static var bootTimeString: String {
+        bootTimeFormatter.string(from: bootTime)
     }
 
     /// 是否运行在模拟器上
@@ -380,6 +424,25 @@ public enum SystemInfoKit {
         if name.hasPrefix("pdp") { return "蜂窝网络" }
         if name.hasPrefix("en") { return "Wi-Fi" }
         return "其他"
+    }
+
+    /// Wi-Fi 信号强度（RSSI，单位 dBm，通常为负值；仅 macOS，iOS 返回 `nil`）
+    ///
+    /// 通过 CoreWLAN 读取当前默认 Wi-Fi 接口的接收信号强度。数值越接近 0 信号越好。
+    public static var wifiSignalStrength: Int? {
+        #if os(macOS)
+        return CWWiFiClient.shared().interface()?.rssiValue()
+        #else
+        return nil
+        #endif
+    }
+
+    /// Wi-Fi 信号强度中文名（「强」「中」「弱」；非 macOS 或读取失败返回「不支持」）
+    public static var wifiSignalStrengthName: String {
+        guard let rssi = wifiSignalStrength else { return "不支持" }
+        if rssi >= -50 { return "强" }
+        if rssi >= -70 { return "中" }
+        return "弱"
     }
 
     // MARK: - 本地化信息
@@ -449,6 +512,31 @@ public enum SystemInfoKit {
     /// 内存使用率（`0.0` ~ `1.0`）
     public static var memoryUsagePercent: Double {
         memoryStats()?.percent ?? 0
+    }
+
+    /// 当前进程 CPU 使用率（相对单核，多线程可超过 `1.0`）
+    ///
+    /// 通过两次采样（间隔约 100ms）计算本进程消耗的 CPU 时间占比，每次调用会短暂阻塞约 100ms。
+    public static var processCPUUsage: Double {
+        guard let t1 = processCPUTicks() else { return 0 }
+        let start = Date()
+        Thread.sleep(forTimeInterval: 0.1)
+        guard let t2 = processCPUTicks() else { return 0 }
+        let wall = max(Date().timeIntervalSince(start), 0.001)
+        let used = Double((t2.user &- t1.user) &+ (t2.system &- t1.system)) / 1_000_000_000
+        return used / wall
+    }
+
+    /// 当前进程内存占用（物理足迹，字节）
+    ///
+    /// macOS 上即 Activity Monitor 的「物理足迹」口径；iOS 同样通过 mach `task_info` 读取。
+    public static var processMemoryBytes: UInt64 {
+        processMemoryFootprint()
+    }
+
+    /// 当前进程内存占用（人类可读，形如 `120 MB`）
+    public static var processMemory: String {
+        ByteCountFormatter.string(fromByteCount: Int64(processMemoryBytes), countStyle: .memory)
     }
 
     /// 当前内存压力（仅 macOS；iOS 返回 `nil`）
@@ -592,6 +680,40 @@ public enum SystemInfoKit {
         let used = total > available ? total - available : 0
         return (used, Double(used) / Double(total), available)
     }
+
+    /// 采样一次本进程的 CPU 时间（用户态 + 内核态，单位纳秒）
+    private static func processCPUTicks() -> (user: UInt64, system: UInt64)? {
+        var info = task_thread_times_info()
+        var count = mach_msg_type_number_t(MemoryLayout<task_thread_times_info>.size / MemoryLayout<natural_t>.size)
+        let result = withUnsafeMutablePointer(to: &info) { ptr in
+            ptr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                task_info(mach_task_self_, task_flavor_t(TASK_THREAD_TIMES_INFO), rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return nil }
+        let user = UInt64(max(0, Int(info.user_time.seconds))) &* 1_000_000_000 &+ UInt64(max(0, Int(info.user_time.microseconds))) &* 1000
+        let system = UInt64(max(0, Int(info.system_time.seconds))) &* 1_000_000_000 &+ UInt64(max(0, Int(info.system_time.microseconds))) &* 1000
+        return (user, system)
+    }
+
+    /// 读取当前进程的物理内存足迹（mach `task_info` + `phys_footprint`）
+    private static func processMemoryFootprint() -> UInt64 {
+        var info = mach_task_vm_info()
+        var count = mach_msg_type_number_t(MemoryLayout<mach_task_vm_info>.size / MemoryLayout<natural_t>.size)
+        let result = withUnsafeMutablePointer(to: &info) { ptr in
+            ptr.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
+                task_info(mach_task_self_, task_flavor_t(MACH_TASK_VM_INFO), rebound, &count)
+            }
+        }
+        guard result == KERN_SUCCESS else { return 0 }
+        return info.phys_footprint
+    }
+
+    private static let bootTimeFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        return f
+    }()
 
     #if os(macOS)
     /// 同步读取系统当前内存压力级别（内部工具）

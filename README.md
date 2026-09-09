@@ -11,12 +11,13 @@
 - **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
 - **电池**：电量 / 是否充电（iOS + macOS）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
-- **屏幕**：分辨率 / 缩放因子
-- **运行信息**：运行时长 / 是否模拟器
+- **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放
+- **运行信息**：运行时长 / 启动时间 / 是否模拟器
 - **App 信息**：名称 / 版本 / 构建号
-- **网络信息**：本机 IP / 是否联网 / 网络类型
+- **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 信号强度（macOS）
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
 - **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
+- **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
 - **纯 Foundation + Darwin 系统接口**，iOS 15+ / macOS 12+
@@ -29,7 +30,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.5.1")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.6.0")
 ]
 ```
 
@@ -80,14 +81,21 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `isLowPowerModeEnabled` | 低功耗模式 | 仅 iOS |
 | `screenSize` | 屏幕分辨率 | 逻辑点 |
 | `screenScale` | 屏幕缩放因子 | `1.0` / `2.0` / `3.0` |
+| `displayCount` | 显示器数量 | 内置 + 外接屏 |
+| `displayResolutions` | 各显示器分辨率 | `[String]`，逻辑点 |
+| `displayScales` | 各显示器缩放因子 | `[CGFloat]` |
 | `systemUptime` | 系统运行时长（秒） | `TimeInterval` |
 | `systemUptimeString` | 系统运行时长 | 形如 `3 天 5 小时` |
+| `bootTime` | 系统启动时间 | `Date` |
+| `bootTimeString` | 系统启动时间（可读） | 形如 `2026-09-08 14:30:00` |
 | `isSimulator` | 是否模拟器 | `Bool` |
 | `appName` | App 显示名称 | `String` |
 | `appVersion` / `appBuildNumber` | App 版本 / 构建号 | `String` |
 | `localIPAddress` | 本机局域网 IP | `String?` |
 | `isNetworkConnected` | 是否联网 | `Bool` |
 | `networkType` | 网络类型 | `String?` |
+| `wifiSignalStrength` | Wi-Fi 信号强度（RSSI） | `Int?`，仅 macOS |
+| `wifiSignalStrengthName` | Wi-Fi 信号强度中文名 | 强 / 中 / 弱 / 不支持 |
 | `languageCode` / `regionCode` | 语言 / 区域代码 | `String` |
 | `localeIdentifier` | 完整地区标识 | `String` |
 | `timeZoneIdentifier` / `calendarIdentifier` | 时区 / 日历标识 | `String` |
@@ -97,6 +105,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `memoryPressure` | 内存压力 | 仅 macOS |
 | `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 / 不支持 |
 | `availableMemoryBytes` / `availableMemory` | 可用内存（字节 / 可读） | `UInt64?` / 人类可读 |
+| `processCPUUsage` | 当前进程 CPU 使用率 | 相对单核，多线程可 >`1.0` |
+| `processMemoryBytes` / `processMemory` | 当前进程内存占用（字节 / 可读） | `UInt64` / 人类可读 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
 
 ## 中文命名别名
@@ -109,16 +119,18 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
 | `可用容量` / `机会容量` / `卷名` / `文件系统名称` | `availableCapacity` / `opportunisticCapacity` / `volumeName` / `fileSystemName` |
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
-| `屏幕分辨率` / `屏幕缩放` | `screenSize` / `screenScale` |
-| `系统运行时长` / `是否模拟器` | `systemUptimeString` / `isSimulator` |
+| `屏幕分辨率` / `屏幕缩放` / `显示器数量` / `显示器分辨率` / `显示器缩放` | `screenSize` / `screenScale` / `displayCount` / `displayResolutions` / `displayScales` |
+| `系统运行时长` / `系统启动时间` / `是否模拟器` | `systemUptimeString` / `bootTime` / `isSimulator` |
 | `应用名称` / `应用版本` / `应用构建号` | `appName` / `appVersion` / `appBuildNumber` |
-| `本机IP地址` / `是否联网` / `网络类型` | `localIPAddress` / `isNetworkConnected` / `networkType` |
+| `本机IP地址` / `是否联网` / `网络类型` / `WiFi信号强度` / `WiFi信号强度名` | `localIPAddress` / `isNetworkConnected` / `networkType` / `wifiSignalStrength` / `wifiSignalStrengthName` |
 | `语言代码` / `区域代码` / `地区标识` | `languageCode` / `regionCode` / `localeIdentifier` |
 | `时区标识` / `日历标识` | `timeZoneIdentifier` / `calendarIdentifier` |
-| `CPU使用率` / `内存已用` / `内存使用率` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `memoryPressure` / `memoryPressureName` |
+| `CPU使用率` / `内存已用` / `内存使用率` / `进程CPU使用率` / `进程内存` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `processCPUUsage` / `processMemory` / `memoryPressure` / `memoryPressureName` |
 | `可用内存` / `内存压力监听器` | `availableMemory` / `MemoryPressureMonitor`（`.当前压力/.压力变化回调/.开始监听/.停止监听`）|
 
 ## 更新日志
+
+- **0.6.0**：新增系统启动时间（`bootTime` / `bootTimeString`，`Date` + 人类可读）、本进程信息（`processCPUUsage` / `processMemoryBytes` / `processMemory`，mach `task_info` 采样）、显示器信息（`displayCount` / `displayResolutions` / `displayScales`）、Wi-Fi 信号强度（`wifiSignalStrength` / `wifiSignalStrengthName`，macOS CoreWLAN，iOS 返回「不支持」），均含中文别名。
 
 - **0.5.1**：修复内存压力读取——一次性 `memoryPressure` 在 macOS 上拿不到当前值（内存压力源仅在压力变化时回调），现正确返回「不支持」并在文档说明，推荐用 `MemoryPressureMonitor` 监听实时值；`MemoryPressureMonitor.currentPressure` 改为记录最近一次压力事件（此前误用一次性读取器）。新增冒烟测试（Tests target，13 用例）。
 - **0.5.0**：新增可用内存（`availableMemoryBytes` / `availableMemory`，封装 `os_proc_available_memory()`）、内存压力监听器（`MemoryPressureMonitor`，实时回调压力变化，仅 macOS）、存储详情（`availableCapacityBytes` / `availableCapacity` / `opportunisticCapacityBytes` / `opportunisticCapacity` / `volumeName` / `fileSystemName`，基于 URL 资源值与文件系统属性），均含中文别名。

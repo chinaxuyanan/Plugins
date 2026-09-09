@@ -98,4 +98,36 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(SystemInfoKit.卷名, SystemInfoKit.volumeName)
         XCTAssertEqual(SystemInfoKit.文件系统名称, SystemInfoKit.fileSystemName)
     }
+
+    func testBootTime() {
+        let boot = SystemInfoKit.bootTime
+        XCTAssertLessThanOrEqual(boot, Date())
+        XCTAssertFalse(SystemInfoKit.bootTimeString.isEmpty)
+    }
+
+    func testProcessInfo() {
+        XCTAssertGreaterThan(SystemInfoKit.processMemoryBytes, 0)
+        XCTAssertFalse(SystemInfoKit.processMemory.isEmpty)
+        XCTAssertGreaterThanOrEqual(SystemInfoKit.processCPUUsage, 0)
+    }
+
+    func testDisplayInfo() {
+        XCTAssertGreaterThanOrEqual(SystemInfoKit.displayCount, 1)
+        XCTAssertEqual(SystemInfoKit.displayResolutions.count, SystemInfoKit.displayCount)
+        XCTAssertEqual(SystemInfoKit.displayScales.count, SystemInfoKit.displayCount)
+    }
+
+    func testWiFiSignal() {
+        // iOS 上信号强度恒为 nil、名称恒为「不支持」；macOS 上可能为 nil 或数值，名称非空即可。
+        _ = SystemInfoKit.wifiSignalStrength
+        XCTAssertFalse(SystemInfoKit.wifiSignalStrengthName.isEmpty)
+    }
+
+    func testChineseAliasesForNewFeatures() {
+        XCTAssertEqual(SystemInfoKit.显示器数量, SystemInfoKit.displayCount)
+        XCTAssertEqual(SystemInfoKit.系统启动时间, SystemInfoKit.bootTime)
+        XCTAssertEqual(SystemInfoKit.系统启动时间字符串, SystemInfoKit.bootTimeString)
+        XCTAssertEqual(SystemInfoKit.进程内存, SystemInfoKit.processMemory)
+        XCTAssertEqual(SystemInfoKit.WiFi信号强度名, SystemInfoKit.wifiSignalStrengthName)
+    }
 }
