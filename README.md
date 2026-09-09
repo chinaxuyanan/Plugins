@@ -6,7 +6,7 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式、控件样式、标签页、键盘与焦点、颜色工具，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
@@ -19,7 +19,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.5.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.6.0")
 ]
 ```
 
@@ -98,6 +98,11 @@ VStack {
 | `标签页自动样式` / `标签页分页样式` / `标签项` | `tabViewStyleAutomatic` / `tabViewStylePage` / `tabItemLabel` |
 | `点击收起键盘` / `键盘完成按钮` / `文本域占位` | `dismissKeyboardOnTap` / `keyboardToolbarDone` / `textEditorPlaceholder` |
 | `随机颜色` / `十六进制字符串` | `Color.random()` / `hexString` |
+| `设置宽高` / `最大宽度` / `最大高度` / `等比缩放` / `忽略安全区` / `安全区内容` / `固定内容尺寸` / `裁剪溢出` | `frameSize` / `frameMaxWidth` / `frameMaxHeight` / `scaledAspect` / `ignoreSafeArea` / `safeAreaContent` / `fixedToContent` / `clippedContent` |
+| `弹性` / `自适应` / `固定` | `GridItem.flexible` / `GridItem.adaptive` / `GridItem.fixed` |
+| `圆形裁剪` / `胶囊裁剪` / `指定圆角` / `圆形描边` / `胶囊描边` / `虚线边框` / `蒙版裁剪` | `circleClip` / `capsuleClip` / `roundedCorners` / `circleStroke` / `capsuleStroke` / `dashedBorder` / `maskWith` |
+| `自定义阴影` / `发光` / `径向渐变背景` / `角度渐变背景` | `customShadow` / `glow` / `radialBackgroundGradient` / `angularBackgroundGradient` |
+| `出现时` / `消失时` / `变化时` / `订阅时` / `异步任务` | `didAppear` / `didDisappear` / `didChange` / `didReceive` / `asyncTask` |
 
 ## 属性速查表
 
@@ -267,6 +272,51 @@ VStack {
 | `Color.random()` | 随机颜色 |
 | `hexString` | 颜色转十六进制字符串 |
 
+### 布局强化
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `frameSize(width:height:alignment:)` | 设置视图宽高 |
+| `frameMaxWidth(_:alignment:)` | 设置最大宽度 |
+| `frameMaxHeight(_:alignment:)` | 设置最大高度 |
+| `scaledAspect(_:contentMode:)` | 等比缩放 |
+| `ignoreSafeArea(edges:)` | 忽略安全区 |
+| `safeAreaContent(edge:content:)` | 安全区边缘插入内容 |
+| `fixedToContent(horizontal:vertical:)` | 固定为内容自身尺寸 |
+| `clippedContent()` | 裁剪超出边界的部分 |
+| `GridItem.flexible / .adaptive / .fixed` | 网格列定义（弹性 / 自适应 / 固定）|
+
+### 形状与裁剪
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `circleClip()` | 圆形裁剪 |
+| `capsuleClip()` | 胶囊形裁剪 |
+| `roundedCorners(_:corners:)` | 指定角圆角（`RectCorner` 组合）|
+| `circleStroke(color:lineWidth:)` | 圆形描边 |
+| `capsuleStroke(color:lineWidth:)` | 胶囊形描边 |
+| `dashedBorder(color:lineWidth:dashLength:cornerRadius:)` | 虚线边框 |
+| `maskWith(_:)` | 蒙版裁剪 |
+
+### 阴影与渐变
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `customShadow(color:radius:x:y:)` | 自定义阴影 |
+| `glow(color:radius:)` | 发光效果 |
+| `radialBackgroundGradient(_:center:startRadius:endRadius:)` | 径向渐变背景 |
+| `angularBackgroundGradient(_:center:angle:)` | 角度渐变背景 |
+
+### 生命周期
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `didAppear(_:)` | 视图出现时执行 |
+| `didDisappear(_:)` | 视图消失时执行 |
+| `didChange(of:perform:)` | 值变化时执行 |
+| `didReceive(_:perform:)` | 订阅发布者 |
+| `asyncTask(priority:_:)` | 异步任务（出现启动 / 消失取消）|
+
 ## 路线图
 
 - [x] UI 控件属性封装（第一期，本库）
@@ -279,6 +329,7 @@ VStack {
 
 ## 更新日志
 
+- **0.6.0**：新增「布局强化」「形状与裁剪」「阴影与渐变」「生命周期」四个类别封装（`frameSize` / `frameMaxWidth` / `frameMaxHeight` / `scaledAspect` / `ignoreSafeArea` / `safeAreaContent` / `fixedToContent` / `clippedContent` 及 `GridItem` 中文列定义、`circleClip` / `capsuleClip` / `roundedCorners` / `circleStroke` / `capsuleStroke` / `dashedBorder` / `maskWith`（含 `RectCorner` / `RoundedCorner`）、`customShadow` / `glow` / `radialBackgroundGradient` / `angularBackgroundGradient`、`didAppear` / `didDisappear` / `didChange` / `didReceive` / `asyncTask`），均含中文别名。
 - **0.5.0**：新增「控件样式」「标签页」「键盘与焦点」「颜色工具」四个类别封装（`toggleStyleSwitch` / `toggleStyleButton` / `toggleStyleCheckbox` / `controlTint` / `menuStyleButton`、`tabViewStyleAutomatic` / `tabViewStylePage` / `tabItemLabel`、`dismissKeyboardOnTap` / `keyboardToolbarDone` / `textEditorPlaceholder`、`Color(hex:)` / `Color(hexString:)` / `Color.random()` / `hexString`），均含中文别名。
 - **0.4.0**：新增「列表与滚动」「导航与标题」「选择器」「进度」「弹窗」五个类别封装（`listStylePlain` / `listStyleInset` / `listRowSeparatorHidden` / `scrollIndicatorsHidden`、`inlineTitle` / `largeTitle` / `hideNavigationBar` / `navigationBarBackground`、`pickerStyleSegmented` / `pickerStyleMenu` / `pickerStyleInline`、`progressStyleLinear` / `progressStyleCircular`、`presentSheet` / `confirmAlert`），均含中文别名。
 - **0.3.0**：新增「动画与过渡」「手势」「输入框」「按钮样式」四个类别封装（`animate` / `fadeTransition` / `slideTransition` / `scaleTransition` / `fadeScaleTransition`、`onDoubleTap` / `onLongPress` / `onSwipe`、`inputStyle`、`filledButtonStyle`），均含中文别名。

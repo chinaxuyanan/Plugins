@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 // MARK: - 中文命名别名
 //
@@ -533,4 +534,223 @@ public extension View {
     @available(iOS 16.0, macOS 13.0, *)
     @ViewBuilder
     func 菜单按钮样式() -> some View { menuStyleButton() }
+}
+
+// MARK: 布局强化
+
+public extension View {
+    /// 设置视图宽高（等同 `frameSize`）
+    /// - Parameters:
+    ///   - 宽: 宽度，`nil` 表示自适应
+    ///   - 高: 高度，`nil` 表示自适应
+    ///   - 对齐: 内容对齐方式，默认 `.center`
+    @ViewBuilder
+    func 设置宽高(宽: CGFloat? = nil, 高: CGFloat? = nil, 对齐: Alignment = .center) -> some View {
+        frameSize(width: 宽, height: 高, alignment: 对齐)
+    }
+
+    /// 设置最大宽度（等同 `frameMaxWidth`）
+    /// - Parameters:
+    ///   - 最大宽度: 最大宽度，默认 `.infinity`
+    ///   - 对齐: 内容对齐方式，默认 `.center`
+    @ViewBuilder
+    func 最大宽度(_ 最大宽度: CGFloat = .infinity, 对齐: Alignment = .center) -> some View {
+        frameMaxWidth(最大宽度, alignment: 对齐)
+    }
+
+    /// 设置最大高度（等同 `frameMaxHeight`）
+    /// - Parameters:
+    ///   - 最大高度: 最大高度，默认 `.infinity`
+    ///   - 对齐: 内容对齐方式，默认 `.center`
+    @ViewBuilder
+    func 最大高度(_ 最大高度: CGFloat = .infinity, 对齐: Alignment = .center) -> some View {
+        frameMaxHeight(最大高度, alignment: 对齐)
+    }
+
+    /// 等比缩放（等同 `scaledAspect`）
+    /// - Parameters:
+    ///   - 宽高比: 宽高比，如 `16 / 9`
+    ///   - 内容模式: `.fit` 完整显示 / `.fill` 填满裁切，默认 `.fit`
+    @ViewBuilder
+    func 等比缩放(_ 宽高比: CGFloat, 内容模式: ContentMode = .fit) -> some View {
+        scaledAspect(宽高比, contentMode: 内容模式)
+    }
+
+    /// 忽略安全区（等同 `ignoreSafeArea`）
+    /// - Parameter 边缘: 要忽略的安全区边缘，默认 `.all`
+    @ViewBuilder
+    func 忽略安全区(边缘: Edge.Set = .all) -> some View {
+        ignoreSafeArea(edges: 边缘)
+    }
+
+    /// 安全区边缘插入内容（等同 `safeAreaContent`）
+    /// - Parameters:
+    ///   - 边缘: 插入位置（上 / 下 / 左 / 右）
+    ///   - 内容: 插入的内容
+    @ViewBuilder
+    func 安全区内容<Content: View>(边缘: Edge, @ViewBuilder 内容: @escaping () -> Content) -> some View {
+        safeAreaContent(edge: 边缘, content: 内容)
+    }
+
+    /// 固定为内容尺寸（等同 `fixedToContent`）
+    /// - Parameters:
+    ///   - 水平: 水平方向固定，默认 `true`
+    ///   - 垂直: 垂直方向固定，默认 `true`
+    @ViewBuilder
+    func 固定内容尺寸(水平: Bool = true, 垂直: Bool = true) -> some View {
+        fixedToContent(horizontal: 水平, vertical: 垂直)
+    }
+
+    /// 裁剪溢出（等同 `clippedContent`）
+    @ViewBuilder
+    func 裁剪溢出() -> some View {
+        clippedContent()
+    }
+}
+
+// MARK: 形状与裁剪
+
+public extension View {
+    /// 圆形裁剪（等同 `circleClip`）
+    @ViewBuilder
+    func 圆形裁剪() -> some View { circleClip() }
+
+    /// 胶囊形裁剪（等同 `capsuleClip`）
+    @ViewBuilder
+    func 胶囊裁剪() -> some View { capsuleClip() }
+
+    /// 指定角圆角（等同 `roundedCorners`）
+    /// - Parameters:
+    ///   - 半径: 圆角半径
+    ///   - 角: 要圆角的位置，默认 `.allCorners`
+    @ViewBuilder
+    func 指定圆角(_ 半径: CGFloat, 角: RectCorner = .allCorners) -> some View {
+        roundedCorners(半径, corners: 角)
+    }
+
+    /// 圆形描边（等同 `circleStroke`）
+    /// - Parameters:
+    ///   - 颜色: 边框颜色
+    ///   - 线宽: 线宽，默认 `1`
+    @ViewBuilder
+    func 圆形描边(颜色: Color, 线宽: CGFloat = 1) -> some View {
+        circleStroke(color: 颜色, lineWidth: 线宽)
+    }
+
+    /// 胶囊形描边（等同 `capsuleStroke`）
+    /// - Parameters:
+    ///   - 颜色: 边框颜色
+    ///   - 线宽: 线宽，默认 `1`
+    @ViewBuilder
+    func 胶囊描边(颜色: Color, 线宽: CGFloat = 1) -> some View {
+        capsuleStroke(color: 颜色, lineWidth: 线宽)
+    }
+
+    /// 虚线边框（等同 `dashedBorder`）
+    /// - Parameters:
+    ///   - 颜色: 边框颜色
+    ///   - 线宽: 线宽，默认 `1`
+    ///   - 虚线长: 每段虚线的长度，默认 `6`
+    ///   - 圆角半径: 边框圆角半径，默认 `0`
+    @ViewBuilder
+    func 虚线边框(颜色: Color, 线宽: CGFloat = 1, 虚线长: CGFloat = 6, 圆角半径: CGFloat = 0) -> some View {
+        dashedBorder(color: 颜色, lineWidth: 线宽, dashLength: 虚线长, cornerRadius: 圆角半径)
+    }
+
+    /// 蒙版裁剪（等同 `maskWith`）
+    /// - Parameter 形状: 用作蒙版的形状
+    @ViewBuilder
+    func 蒙版裁剪<S: Shape>(_ 形状: S) -> some View {
+        maskWith(形状)
+    }
+}
+
+// MARK: 阴影与渐变
+
+public extension View {
+    /// 自定义阴影（等同 `customShadow`）
+    /// - Parameters:
+    ///   - 颜色: 阴影颜色
+    ///   - 半径: 模糊半径
+    ///   - 横移: 水平偏移，默认 `0`
+    ///   - 纵移: 垂直偏移，默认 `0`
+    @ViewBuilder
+    func 自定义阴影(颜色: Color, 半径: CGFloat, 横移: CGFloat = 0, 纵移: CGFloat = 0) -> some View {
+        customShadow(color: 颜色, radius: 半径, x: 横移, y: 纵移)
+    }
+
+    /// 发光效果（等同 `glow`）
+    /// - Parameters:
+    ///   - 颜色: 光晕颜色
+    ///   - 半径: 光晕范围
+    @ViewBuilder
+    func 发光(颜色: Color, 半径: CGFloat) -> some View {
+        glow(color: 颜色, radius: 半径)
+    }
+
+    /// 径向渐变背景（等同 `radialBackgroundGradient`）
+    /// - Parameters:
+    ///   - 颜色: 渐变颜色数组
+    ///   - 中心: 渐变中心，默认 `.center`
+    ///   - 起始半径: 起始半径，默认 `0`
+    ///   - 结束半径: 结束半径，默认 `150`
+    @ViewBuilder
+    func 径向渐变背景(_ 颜色: [Color], 中心: UnitPoint = .center, 起始半径: CGFloat = 0, 结束半径: CGFloat = 150) -> some View {
+        radialBackgroundGradient(颜色, center: 中心, startRadius: 起始半径, endRadius: 结束半径)
+    }
+
+    /// 角度渐变背景（等同 `angularBackgroundGradient`）
+    /// - Parameters:
+    ///   - 颜色: 渐变颜色数组
+    ///   - 中心: 渐变中心，默认 `.center`
+    ///   - 角度: 起始角度，默认 `0`
+    @ViewBuilder
+    func 角度渐变背景(_ 颜色: [Color], 中心: UnitPoint = .center, 角度: Angle = .zero) -> some View {
+        angularBackgroundGradient(颜色, center: 中心, angle: 角度)
+    }
+}
+
+// MARK: 生命周期
+
+public extension View {
+    /// 视图出现时执行（等同 `didAppear`）
+    /// - Parameter 操作: 视图出现时执行的操作
+    @ViewBuilder
+    func 出现时(操作: @escaping () -> Void) -> some View {
+        didAppear(操作)
+    }
+
+    /// 视图消失时执行（等同 `didDisappear`）
+    /// - Parameter 操作: 视图消失时执行的操作
+    @ViewBuilder
+    func 消失时(操作: @escaping () -> Void) -> some View {
+        didDisappear(操作)
+    }
+
+    /// 值变化时执行（等同 `didChange`）
+    /// - Parameters:
+    ///   - 值: 监听的等值类型值
+    ///   - 执行: 值变化后执行的操作，参数为新值
+    @ViewBuilder
+    func 变化时<V: Equatable>(值: V, 执行: @escaping (V) -> Void) -> some View {
+        didChange(of: 值, perform: 执行)
+    }
+
+    /// 订阅发布者（等同 `didReceive`）
+    /// - Parameters:
+    ///   - 发布者: Combine 发布者
+    ///   - 执行: 收到新值后执行的操作
+    @ViewBuilder
+    func 订阅时<P: Publisher>(发布者: P, 执行: @escaping (P.Output) -> Void) -> some View where P.Failure == Never {
+        didReceive(发布者, perform: 执行)
+    }
+
+    /// 异步任务（等同 `asyncTask`）
+    /// - Parameters:
+    ///   - 优先级: 任务优先级，默认 `.userInitiated`
+    ///   - 操作: 异步操作
+    @ViewBuilder
+    func 异步任务(优先级: TaskPriority = .userInitiated, 操作: @escaping @Sendable () async -> Void) -> some View {
+        asyncTask(priority: 优先级, 操作)
+    }
 }

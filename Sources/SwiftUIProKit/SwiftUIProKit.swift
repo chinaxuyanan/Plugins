@@ -27,8 +27,12 @@ import SwiftUI
 /// - `View+Tab.swift`         标签页
 /// - `View+Keyboard.swift`    键盘与焦点
 /// - `Color+Hex.swift`        颜色工具（十六进制 / 随机色）
+/// - `View+AdvancedLayout.swift` 布局强化（尺寸 / 等比缩放 / 安全区 / 网格列）
+/// - `View+Shape.swift`       形状与裁剪（圆形 / 胶囊 / 部分圆角 / 虚线边框 / 蒙版）
+/// - `View+ShadowGradient.swift` 阴影与渐变（自定义阴影 / 发光 / 径向 / 角度渐变）
+/// - `View+Lifecycle.swift`   生命周期（出现 / 消失 / 变化 / 订阅 / 异步任务）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.5.0"
+    public static let version = "0.6.0"
 }
