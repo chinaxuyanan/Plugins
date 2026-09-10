@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcollapsible</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 可折叠面板：点击标题展开 / 收起，展开态由 Binding 控制
+@State private var 展开 = false
+
+可折叠面板(标题: "更多设置", 图标: "gearshape", 展开: $展开) {
+    Text("这里是被折叠的内容")
+}
+// 多个面板共用 selected 索引即可组成手风琴（一次只开一个）</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>5426257F-57AD-4C7D-A05C-47E4970DCA3A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 可折叠面板：点击标题展开 / 收起，展开态由 Binding 控制</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>可折叠面板 · CollapsibleView</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

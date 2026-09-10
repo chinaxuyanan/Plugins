@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swimage</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>Image(&quot;&lt;#图片名#&gt;&quot;)
+    .自适应图片()            // 缩放适应（fit）
+    .填充图片()              // 填充裁剪
+    .圆形图片(尺寸: 60)      // 圆形
+    .圆角图片(圆角半径: 12)  // 圆角</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>27713A11-FF7F-4438-BE61-96E48B9D05BB</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 图片：自适应、填充、圆形、圆角</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>图片 · 自适应/圆形/圆角</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

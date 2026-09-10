@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogthrottle</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 限流：同一键在窗口内只输出一次（滚动 / 高频回调防刷屏）
+LogKit.限流日志("滚动位置 \(偏移)", 级别: .debug, 间隔: 1, 键: "滚动位置", 分类: "UI")
+
+// 页面切换等场景允许重新输出
+LogKit.重置限流()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>894FD1C8-513B-43E1-A2AC-9FDD4526780D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：throttled / 限流日志（同键窗口内只输出一次）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 日志限流</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

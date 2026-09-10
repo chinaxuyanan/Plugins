@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swpopover</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>.弹出气泡(是否显示: $&lt;#显示#&gt;, 箭头方向: .top) {
+    VStack {
+        Text(&quot;&lt;#气泡内容#&gt;&quot;).padding()
+    }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>018D8326-93A2-4836-843A-D0E60270B2B2</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 弹窗进阶：popover 气泡弹出</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗进阶 · 气泡弹窗</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

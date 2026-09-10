@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swremoteimage</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 远程图片：AsyncImage 封装（加载占位 + 失败点击重试 + 圆角 / 固定尺寸）
+远程图片(
+    网址: URL(string: &lt;#"https://example.com/pic.png"#&gt;),
+    圆角: &lt;#12#&gt;,
+    尺寸: CGSize(width: &lt;#120#&gt;, height: &lt;#120#&gt;)
+) {
+    ProgressView()                 // 加载中的占位视图
+} 失败: {
+    Image(systemName: "photo")     // 失败视图（点击可重试）
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4F742F38-49EA-4C7A-A4BA-DDB045ABBB13</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 远程图片：AsyncImage 封装（加载占位 + 失败点击重试 + 圆角 / 固定尺寸）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>远程图片 · RemoteImage</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

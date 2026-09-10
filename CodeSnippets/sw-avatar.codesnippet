@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swavatar</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>VStack(spacing: 12) {
+    // 姓名首字母（中文取两字、英文取首字母，未传底色时按姓名自动配色）
+    头像(姓名: "张三", 尺寸: 44, 状态: .online)
+    // 图片
+    头像(图片: Image(systemName: "person.fill"), 尺寸: 44, 底色: .blue)
+    // 网址（配合 RemoteImage 用法，传 URL 即可）
+    头像(网址: URL(string: &lt;#图片地址#&gt;), 尺寸: 44)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>6EF09391-1258-4AE4-B9D9-8C4A4CD55870</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 头像 Avatar：首字母、图片、URL 三种来源</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>头像 · 姓名首字母 / 图片 / 网址</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

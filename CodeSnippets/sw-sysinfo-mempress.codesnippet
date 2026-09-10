@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfomempress</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 内存压力（仅 macOS）
+SystemInfoKit.内存压力        // DispatchSource.MemoryPressureEvent?，iOS 为 nil
+SystemInfoKit.内存压力名      // &quot;正常&quot; / &quot;警告&quot; / &quot;严重&quot; / &quot;不支持&quot;</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>BF16579B-C92C-4F2F-AD11-E3283E3EC8BE</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：memoryPressure 内存压力（仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 内存压力</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

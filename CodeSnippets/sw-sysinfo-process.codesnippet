@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoprocess</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 本进程信息
+SystemInfoKit.进程CPU使用率    // 相对单核，多线程可 &gt;1.0，调用阻塞约 100ms
+SystemInfoKit.进程内存         // 如 &quot;120 MB&quot;（物理足迹）
+SystemInfoKit.进程内存字节数   // UInt64 字节</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>3BFC89EE-ED46-447A-9368-07978A3E62DB</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：processCPUUsage / processMemory</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 本进程信息</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

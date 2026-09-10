@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogmeasure</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 耗时测量（性能排查神器）
+let result = LogKit.计时(&quot;解析数据&quot;) {        // measure：执行并输出耗时
+    try parser.parse(data)
+}
+
+let data = try await LogKit.异步计时(&quot;拉取用户信息&quot;) {   // measureAsync
+    try await api.fetchUser(id)
+}
+// 输出示例：[时间] [调试] [通用] 解析数据 耗时 12.3 ms @ 文件:行</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7DF9DE87-AA6F-4136-A9CC-95F07722E2B6</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：measure / 计时 执行代码块并输出耗时（同步 + 异步）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 耗时测量</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

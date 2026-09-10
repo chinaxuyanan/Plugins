@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsparkline</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>迷你折线图(
+    数值: [3, 7, 4, 9, 6, 12, 8],
+    颜色: .green,
+    线宽: 2,
+    高度: 48,
+    显示面积: true,
+    显示数据点: false
+)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>30919057-0CD3-495C-8CCB-87486E4B785C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 迷你折线图 Sparkline：纯手动路径绘制的趋势线</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>迷你图表 · 折线趋势图</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

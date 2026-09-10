@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swratingview</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 评分视图：三种用法，支持半星（点击第 N 颗星设为 N 分）
+@State private var 评分 = 4.5
+
+评分视图(评分: $评分)                        // Binding：点击星即回写
+评分视图(评分: 3.0)                          // 只读展示
+评分视图(评分: 2.0) { 新分 in /* 处理新分 */ }  // 闭包回调</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D9B5788C-7F1C-4049-BFCF-BCFD03D1BE86</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：RatingView / 评分视图（只读 / Binding / 闭包，支持半星）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>评分视图 · RatingView</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

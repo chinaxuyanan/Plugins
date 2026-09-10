@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swemptystate</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 空状态视图：图标 + 标题 + 描述 + 可选操作按钮
+if &lt;#items#&gt;.isEmpty {
+    空状态视图(图标: &quot;tray&quot;,
+            标题: &quot;暂无数据&quot;,
+            描述: &quot;下拉刷新或点击下方按钮重试&quot;,
+            操作文字: &quot;刷新&quot;) {
+        &lt;#loadData()#&gt;
+    }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>BAF7CC6B-3625-41FC-875B-48010CBDC1B7</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：EmptyStateView 空状态占位</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>空状态 · 空状态视图</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

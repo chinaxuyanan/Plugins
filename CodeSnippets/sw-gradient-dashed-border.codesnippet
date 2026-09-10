@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swgradientdashedborder</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 虚线渐变描边：虚线样式 + 渐变色的边框（英文 gradientDashedBorder）
+Text("拖入文件")
+    .frame(width: 200, height: 120)
+    .虚线渐变描边([.gray, .blue], 线宽: 2, 段长: 8, 间隔: 6, 圆角: 16)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>95844F6C-6889-489C-BD08-7D78A16CC683</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：gradientDashedBorder 渐变 + 虚线的边框</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>虚线渐变描边 · gradientDashedBorder</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

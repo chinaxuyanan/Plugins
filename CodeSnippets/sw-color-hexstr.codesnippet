@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcolorhexstr</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 十六进制字符串创建颜色
+Color(十六进制字符串: &quot;#&lt;#FF5733#&gt;&quot;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>32757F5C-4435-4466-9360-61BE14820C3F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 颜色：Color(十六进制字符串:) 支持 #RRGGBB / #RRGGBBAA</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>颜色 · 十六进制字符串建色</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swloadingbutton</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 加载按钮：加载中转圈 + 自动禁用，防重复提交
+@State private var 提交中 = false
+
+加载按钮(标题: "提交", 加载中: 提交中, 图标: "arrow.up.circle.fill") {
+    提交中 = true
+    // 执行耗时操作，完成后 提交中 = false
+}
+.填充按钮样式()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>969FD393-65A8-426D-98A7-DE494A0918BA</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 加载按钮：加载中转圈 + 自动禁用，防重复提交</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>加载按钮 · LoadingButton</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

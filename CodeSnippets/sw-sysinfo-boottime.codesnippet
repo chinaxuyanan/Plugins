@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoboottime</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 系统启动时间
+SystemInfoKit.系统启动时间            // Date：本次开机时间点
+SystemInfoKit.系统启动时间字符串      // 如 &quot;2026-09-08 14:30:00&quot;</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>3C5291D5-4A57-485D-A3EC-D89737C690CA</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：bootTime / bootTimeString</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 系统启动时间</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

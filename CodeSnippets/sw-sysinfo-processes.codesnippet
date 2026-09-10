@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoprocesses</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 运行进程：枚举内核进程表（英文 runningProcesses / processCount）
+let 进程数 = SystemInfoKit.运行进程数量
+for 进程 in SystemInfoKit.运行进程列表.prefix(&lt;#10#&gt;) {
+    print(&quot;pid \(进程.pid) · \(进程.name)&quot;)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4455D792-A8E8-4713-9DAE-151E3814D0EC</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：runningProcesses / processCount 运行进程</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>运行进程 · runningProcesses</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

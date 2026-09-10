@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcornerbadge</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 角标：把徽标贴到任意视图角落（未读数 / NEW 标签）
+Image(systemName: &quot;bell&quot;)
+    .font(.title)
+    .角标(&quot;3&quot;)                             // cornerBadge：右上角红底白字
+// .角标(&quot;99+&quot;, 颜色: .orange, 文字颜色: .white, 对齐: .topTrailing, 偏移: CGSize(width: 6, height: -6))</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>3337D643-231D-40BC-8492-1AC4E9BCABD4</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：cornerBadge 视图角标</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>徽标 · 角标</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

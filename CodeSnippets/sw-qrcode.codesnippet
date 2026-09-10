@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swqrcode</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 二维码生成：由字符串生成二维码图片（英文 Image.qrCode）
+if let 二维码 = Image.二维码(&lt;#文本#&gt;, 缩放: 10, 纠错级别: .m) {
+    二维码
+        .interpolation(.none)      // 关闭抗锯齿，码点更锐利
+        .resizable()
+        .scaledToFit()
+        .frame(width: 160, height: 160)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>E4312CB6-B60F-4989-A7B0-58B78326DBB3</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：Image.qrCode 生成二维码图片（含纠错级别）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>二维码 · qrCode</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfowifi</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit Wi-Fi 信号强度（仅 macOS；iOS 恒为 nil / &quot;不支持&quot;）
+SystemInfoKit.WiFi信号强度      // RSSI，单位 dBm，通常为负值
+SystemInfoKit.WiFi信号强度名    // &quot;强&quot; / &quot;中&quot; / &quot;弱&quot; / &quot;不支持&quot;</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D72AF397-29D9-49FB-8358-31243892DE5E</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：wifiSignalStrength / wifiSignalStrengthName</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · Wi-Fi 信号强度</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

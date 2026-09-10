@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogoslogger</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 系统日志桥接：os.Logger 直达 Console.app
+let &lt;#系统日志#&gt; = OSLogger(subsystem: &quot;com.example.app&quot;, category: &quot;网络&quot;)
+&lt;#系统日志#&gt;.信息(&quot;用户登录成功&quot;)
+&lt;#系统日志#&gt;.错误(&quot;请求失败&quot;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>64613C89-94DC-40FC-9948-693844BDBF5E</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：OSLogger 封装 os.Logger 直达 Console.app</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 系统日志桥接</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

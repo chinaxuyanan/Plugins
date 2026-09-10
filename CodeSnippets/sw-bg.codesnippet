@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swbg</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 背景、圆角与阴影（SwiftUIProKit 中文别名）
+.背景颜色(.blue)                         // 背景颜色
+.渐变背景([.blue, .purple], 起点: .topLeading, 终点: .bottomTrailing)  // 线性渐变
+.圆角裁剪(16)                            // 圆角裁剪
+.圆角描边(颜色: .gray, 宽度: 1, 圆角半径: 8)  // 圆角描边
+.轻阴影() / .中阴影() / .强阴影()          // 三级阴影（任选）</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>05B72174-6DE7-45AA-B5C9-420C77210906</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 背景：背景色、渐变、圆角裁剪、圆角描边、阴影</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>背景 · 颜色/圆角/描边/阴影</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

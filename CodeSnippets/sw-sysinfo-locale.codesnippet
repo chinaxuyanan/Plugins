@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfolocale</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 本地化信息（中文别名）
+SystemInfoKit.语言代码           // 如 &quot;zh&quot;
+SystemInfoKit.区域代码           // 如 &quot;CN&quot;
+SystemInfoKit.地区标识           // 如 &quot;zh_CN&quot;
+SystemInfoKit.时区标识           // 如 &quot;Asia/Shanghai&quot;
+SystemInfoKit.日历标识           // 如 &quot;gregorian&quot;</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8B970D88-120B-4246-9644-C01E9CE3BC0C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：语言 / 区域 / 地区 / 时区 / 日历</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 本地化信息</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

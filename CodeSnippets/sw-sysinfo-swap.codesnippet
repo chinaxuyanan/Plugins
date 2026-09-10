@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoswap</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 交换内存：仅 macOS（英文 swapTotalBytes/swapUsedBytes/swapTotal/swapUsed）
+print(&quot;交换总量 \(SystemInfoKit.交换内存总量) · 已用 \(SystemInfoKit.交换内存已用)&quot;)
+print(&quot;总量字节 \(SystemInfoKit.交换内存总字节数 ?? 0) · 已用字节 \(SystemInfoKit.交换内存已用字节数 ?? 0)&quot;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>448DD26D-CA27-4E0F-86DC-62A17D598B2A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：swapTotalBytes / swapUsedBytes 交换内存</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>交换内存 · swap</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swactiondialog</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>.动作菜单(&quot;选择操作&quot;, 是否显示: $&lt;#显示#&gt;) {
+    Button(&quot;分享&quot;) { &lt;#分享#&gt; }
+    Button(&quot;删除&quot;, role: .destructive) { &lt;#删除#&gt; }
+    Button(&quot;取消&quot;, role: .cancel) { }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>A4101FB8-5739-4DE1-85A6-B54A86386866</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 弹窗进阶：confirmationDialog 动作菜单</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗进阶 · 动作菜单</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

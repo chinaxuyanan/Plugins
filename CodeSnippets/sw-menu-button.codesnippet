@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swmenubutton</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 按钮外观菜单（iOS 16+ / macOS 13+）
+Menu(&quot;&lt;#标题#&gt;&quot;) {
+    &lt;#菜单项#&gt;
+}
+.菜单按钮样式()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>35E20CFE-FB36-4B2D-BB0D-7C0B81A4A001</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 控件：按钮外观菜单（iOS 16+/macOS 13+）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>控件 · 菜单按钮样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

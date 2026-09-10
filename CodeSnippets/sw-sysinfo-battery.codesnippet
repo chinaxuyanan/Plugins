@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfobattery</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 电池扩展（仅 macOS；iOS 恒为 nil / "不支持"）
+SystemInfoKit.电池循环次数        // Int?
+SystemInfoKit.电池健康度          // Double?，0.0~1.0
+SystemInfoKit.电池健康            // String，形如「98%」</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>1004E9B9-C086-4E1B-BD20-B785AB759D4C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：电池循环次数 / 健康度（仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 电池扩展</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

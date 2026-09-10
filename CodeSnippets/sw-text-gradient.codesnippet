@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtextgradient</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 文字渐变：渐变叠加 + 原视图蒙版，文字 / 图标 / 形状均有效
+Text(&quot;渐变标题&quot;)
+    .font(.largeTitle).bold()
+    .文字渐变([.blue, .purple])              // textGradient：默认 leading → trailing
+// .文字渐变([.red, .orange, .yellow], 起点: .top, 终点: .bottom)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>95F51A6E-0965-4304-883B-A97D0291E42B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：textGradient 文字渐变</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>文字渐变 · 文字渐变</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

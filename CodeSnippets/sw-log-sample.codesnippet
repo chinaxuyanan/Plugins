@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogsample</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 采样：按概率随机输出，被丢弃时消息不构造（惰性）
+LogKit.采样率 = 0.1                    // 全局默认采样率
+
+for 序号 in 0..&lt;1000 {
+    LogKit.采样日志("高频事件 \(序号)", 采样率: 0.1)   // 约 10% 概率输出
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8A94AE80-A619-427C-90A8-AAA6D9A8B729</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：sampled / 采样日志（按概率输出，高频降噪）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 日志采样</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

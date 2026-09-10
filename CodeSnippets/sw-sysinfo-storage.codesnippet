@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfostorage</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 存储详情：可用容量 / 卷名 / 文件系统
+SystemInfoKit.可用容量       // 重要用途可用（含可清除）
+SystemInfoKit.机会容量       // 机会性可用
+SystemInfoKit.卷名           // 如 &quot;Macintosh HD&quot;
+SystemInfoKit.文件系统名称    // 如 &quot;APFS&quot;</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>9E05AA70-B543-4BEB-B91B-9DE94332C9B6</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：可用容量 / 卷名 / 文件系统</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 存储详情</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlayout</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 布局与尺寸（SwiftUIProKit 中文别名）
+.占满宽度(对齐: .center)      // 撑满父视图宽度
+.占满高度(对齐: .center)      // 撑满父视图高度
+.占满空间(对齐: .center)      // 同时撑满宽高
+.居中()                       // 在父容器中居中
+.内边距(水平: 16, 垂直: 8)    // 水平/垂直内边距
+.正方形(边长: 44)             // 固定正方形尺寸</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>A1725D00-C488-4DE7-ABB7-FD4704864155</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 布局：占满宽高、居中、内边距、正方形</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>布局与尺寸 · 占满/居中/内边距</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtoast</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 轻提示：绑定值非空即弹出，自动消失后清空
+@State private var &lt;#toast消息#&gt;: String?
+
+VStack { &lt;#内容#&gt; }
+    .轻提示($&lt;#toast消息#&gt;, 位置: .top, 时长: 2, 图标: &quot;checkmark.circle.fill&quot;)
+
+&lt;#toast消息#&gt; = &quot;保存成功&quot;     // 顶部弹出，2 秒后自动消失</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>06CFB027-6C0A-48BB-AEC0-6F900ECBCC9A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：toast 顶部 / 底部轻提示</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>Toast · 轻提示</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

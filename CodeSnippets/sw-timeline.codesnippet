@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtimeline</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>时间轴(
+    节点: [
+        时间轴条目(标题: "已下单", 详情: "09:12", 图标: "cart.fill", 已完成: true),
+        时间轴条目(标题: "已发货", 详情: "10:30", 图标: "shippingbox.fill", 已完成: true),
+        时间轴条目(标题: "运输中", 详情: "预计明天送达", 图标: "truck.box.fill")
+    ],
+    颜色: .accentColor,
+    圆点尺寸: 24,
+    间距: 18
+)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>9433291F-3D74-428E-B723-F5D6F4112379</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 时间轴 Timeline：节点圆点 + 自动测高连接线</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>时间轴 · 物流 / 进度节点</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

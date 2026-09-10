@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogdaily</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>LogKit.fileOutput = true
+LogKit.按天轮转 = true      // 跨天后自动把昨天的按天日志文件归档改名
+LogKit.maxLogFiles = 7      // 配合按数量清理，只留最近 7 个文件</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>246A3536-9BEE-4931-AC86-D090465D2266</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 按天轮转 dailyRotation：跨天写入自动归档前一天的日志文件</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志 · 按天自动轮转</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

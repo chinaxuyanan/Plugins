@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swdestructivealert</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>.破坏性确认(标题: &quot;删除记录&quot;,
+           说明: &quot;删除后不可恢复&quot;,
+           是否显示: $&lt;#显示#&gt;,
+           破坏性操作: { &lt;#删除操作#&gt; })</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>58E47D17-2445-4C61-B3EE-9A3A2176457C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 弹窗进阶：红色删除按钮确认框</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗进阶 · 破坏性确认</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

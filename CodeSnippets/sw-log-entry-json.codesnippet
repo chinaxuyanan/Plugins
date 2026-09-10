@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogentryjson</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 单条序列化：把日志条目转成结构化字典 / JSON 字符串（英文 jsonObject / jsonString）
+LogKit.日志回调 = { entry in
+    let 字典 = entry.JSON字典        // [String: Any]
+    let JSON = entry.JSON字符串      // 单行 JSON 字符串
+    uploader.send(JSON)             // 转投到自有采集系统
+    _ = 字典
+}
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>5B9461B3-B9F6-45EE-BA46-ECF576A0417F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：LogEntry.jsonObject / jsonString 把单条日志转成结构化字典 / JSON</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志序列化 · LogEntry JSON</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

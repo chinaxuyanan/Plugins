@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfomemory</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 可用内存：iOS 走 os_proc_available_memory，macOS 走 mach 采样
+let &lt;#可用#&gt; = SystemInfoKit.可用内存    // 如 &quot;2.1 GB&quot;
+// 或英文：SystemInfoKit.availableMemory</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>102AE49F-98FB-44CE-8DC7-9D60EC43D1A6</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：可用内存（iOS os_proc / macOS mach）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 可用内存</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

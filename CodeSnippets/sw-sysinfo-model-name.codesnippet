@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfomodelname</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 设备型号友好名：由 deviceIdentifier 查内置对照表
+SystemInfoKit.设备型号名称                            // 形如 "iPhone 15 Pro"
+SystemInfoKit.设备型号名称(标识符: "iPhone15,4")       // "iPhone 15"
+SystemInfoKit.设备型号对照表["iPhone99,9"] = "未来机型"  // 自行增补新机型</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>E5D7EB57-467C-4302-B56D-51A379ADAFDA</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 设备型号友好名：由 deviceIdentifier 查内置对照表，未收录原样返回、可自行增补</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>设备型号名 · deviceModelName</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

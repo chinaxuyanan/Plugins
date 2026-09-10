@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcontextmenu</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 右键（macOS）/ 长按（iOS）菜单
+.contextualMenu {
+    Button(&quot;复制&quot;) { &lt;#复制#&gt; }
+    Button(&quot;分享&quot;) { &lt;#分享#&gt; }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>46462AB8-D5A7-4756-A4D3-A363426A4A4D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 弹窗进阶：contextMenu 右键/长按菜单</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗进阶 · 右键菜单</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

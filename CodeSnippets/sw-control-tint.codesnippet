@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcontroltint</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 控件统一主题色
+Toggle(&quot;&lt;#标题#&gt;&quot;, isOn: $&lt;#开关#&gt;)
+    .控件主题色(&lt;#颜色#&gt;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>E6EA7F6B-7F9C-4F7E-8D91-E780AEAE94F7</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 控件：开关/滑块/步进器统一主题色</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>控件 · 控件主题色</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

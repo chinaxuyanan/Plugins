@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swskeleton</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 骨架屏：加载占位 + 扫光动画
+Text(&quot;加载中…&quot;)
+    .骨架屏()              // skeleton：灰化占位
+    .扫光(显示: true, 底色: .gray.opacity(0.25), 高亮色: .white.opacity(0.6), 时长: 1.2)   // shimmer：左右循环扫光</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>599B845C-8C79-44A2-A791-25129FAE17A3</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：skeleton 骨架占位 + shimmer 扫光动画</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>骨架屏 · 骨架屏 + 扫光</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swinput</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>TextField(&quot;占位文字&quot;, text: $&lt;#绑定文本#&gt;)
+    .输入框样式(圆角半径: 8, 内边距: 10)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4FAB92BC-0A01-41DA-924C-D6461C7F2A9A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 输入框：圆角背景 + 内边距</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>输入框 · 圆角样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

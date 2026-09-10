@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogexport</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 导出：复制当前日志文件到临时目录，交给系统分享面板
+do {
+    let 文件 = try LogKit.导出日志()
+    // iOS：UIActivityViewController(activityItems: [文件], applicationActivities: nil)
+    // macOS：NSSharingServicePicker(items: [文件])
+} catch {
+    print("导出日志失败：\(error.localizedDescription)")
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>E8AAC849-BCBC-491B-90AB-983C5F3B97D6</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：exportLogs / 导出日志（复制日志文件供分享）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 日志导出</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

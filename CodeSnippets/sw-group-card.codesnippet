@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swgroupcard</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>分组卡片(标题: &quot;账号&quot;) {
+    Text(&quot;用户名：&lt;#yanan#&gt;&quot;)
+    Text(&quot;邮箱：&lt;#yanan@example.com#&gt;&quot;)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>C45BD665-0BB5-4F5B-82A4-24C426944D65</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 表单分组：带标题的 GroupBox 卡片</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>表单分组 · 分组卡片</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

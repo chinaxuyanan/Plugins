@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinforuntime</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 运行环境：内核版本 / 主机名 / 用户名 / 是否被调试器附加
+SystemInfoKit.内核版本        // 形如 "23.5.0"（uname 的 release）
+SystemInfoKit.主机名          // 形如 "MacBook-Pro.local"
+SystemInfoKit.当前用户名      // 形如 "yanan"
+SystemInfoKit.是否被调试      // Xcode 运行时为 true（sysctl 读 P_TRACED）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7E8EBB1E-2DCA-4983-9A8E-EF0C460EFE9F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：内核版本 / 主机名 / 用户名 / 是否被调试</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>运行环境 · kernelVersion</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

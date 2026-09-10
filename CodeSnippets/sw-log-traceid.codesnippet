@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogtraceid</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 追踪 ID：串联一次请求的全部日志（JSON 输出含 traceId 字段）
+LogKit.追踪ID = &quot;req-\(UUID().uuidString)&quot;    // 全局：后续每条日志都附带
+
+// 作用域日志器两级：本值非空时优先于全局
+let &lt;#网络#&gt; = ScopedLogger(模块: &quot;网络&quot;, 分类: &quot;请求&quot;, 追踪ID: &quot;请求-1&quot;)
+&lt;#网络#&gt;.调试(&quot;开始拉取用户信息&quot;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>B685DA78-7EF4-47AA-B275-FE234A603624</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：traceId 全局 / 作用域日志器追踪 ID</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 追踪 ID</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

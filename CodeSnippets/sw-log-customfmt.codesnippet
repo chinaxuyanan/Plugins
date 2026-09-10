@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogcustomfmt</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 自定义格式闭包（完全接管日志拼装）
+LogKit.自定义格式 = { entry in
+    &quot;\(entry.timestamp) | \(entry.level.chineseName) | \(entry.message)&quot;
+}
+// 或英文：LogKit.customFormatter = { entry in ... }
+// 设为 nil 恢复内置文本 / JSON 格式</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8A3E225A-8113-4B08-86D6-B4054F35BA03</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：customFormatter 自定义格式闭包接管日志拼装</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 自定义格式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

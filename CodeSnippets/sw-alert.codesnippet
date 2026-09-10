@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swalert</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 在视图上挂一个确认提示框
+.确认提示框(标题: &quot;确认操作？&quot;,
+            提示内容: &quot;此操作不可撤销&quot;,
+            是否显示: $&lt;#显示确认#&gt;,
+            确定文字: &quot;确定&quot;) {
+    &lt;#点击确定后执行#&gt;
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>05934D76-A290-4304-8CE6-3272736E5767</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 确认框：带确定/取消，省去样板代码</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗 · 确认提示框</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

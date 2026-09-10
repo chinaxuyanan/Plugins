@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogtimezone</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 时区配置：统一时间戳与日志文件名日期的时区
+LogKit.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS Z"
+LogKit.时区 = TimeZone(identifier: "UTC")!   // 之后所有时间戳与文件名日期均按 UTC</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>53A114D8-D4E7-4F1E-B87D-E1D9713D6DCC</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 时区配置：统一时间戳与日志文件名日期的时区</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>时区配置 · timeZone</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

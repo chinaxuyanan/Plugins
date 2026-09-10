@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swavatargroup</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>头像组(
+    头像列表: [
+        头像(姓名: "张三"),
+        头像(姓名: "李四"),
+        头像(姓名: "王五"),
+        头像(姓名: "赵六")
+    ],
+    尺寸: 36,
+    重叠: 10,
+    最多显示: 3
+)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>87AB0008-023B-4F3A-B95E-85DEDD77197C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 头像组 AvatarGroup：重叠排列、最多显示与 +N 溢出</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>头像 · 头像组（重叠 + 溢出气泡）</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

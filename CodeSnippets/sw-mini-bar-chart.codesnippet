@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swminibar</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>迷你柱状图(
+    数值: [12, 30, 18, 45, 27, 9],
+    颜色: .blue,
+    高度: 60,
+    柱间距: 6,
+    圆角: 3,
+    高亮最大值: true
+)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>AD929B42-389D-45C4-8AF0-91FE873312D1</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 迷你柱状图 MiniBarChart：等宽柱体与最大值高亮</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>迷你图表 · 柱状图（高亮最大值）</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

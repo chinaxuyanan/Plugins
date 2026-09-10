@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogtail</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 尾部读取：读当前日志文件末尾 N 行（英文 tail，最新在末尾）
+let 最近日志 = LogKit.尾部读取(&lt;#50#&gt;)
+for 行 in 最近日志 {
+    print(行)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4312584C-3198-4F98-A6B0-232B5FC672B1</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：tail 读取日志文件末尾若干行</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>尾部读取 · tail</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

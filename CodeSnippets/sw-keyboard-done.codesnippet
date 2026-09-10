@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swkeydone</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 键盘工具栏完成按钮（仅 iOS）
+TextField(&quot;&lt;#提示#&gt;&quot;, text: $&lt;#文本#&gt;)
+    .键盘完成按钮(文字: &quot;完成&quot;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>A3BC790D-1B8C-40CB-A5FC-E78E05B6C003</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 键盘：键盘上方「完成」按钮（仅 iOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>键盘 · 键盘完成按钮</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

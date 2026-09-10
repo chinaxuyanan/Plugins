@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogrecent</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>LogKit.最近保留条数 = 500          // 之后每条日志都会在内存里缓存（超出丢最旧）
+
+// …运行一段时间…
+
+LogKit.最近日志.count                // 当前缓存条数
+LogKit.过滤最近日志(LogFilter.按级别(.error))   // 直接筛内存中的最近日志
+LogKit.清空最近日志()                // 用完释放内存</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>76577500-AAD5-45D7-B567-E210E9C836C7</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 内存检索：maxRecentEntries 缓存最近 N 条，随时筛选不读文件</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志 · 内存检索最近日志</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

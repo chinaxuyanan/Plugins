@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoproxy</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>if SystemInfoKit.是否走代理 {
+    print("当前代理：\(SystemInfoKit.代理描述 ?? "未知")")   // 形如「HTTPS 代理 127.0.0.1:8080」
+}
+
+SystemInfoKit.WiFi名称        // 当前 Wi-Fi SSID，仅 macOS，iOS 返回 nil</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>F15E5636-CB25-43C2-A138-4EDE0E4E06EA</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 代理检测：是否走代理与代理描述（双平台免权限）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>系统 · 系统代理检测</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

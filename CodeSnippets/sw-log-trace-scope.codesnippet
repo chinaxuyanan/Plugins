@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogtracescope</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 作用域追踪：块内日志自动带上 traceId，结束后恢复原值（英文 withTrace）
+LogKit.追踪执行("请求-\(UUID().uuidString.prefix(8))") {
+    LogKit.信息("开始拉取用户信息", 分类: "网络")
+    // …… 该块内所有日志都带同一 traceId
+    LogKit.信息("拉取完成", 分类: "网络")
+}
+// 异步场景用：await LogKit.异步追踪执行("请求-1") { ... }
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>CE38D55E-47CC-47AE-8956-F6B71A0D15D5</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：withTrace 块内日志自动带 traceId，结束后自动恢复</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>作用域追踪 · withTrace</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

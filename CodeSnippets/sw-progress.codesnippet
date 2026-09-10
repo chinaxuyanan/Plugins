@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swprogress</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>ProgressView(value: &lt;#0.0~1.0#&gt;)   // 线性进度
+    .线性进度()
+
+ProgressView()                     // 圆形进度
+    .圆形进度()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>2D419126-B918-45AF-8889-BE238C2D5AF0</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 进度样式：线性、圆形</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>进度 · 线性/圆形</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

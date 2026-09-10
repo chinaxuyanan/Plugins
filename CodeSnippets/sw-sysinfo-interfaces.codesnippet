@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfointerfaces</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 网络接口：枚举接口名 + IPv4 + 启用/回环（英文 networkInterfaces）
+for 接口 in SystemInfoKit.网络接口列表 {
+    print(&quot;\(接口.name) — 启用 \(接口.isUp) · 回环 \(接口.isLoopback) · \(接口.address ?? &quot;无 IPv4&quot;)&quot;)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>FE0BECE7-299D-4AE0-9E02-7393A4A3A6C1</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：networkInterfaces 网络接口列表</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>网络接口 · networkInterfaces</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

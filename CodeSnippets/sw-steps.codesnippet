@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsteps</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 步骤条：已完成打勾、当前高亮，横向 / 纵向可选
+步骤条(
+    步骤: ["下单", "支付", "发货", "收货"],
+    当前: &lt;#2#&gt;,
+    方向: .horizontal
+)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4AD396CE-372B-406E-BC80-A927998238ED</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 步骤条：已完成打勾、当前高亮、未完成置灰，横向 / 纵向可选</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>步骤条 · StepsView</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

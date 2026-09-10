@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swconfirmdialog</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 确认弹窗：confirmationDialog 封装（英文 confirm）
+@State private var &lt;#显示确认#&gt; = false
+
+Button(&lt;#操作#&gt;) { &lt;#显示确认#&gt; = true }
+    .确认弹窗(&lt;#标题#&gt;, 是否显示: $&lt;#显示确认#&gt;,
+              说明: &lt;#说明文字#&gt;,
+              确认文字: &quot;删除&quot;, 角色: .destructive) {
+        &lt;#执行删除#&gt;
+    }</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>E639C0E7-66DE-4543-BCA3-18B22BFEC0C9</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：confirm 确认弹窗（confirmationDialog 封装）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>确认弹窗 · confirm</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

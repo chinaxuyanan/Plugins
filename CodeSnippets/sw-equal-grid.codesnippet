@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swequalgrid</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 等宽网格：3 列，每列等宽
+等宽网格(列数: 3, 间距: 8) {
+    ForEach(0..&lt;9, id: \.self) { i in
+        Text(&quot;\(i)&quot;)
+    }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>904762B7-EC79-4781-9F2D-EBF57AC6005B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 网格：指定列数每列等宽</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>网格 · 等宽网格</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

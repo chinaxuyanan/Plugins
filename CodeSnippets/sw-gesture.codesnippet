@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swgesture</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 手势（SwiftUIProKit 中文别名）
+.双击(操作: { &lt;#双击后执行#&gt; })
+.长按(最短时长: 0.5, 操作: { &lt;#长按后执行#&gt; })
+.滑动(上: { &lt;#上滑#&gt; }, 下: { &lt;#下滑#&gt; }, 左: { &lt;#左滑#&gt; }, 右: { &lt;#右滑#&gt; })</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4AF8D083-E75F-40E6-97F0-D130D511FD87</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 手势：双击、长按、四向滑动</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>手势 · 双击/长按/滑动</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

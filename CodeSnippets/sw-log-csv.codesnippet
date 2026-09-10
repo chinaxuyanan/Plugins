@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogcsv</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit CSV 导出：fields 自动展开成独立列、带 UTF-8 BOM（Excel 打开中文不乱码）
+var 收集: [LogEntry] = []
+let 去向 = LogKit.添加输出 { 收集.append($0) }
+LogKit.信息("用户登录成功", 分类: "账号", fields: ["接口": "/api/user", "状态码": 200])
+
+let 文本 = LogKit.CSV字符串(条目: 收集)   // 只取文本，含表头
+let 文件 = try LogKit.导出CSV(收集)       // 写入临时目录，返回文件 URL，交给分享面板
+LogKit.移除输出(去向)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>0DCEEDDE-EC68-49A0-9BFA-265FC4394E34</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit CSV 导出：fields 自动展开成独立列、键排序、双引号转义、UTF-8 BOM 防中文乱码</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>CSV 导出 · exportCSV</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

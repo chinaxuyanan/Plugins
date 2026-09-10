@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfosnapshot</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 信息快照：一次性取出全部常用检测项，值均为字符串
+let 快照 = SystemInfoKit.信息快照()
+let 数据 = try JSONSerialization.data(withJSONObject: 快照)
+print(String(data: 数据, encoding: .utf8) ?? "")</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>29484642-8744-48FC-9286-A602F8E58879</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 信息快照：一次性取出全部常用检测项，值均为字符串，可直接 JSON 序列化</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>信息快照 · snapshot</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

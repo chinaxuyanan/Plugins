@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swnav</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 导航与标题（SwiftUIProKit 中文别名）
+.大标题()                      // 大标题
+.内联标题()                    // 内联标题（需 macOS 14+）
+.隐藏导航栏()                  // 需 iOS 16 / macOS 13+
+.导航栏背景(.blue)             // 导航栏背景色，需 iOS 16 / macOS 13+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8C537E6D-7F5E-44E1-8AD8-BE021F730291</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 导航：大标题、内联标题、隐藏导航栏、导航栏背景</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>导航 · 标题/导航栏</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swotpfield</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 验证码输入框：分格显示、只收数字、输满回调
+@State private var 验证码 = ""
+验证码输入框(验证码: $验证码, 位数: &lt;#6#&gt;) { 码 in
+    &lt;#校验码#&gt;
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>6130E651-59A0-476C-A717-8EB974237B62</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 验证码输入框：分格显示、只收数字、输满回调，支持粘贴整段与 iOS 短信自动填充</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>验证码输入框 · OTPField</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

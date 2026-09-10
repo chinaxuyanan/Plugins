@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swadaptivegrid</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 自适应网格：按最小宽度自动换列
+自适应网格(最小宽度: 80, 间距: 8) {
+    ForEach(&lt;#items#&gt;, id: \.self) { item in
+        Text(item)
+    }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>61B6C22D-0CAE-4A59-9400-AFBF7E97D27A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 网格：按最小宽度自动算列数</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>网格 · 自适应网格</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

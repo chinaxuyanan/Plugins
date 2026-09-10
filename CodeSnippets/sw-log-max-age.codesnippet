@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogmaxage</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 按天数清理：自动删除超过 N 天的日志文件，可与其他清理项叠加
+LogKit.日志保留天数 = &lt;#7#&gt;    // 只保留最近 7 天
+LogKit.maxLogFiles = &lt;#30#&gt;    // 同时最多保留 30 个文件
+LogKit.轮转日志()              // 触发一次检查；当前正在写入的文件始终不会被删除</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>C4C6457C-DB2C-4B33-815C-14A84D16A066</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 按天数清理：自动删除超过 N 天的日志文件，可与 maxLogFiles 叠加，当前文件不删</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>按天数清理 · maxLogAgeDays</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

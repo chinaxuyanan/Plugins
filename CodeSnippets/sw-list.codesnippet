@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlist</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>List { &lt;#列表行#&gt; }
+    .列表样式内嵌()       // 卡片内嵌样式（macOS 常用）
+    .列表样式普通()       // 去除分组背景
+    .隐藏列表分隔线()      // 需 macOS 13+
+    .隐藏滚动条()          // 需 iOS 16 / macOS 13+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>6506E1B7-8A96-4F41-B310-B98D54AF4204</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 列表：内嵌、普通、隐藏分隔线/滚动条</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>列表 · 样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

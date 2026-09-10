@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogfilter</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 收集条目：LogKit.onLog 或 addSink
+var 收集: [LogEntry] = []
+let 去向 = LogKit.添加输出 { 收集.append($0) }
+LogKit.信息("网络超时", 分类: "网络")
+LogKit.移除输出(去向)
+
+// 组合条件：错误级以上 + 网络分类 + 关键字
+let 条件 = LogFilter(级别: [.error, .critical], 分类: ["网络"], 关键字: "超时")
+let 命中 = LogKit.过滤日志(收集, 条件: 条件)
+// 也可单独用：LogFilter.按关键字("超时") / .按级别(.error) / .按追踪ID("req-1") / .时间段(从: 起点)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7C30D5B9-E982-4AE1-A14D-B138C545FA50</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 条目过滤 LogFilter：按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 组合筛选</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志 · 条目过滤条件</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

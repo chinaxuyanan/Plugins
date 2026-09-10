@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfonetext</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 网络扩展（DNS、默认网关仅 macOS；iOS 返回空 / nil）
+SystemInfoKit.DNS服务器          // [String]
+SystemInfoKit.默认网关           // String?
+
+Task {
+    let ip = try? await SystemInfoKit.公网IP地址()   // 异步请求，失败抛错
+    print(ip ?? "获取失败")
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>3DEF63AC-7375-43A0-B336-C4F80555F279</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：DNS 服务器 / 默认网关 / 公网 IP</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 网络扩展</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcarousel</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 轮播图：自动轮播 + 分页圆点（SF Symbol 或任意视图）
+轮播图(系统图标: ["photo", "camera", "star"], 间隔: 3, 高度: 200, 显示指示器: true)
+
+// 或传入任意视图（非泛型，AnyView 类型擦除）
+轮播图(视图: [Text("第一页"), Text("第二页")], 间隔: 3)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>64F6AA7E-0596-45A5-8B2F-A79D358C524B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：CarouselView / 轮播图（自动轮播 + 分页圆点）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>轮播图 · CarouselView</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

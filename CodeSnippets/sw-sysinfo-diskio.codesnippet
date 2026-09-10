@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfodiskio</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 磁盘读写：汇总块存储驱动累计读写字节与每秒速率（仅 macOS）
+if let 磁盘 = SystemInfoKit.采样磁盘读写() {
+    print("累计读取 \(磁盘.bytesRead) B · 读取速率 \(磁盘.readBytesPerSecond ?? 0) B/s")
+    print("累计写入 \(磁盘.bytesWritten) B · 写入速率 \(磁盘.writeBytesPerSecond ?? 0) B/s")
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>5D70D1B8-A391-4D7C-B241-3E34520030E5</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：sampleDiskIOTraffic / 采样磁盘读写（累计读写字节 + 速率，仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>磁盘读写 · DiskIOTraffic</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

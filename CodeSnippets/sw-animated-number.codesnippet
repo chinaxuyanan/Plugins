@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swanimatednumber</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 滚动数字：数值变化时平滑滚动到目标值（英文 AnimatedNumber）
+滚动数字(数值: score, 小数位: 1, 前缀: "¥", 后缀: " 分")
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8AB33B3F-A59B-453B-B9E2-699A6005CCE4</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：AnimatedNumber 数值变化时平滑滚动</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>滚动数字 · AnimatedNumber</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

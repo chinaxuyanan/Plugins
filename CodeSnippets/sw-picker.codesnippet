@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swpicker</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>Picker(&quot;选项&quot;, selection: $&lt;#选择值#&gt;) {
+    Text(&quot;一&quot;).tag(0)
+    Text(&quot;二&quot;).tag(1)
+}
+.分段选择器()   // 或 .菜单选择器() / .行内选择器()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>6AA5EEE2-8233-4E18-922A-BE24FE6BE76D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 选择器：分段、菜单、行内</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>选择器 · 分段/菜单/行内</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

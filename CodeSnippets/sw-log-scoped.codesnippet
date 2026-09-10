@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogscoped</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 作用域日志器：分模块各持一个，免传分类
+let &lt;#网络#&gt; = ScopedLogger(module: &quot;网络&quot;, category: &quot;请求&quot;)
+&lt;#网络#&gt;.调试(&quot;开始拉取用户信息&quot;)
+&lt;#网络#&gt;.警告(&quot;请求超时&quot;)
+let &lt;#重试#&gt; = &lt;#网络#&gt;.child(&quot;重试&quot;)   // 分类 → 网络.请求.重试</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>329EED54-967F-4882-92B8-6BDA20353E2A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：ScopedLogger 分模块默认分类免传</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 作用域日志器</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

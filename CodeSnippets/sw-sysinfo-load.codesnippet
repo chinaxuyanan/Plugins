@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoload</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 系统负载：1 / 5 / 15 分钟平均负载（仅 macOS；iOS 恒为 0）
+SystemInfoKit.系统负载          // [Double]，三值
+SystemInfoKit.负载1分钟         // Double
+SystemInfoKit.负载5分钟
+SystemInfoKit.负载15分钟</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D3EE7CED-1E92-413B-BCE2-6B146DF10233</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：loadAverage / 系统负载（1/5/15 分钟平均负载）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 系统负载</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

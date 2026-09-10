@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsheet</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>Button(&quot;打开面板&quot;) { &lt;#显示面板#&gt; = true }
+    .弹出面板(是否显示: $&lt;#显示面板#&gt;) {
+        &lt;#面板内容视图#&gt;
+    }</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>42BA408D-26FE-46FC-89F8-9EDC5F1A95F2</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 弹出面板：模态弹出，等效 .sheet</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗 · 弹出面板</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

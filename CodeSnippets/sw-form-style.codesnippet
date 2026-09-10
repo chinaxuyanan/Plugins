@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swformstyle</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>Form {
+    &lt;#表单内容#&gt;
+}
+.表单样式(.grouped)   // formStyleCustom（iOS 16+ / macOS 13+）</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>75BE97C1-39F1-4761-9195-18EE6E86CBDC</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 表单分组：formStyle 表单整体样式（iOS 16+ / macOS 13+）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>表单分组 · 表单样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

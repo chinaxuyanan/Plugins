@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfosign</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>SystemInfoKit.包标识符        // com.example.app
+SystemInfoKit.团队ID          // "ABCDE12345"，App Store 包为 nil
+SystemInfoKit.是否TestFlight  // 内测包 true，正式包与 Xcode 直跑为 false
+
+if SystemInfoKit.是否TestFlight {
+    &lt;#内测包：显示「内测版」水印、放宽日志级别#&gt;
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>69F196B0-313B-4F15-98EF-B508E4D9D8D8</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 签名信息：包标识符 / 团队 ID / 是否 TestFlight</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>系统 · App 签名与分发渠道</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

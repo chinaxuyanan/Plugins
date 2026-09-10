@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogzip</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>do {
+    let 压缩包 = try LogKit.导出压缩包()          // 含归档，返回 zip 的 URL
+    // iOS：UIActivityViewController(activityItems: [压缩包], ...)
+    // macOS：NSSharingServicePicker(items: [压缩包])
+    let 仅当前 = try LogKit.导出压缩包(含归档: false, 文件名: "问题反馈")
+} catch {
+    print("导出失败：\(error.localizedDescription)")
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D59F274E-3771-4194-9DF4-33978AB2B204</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 压缩归档导出 exportArchive：当前 + 崩溃 + 归档日志一次打包成 zip</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志 · 打包成 zip 导出</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

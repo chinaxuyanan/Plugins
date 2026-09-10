@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogsummary</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>let 摘要 = LogKit.最近日志摘要(分类排行数量: 3)
+print(摘要.摘要文本())
+// 日志共 128 条
+// 各级别：调试 96，信息 24，警告 6，错误 2，严重 0
+// 错误率：1.6%
+// 时间跨度：42.31 秒
+// 分类排行：网络(64)，存储(32)
+
+摘要.错误条数        // 错误 + 严重
+摘要.错误率          // 0.0 ~ 1.0
+摘要.时间跨度        // 秒；条数不足时为 nil
+摘要.分类排行        // 次数从多到少，次数相同按分类名排序</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>9A5DFA9C-80D3-4554-9B26-201AD9056B52</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 统计摘要 LogSummary：条数 / 各级别 / 错误率 / 时间跨度 / 分类排行</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志 · 统计摘要</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

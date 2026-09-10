@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swringprogress</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 环形进度：圆环 + 中心百分比（英文 RingProgress，值会被钳制到 0~1）
+环形进度(进度: 0.72, 颜色: .blue, 尺寸: 96, 显示百分比: true)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>4D31716C-8CC5-4199-A781-020ADBA27D79</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：RingProgress 环形进度（值自动钳制 0~1，可显示百分比）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>环形进度 · RingProgress</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfodisplay</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 显示器信息
+SystemInfoKit.显示器数量       // 内置 + 外接屏数量
+SystemInfoKit.显示器分辨率     // [String]，如 [&quot;1512×982&quot;]
+SystemInfoKit.显示器缩放       // [CGFloat]，如 [2.0]</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>AE685AF8-9C0D-4BFC-A1CE-A59D47B0607A</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：displayCount / displayResolutions / displayScales</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 显示器信息</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

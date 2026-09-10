@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swanim</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 动画与过渡（SwiftUIProKit 中文别名）
+.动画(曲线: .easeInOut, 值: &lt;#状态值#&gt;)   // 状态变化时动画
+.淡入淡出过渡()                          // opacity
+.滑动过渡(方向: .trailing)               // 从边缘滑入
+.缩放过渡(比例: 0.9)                     // 缩放过渡
+.淡入缩放过渡(比例: 0.9)                 // 淡入 + 缩放</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>63282B4B-6C8E-4D5F-B912-C59EB94D1E9D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 动画：绑定动画、淡入/滑动/缩放过渡</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>动画 · 绑定动画/过渡</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

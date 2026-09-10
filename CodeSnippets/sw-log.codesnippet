@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlog</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 五级日志（中文别名）
+LogKit.调试(&quot;&lt;#消息#&gt;&quot;)
+LogKit.信息(&quot;&lt;#消息#&gt;&quot;)
+LogKit.警告(&quot;&lt;#消息#&gt;&quot;, 分类: &quot;&lt;#分类#&gt;&quot;)
+LogKit.错误(&quot;&lt;#消息#&gt;&quot;)
+LogKit.严重(&quot;&lt;#消息#&gt;&quot;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D6F65EE5-5F46-4E17-B6F0-73A1E23DB9BC</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：调试/信息/警告/错误/严重 五级日志</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 五级日志</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

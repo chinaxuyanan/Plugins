@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfousage</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 资源占用（中文别名）
+SystemInfoKit.CPU使用率          // 0.0~1.0，调用阻塞约 100ms 采样
+SystemInfoKit.内存已用           // 如 &quot;8 GB&quot;
+SystemInfoKit.内存使用率         // 0.0~1.0</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>932C26B3-F769-4F1A-99CC-61B9FCD6E21F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：CPU 使用率 / 内存已用 / 内存使用率</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 资源占用</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

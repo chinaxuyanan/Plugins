@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogarchived</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 归档列表：已归档的日志文件（英文 archivedLogFiles，按时间倒序，不含当前文件）
+let 归档文件 = LogKit.归档日志列表
+for 文件 in 归档文件 {
+    print(文件.lastPathComponent)
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8512B3BE-644E-4753-8707-BFADA964C60E</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：archivedLogFiles 归档日志文件列表</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>归档日志列表 · archivedLogFiles</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

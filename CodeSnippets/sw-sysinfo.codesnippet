@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfo</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 系统检测（中文别名）
+SystemInfoKit.系统版本        // 如 &quot;13.5.2&quot;
+SystemInfoKit.设备标识符      // 如 &quot;MacBookPro18,1&quot;
+SystemInfoKit.内存总量        // 如 &quot;16 GB&quot;
+SystemInfoKit.磁盘剩余容量    // 如 &quot;120 GB&quot;
+SystemInfoKit.电池电量        // 0.0~1.0，仅 iOS</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7313DBE2-1298-406D-909D-39EAF5E5C9C8</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：系统版本、设备、内存、磁盘、电池</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 系统信息</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogonlog</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 日志回调：每条日志输出后回调完整 LogEntry（英文 onLog）
+LogKit.日志回调 = { 条目 in
+    print(&quot;[\(条目.level.chineseName)] \(条目.category) · \(条目.message)&quot;)
+}
+
+LogKit.信息(&lt;#消息#&gt;, 分类: &lt;#分类#&gt;)
+
+// 用毕记得置空，避免闭包循环引用
+LogKit.日志回调 = nil</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8AC97B38-726D-4ABF-A8CA-B99CF659402D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：onLog 日志回调钩子</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志回调 · onLog</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swshimmerstandalone</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 微光扫光：可独立使用的扫光动画（英文 shimmer(active:tint:)）
+&lt;#内容视图#&gt;
+    .微光(激活: &lt;#true#&gt;, 颜色: .white.opacity(0.6))
+
+// 加载占位 + 扫光
+Text(&lt;#占位文字#&gt;)
+    .redacted(reason: .placeholder)
+    .微光(激活: &lt;#isLoading#&gt;)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>3E862160-2B34-4FB4-81AC-289D6DF5B26D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：shimmer(active:tint:) 独立扫光动画</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>微光扫光 · shimmer</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogasync</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 异步写文件（默认已开启，不阻塞主线程）
+LogKit.asyncWrite = true         // 或 LogKit.异步写入 = true
+LogKit.fileOutput = true         // 需开启才会写文件
+LogKit.信息(&quot;&lt;#消息#&gt;&quot;)
+LogKit.刷新缓冲()                // 进后台 / 退出前等待落盘，等同 flush()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>DDE7EBD5-5AB6-484A-AF9F-B2D87E2DAFE1</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：asyncWrite 异步写文件 + flush 落盘</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 异步写文件</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

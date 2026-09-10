@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogcrash</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 崩溃兜底：捕获未捕获异常与致命信号，写入崩溃日志文件
+// 建议在 App 启动早期调用一次
+LogKit.安装崩溃处理()
+
+// 崩溃日志路径（崩溃后读取）
+let 崩溃文件 = LogKit.崩溃日志路径</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>C4C30B05-B077-49B9-A637-3A6F99FCDD2D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：installCrashHandler / 安装崩溃处理（捕获异常写入崩溃日志）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 崩溃兜底</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

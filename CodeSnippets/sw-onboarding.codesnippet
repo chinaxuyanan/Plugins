@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swonboarding</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 引导页：多页滑动 + 跳过 / 下一步 / 开始使用
+引导页(页面: [
+    引导页内容(图标: "sparkles", 标题: "欢迎", 描述: "这是第一页"),
+    引导页内容(图标: "star", 标题: "强大", 描述: "这是第二页"),
+], 跳过: { /* 点击跳过 */ }, 完成: { /* 点击开始使用 */ })</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>FC9F700B-1395-4D06-B1EE-5D131877C3ED</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：OnboardingView / 引导页（多页滑动 + 跳过 / 开始使用）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>引导页 · OnboardingView</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

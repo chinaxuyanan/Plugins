@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogcounter</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 性能计数器：累计统计，按需汇总不刷屏
+let &lt;#解码#&gt; = PerformanceCounter(&quot;图片解码&quot;)
+for _ in 0..&lt;100 { &lt;#解码#&gt;.measure { &lt;#imageLoader.decode(data)#&gt; } }
+&lt;#解码#&gt;.输出报告()   // 「图片解码」调用 100 次 · 总耗时 1.20 s · ...</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>A858BDFF-5BDA-41BA-B7CF-462002A1EC37</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：PerformanceCounter 累计统计按需汇总</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 性能计数器</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

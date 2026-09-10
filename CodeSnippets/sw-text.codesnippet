@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtext</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>Text(&quot;标题&quot;)
+    .文字样式(字体: .title, 颜色: .primary, 字重: .bold, 对齐: .leading, 间距: 0)
+    .加粗()                 // 等效 fontWeight(.bold)
+    .文字颜色(.red)          // 文字颜色
+    .文字对齐(.center)       // 对齐
+    .最大行数(2)             // 最多行数
+    .文字行间距(6)           // 行间距</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>B5105978-103A-4A4C-BFA3-40F3BBB24322</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 文字：加粗、一站式文字样式、颜色、对齐、行数</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>文字 · 加粗/文字样式/颜色</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

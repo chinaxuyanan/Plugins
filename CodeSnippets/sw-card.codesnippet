@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcard</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>VStack(alignment: .leading, spacing: 12) {
+    Text(&quot;卡片标题&quot;).文字样式(字体: .headline, 字重: .bold)
+    Text(&quot;卡片内容&quot;)
+}
+.卡片样式(圆角半径: 16, 内边距: 16, 阴影级别: 2)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>70511ACD-7B52-4C70-8654-D26AE55BDC3F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 卡片：圆角 + 内边距 + 阴影，跨平台背景</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>卡片 · 卡片样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

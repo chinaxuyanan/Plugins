@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogsink</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 自定义输出去向：在控制台 / 文件之外再挂第三方接收者（上报服务端、自建日志面板等）
+let 上报 = LogKit.添加输出 { 条目 in
+    guard 条目.level &gt;= .warning else { return }   // 同样经过级别 / 分类过滤
+    上报服务端(条目.jsonObject)
+}
+LogKit.输出数量          // 当前登记的去向数量
+LogKit.移除输出(上报)    // 按标识移除；LogKit.清空输出() 一次清空</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>47DFA6CF-3A2C-4019-9EF6-EC2615E50A03</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit 自定义输出去向：在控制台 / 文件之外再挂第三方接收者，NSLock 保护、可安全增删</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>输出去向 · addSink</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

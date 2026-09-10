@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcountdown</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 倒计时：圆环进度 + 自动归零回调，可用「暂停」Binding 控制
+倒计时视图(秒数: 60, 字体: .title, 显示进度: true, 颜色: .accentColor, 暂停: nil) {
+    // 归零时回调
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>3006FE6C-F412-4344-95EC-01F6384A2540</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：CountdownView / 倒计时视图（圆环进度 + 归零回调）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>倒计时视图 · CountdownView</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

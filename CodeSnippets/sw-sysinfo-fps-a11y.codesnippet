@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfofps</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>SystemInfoKit.最大刷新率        // 60 / 120
+SystemInfoKit.减弱动态效果      // Bool，开启后改用淡入淡出
+SystemInfoKit.降低透明度        // Bool，开启后避免毛玻璃
+SystemInfoKit.粗体文本          // 仅 iOS，macOS 恒 false
+SystemInfoKit.无障碍摘要        // 「减弱动态效果 · 降低透明度」，都没开启为「无」
+
+if SystemInfoKit.最大刷新率 &gt;= 120 {
+    &lt;#高刷屏，启用更细腻的动画#&gt;
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>CFD4F992-D406-4EC7-8AF0-4FEBCA8A393E</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 刷新率与无障碍：最大刷新率与减弱动态效果 / 降低透明度 / 粗体文本</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>系统 · 刷新率与无障碍设置</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

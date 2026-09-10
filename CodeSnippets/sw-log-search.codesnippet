@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogsearch</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 检索：按关键字搜索日志文件（上限非零取最后 N 行）
+let 结果 = LogKit.检索日志("网络", 文件: 日志文件URL, 上限: 50)
+// 文件传 nil 时检索当前日志文件；关键字为空返回全部行
+
+// 检索日志目录下所有文件
+let 全部 = LogKit.检索全部日志("超时", 上限: 100)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>87E68642-FAE1-473D-AB48-0D2E417ACEB6</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：search / 检索日志（按关键字搜索日志文件）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 日志检索</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

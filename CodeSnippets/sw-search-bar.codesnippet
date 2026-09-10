@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsearchbar</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>@State private var 关键字 = ""
+
+搜索栏(
+    文本: $关键字,
+    占位: "搜索商品",
+    防抖间隔: 0.3,
+    提交: { 关键字 in
+        &lt;#立即搜索#&gt;
+    },
+    防抖回调: { 关键字 in
+        &lt;#停止输入 0.3 秒后自动搜索#&gt;
+    }
+)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>FD94249F-84D6-4774-8F9E-CD558C5EA1B9</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 搜索栏 SearchBar：焦点描边、清空 / 取消按钮与输入防抖</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>搜索栏 · 圆角搜索框（含防抖）</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swbtn</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>Button(&quot;按钮标题&quot;) {
+    &lt;#点击后执行#&gt;
+}
+.填充按钮样式(背景: .accentColor, 前景: .white, 圆角半径: 10)</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>F5FF0698-857D-44F7-883D-261E36DD8FDE</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 填充按钮：圆角背景、按压变淡+缩放反馈</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>按钮 · 填充按钮样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

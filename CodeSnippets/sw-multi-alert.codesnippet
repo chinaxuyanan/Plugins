@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swmultialert</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>.多按钮弹窗(&quot;删除记录&quot;, 说明: &quot;删除后不可恢复&quot;, 是否显示: $&lt;#显示#&gt;) {
+    Button(&quot;删除&quot;, role: .destructive) { &lt;#删除操作#&gt; }
+    Button(&quot;取消&quot;, role: .cancel) { }
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>B04C8701-6AE0-4DC7-9A11-4807C03C351E</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 弹窗进阶：多按钮 alert</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>弹窗进阶 · 多按钮弹窗</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfonetwork</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 网络信息
+SystemInfoKit.本机IP地址      // 局域网 IPv4，如 "192.168.1.8"；未接入返回 nil
+SystemInfoKit.是否联网        // Bool（存在非回环 IPv4 即视为已联网）
+SystemInfoKit.网络类型        // "蜂窝网络" / "Wi-Fi" / "其他"（近似判断）</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>0A188F58-84B0-4BE0-99E3-0AD259E09CB2</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：本机 IP / 是否联网 / 网络类型</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 网络信息</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

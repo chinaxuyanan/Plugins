@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogcolor</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 终端彩色输出：按级别着色（debug 灰 / info 蓝 / warning 黄 / error 红 / critical 紫红）
+LogKit.彩色控制台 = true
+LogKit.consoleOutput = true
+
+LogKit.错误("磁盘写入失败")
+// 仅控制台着色；写入文件的文本不含 ANSI 转义序列</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>090FB815-16EE-4620-AAED-1662EFEEA131</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：coloredConsoleOutput / 彩色控制台（按级别着色）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 终端彩色输出</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

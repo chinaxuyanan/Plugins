@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swgriditem</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>let &lt;#列#&gt; = [
+    GridItem.弹性(),                // 占据剩余空间
+    GridItem.自适应(最小: &lt;#100#&gt;),  // 按宽度自动排多列
+    GridItem.固定(&lt;#80#&gt;)            // 固定宽度
+]</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>70605015-657D-4E93-8E65-83C22F0B0776</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 布局强化：LazyVGrid 网格列定义</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>布局强化 · 网格列</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

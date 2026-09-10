@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swloglevelcount</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 级别计数：统计各级别真正输出的条数
+LogKit.级别计数(.错误)    // 错误级别累计条数
+LogKit.日志总数()         // 所有级别累计总数
+LogKit.重置计数()         // 清零重新统计</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>54176824-9928-4C0E-81A7-E650660AF3E8</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：totalCount 级别计数统计</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 级别计数</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

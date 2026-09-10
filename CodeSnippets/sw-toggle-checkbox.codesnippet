@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtogglecheckbox</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 复选框开关（仅 macOS）
+Toggle(&quot;&lt;#标题#&gt;&quot;, isOn: $&lt;#开关#&gt;)
+    .开关复选样式()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>779E4B6E-D4D2-42DB-BC47-2480EB4A587F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 控件：复选框开关（仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>控件 · 开关复选样式</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfobright</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 屏幕亮度（0.0~1.0，仅 macOS，无权限 / 取不到为 nil）
+if let 亮度 = SystemInfoKit.屏幕亮度 {
+    &lt;#根据亮度调整界面#&gt;
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D1AF01BD-AD19-47CB-B84C-60A4E90C1B8C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 屏幕亮度（0.0~1.0，仅 macOS，取不到为 nil）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>屏幕亮度 · screenBrightness</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

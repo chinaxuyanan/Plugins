@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swwatermark</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 平铺水印：在内容上叠加倾斜半透明文字（英文 watermark）
+documentView
+    .水印("内部资料", 间距: 100, 角度: .degrees(-20))
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>1A0DF400-FC8A-41AB-8BEB-D935388E1C72</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：watermark 明文平铺水印（铺满整块区域、不拦截点击）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>平铺水印 · watermark</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

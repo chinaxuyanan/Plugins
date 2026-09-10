@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfotraffic</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 网络流量：采样活跃接口累计收发字节与每秒速率（首次速率 nil）
+if let 流量 = SystemInfoKit.采样网络流量() {
+    print("累计接收 \(流量.receivedBytes) B · 接收速率 \(流量.receivedBytesPerSecond ?? 0) B/s")
+    print("累计发送 \(流量.sentBytes) B · 发送速率 \(流量.sentBytesPerSecond ?? 0) B/s")
+}</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>17CA72FC-1973-4B19-9E3C-89D2A19B302B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：sampleNetworkTraffic / 采样网络流量（累计收发字节 + 速率）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>网络流量 · NetworkTraffic</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

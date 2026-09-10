@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swrefreshsearch</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 刷新与搜索（需配合 List / ScrollView）
+List {
+    ForEach(0..&lt;items.count, id: \.self) { i in
+        Text(items[i])
+    }
+}
+.下拉刷新 {                 // pullToRefresh / .refreshable
+    await loadData()
+}
+.搜索框($searchText, 提示: &quot;搜索&quot;)   // searchableText / .searchable</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>63837125-1E60-4C59-AD66-3D24DDE732DB</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：pullToRefresh 下拉刷新 + searchableText 搜索框</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>刷新与搜索 · 下拉刷新 + 搜索框</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

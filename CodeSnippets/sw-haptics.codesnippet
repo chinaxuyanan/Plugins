@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swhaptics</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 触觉反馈（仅 iOS）
+Haptics.冲击(.medium)       // impact：按钮点击冲击感
+Haptics.选择()              // selection：选择器「咔哒」感
+Haptics.通知(.success)      // notification：成功 / 警告 / 错误提示感
+// 快捷写法：Haptics.成功() / Haptics.警告() / Haptics.错误()</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>67D21A75-0835-49DC-A387-DE3CC03E68E0</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：Haptics 冲击 / 选择 / 通知触感（仅 iOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>触觉反馈 · Haptics</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

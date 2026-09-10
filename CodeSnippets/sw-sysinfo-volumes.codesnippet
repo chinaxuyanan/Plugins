@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfovolume</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>for 卷 in SystemInfoKit.存储卷列表 {
+    print("\(卷.名称)：\(卷.已用文本) / \(卷.总容量文本)（已用 \(卷.已用占比文本)）· \(卷.类型名)")
+}
+
+SystemInfoKit.存储卷数量          // 已挂载卷数
+SystemInfoKit.可移除存储卷列表    // 只看 U 盘 / 存储卡 / 外接盘</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>E35D9656-11E4-4E7F-9CF2-8D635FC5C8BF</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit 存储卷列表 mountedVolumes：卷名 / 容量 / 是否可移除 / 是否内置</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>系统 · 存储卷列表</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

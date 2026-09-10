@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfothermal</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 热状态与电源 + CPU 架构
+SystemInfoKit.CPU架构         // &quot;arm64&quot; / &quot;x86_64&quot;（编译期判断）
+SystemInfoKit.热状态          // ProcessInfo.ThermalState：正常/尚可/严重/危急
+SystemInfoKit.热状态名        // &quot;正常&quot; / &quot;尚可&quot; / &quot;严重&quot; / &quot;危急&quot;
+SystemInfoKit.低功耗模式      // 仅 iOS；macOS 恒为 false</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>889ABBFA-FB53-404D-8D76-BCC7BA37AE98</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：CPU 架构 + 热状态 + 低功耗模式</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>SystemInfoKit · 热状态与电源</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogredact</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 脱敏：password / token / secret 等敏感字段自动替换为 ***
+LogKit.调试("登录", 字段: ["账号": "张三", "密码": "123456"])
+// 输出时「密码」→ ***，「账号」正常显示
+
+// 自定义敏感关键词（按字段名子串匹配）
+LogKit.敏感字段关键词.insert("card")
+LogKit.脱敏敏感字段 = false   // 需要时整体关闭脱敏</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>494EA56A-6965-4A30-A10E-32A562F586EF</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：redact / 脱敏（password / token 等字段自动 ***）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>LogKit · 敏感信息脱敏</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

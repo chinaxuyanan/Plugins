@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swinteract</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// 交互（SwiftUIProKit 中文别名）
+.按压反馈(缩放: 0.95)          // 按压缩放反馈
+.按钮按压反馈(缩放: 0.95)      // 按压按钮样式
+.轻点(操作: { &lt;#点击后执行#&gt; })
+.不透明度(0.8)                 // 不透明度
+.条件隐藏(&lt;#是否隐藏#&gt;)         // true 时隐藏</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>AD211484-E7E0-4E24-8FCA-B0E414005398</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit 交互：按压反馈、轻点、不透明度、条件隐藏</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>交互 · 按压反馈/条件隐藏</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>
