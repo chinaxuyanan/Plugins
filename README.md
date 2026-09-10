@@ -39,7 +39,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.8.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.8.1")
 ]
 ```
 
@@ -233,6 +233,8 @@ LogKit.安装崩溃处理()   // 崩溃日志写入 LogKit.崩溃日志路径
 ```
 
 ## 更新日志
+
+- **0.8.1**：修复 `exportLogs` / `导出日志` 导出的目标文件名仅精确到毫秒、同一毫秒内多次导出会因同名碰撞导致 `copyItem` 失败的问题（目标文件名追加短 UUID 保证唯一）；消除崩溃兜底写文件时 `try?` 返回值未使用的编译告警。
 
 - **0.8.0**：新增日志采样（`sampled` / `采样日志` / `samplingRate` / `采样率`，按概率随机输出、高频日志降噪，被丢弃时惰性不求值）、日志导出（`exportLogs` / `导出日志`，复制当前日志文件到临时目录供系统分享面板）、崩溃兜底（`installCrashHandler` / `安装崩溃处理` / `crashLogFileURL` / `崩溃日志路径`，捕获未捕获 `NSException` 与 `SIGABRT` / `SIGSEGV` 等致命信号写入崩溃日志），均含中文别名并补单元测试。
 

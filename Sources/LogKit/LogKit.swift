@@ -32,7 +32,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.8.0"
+    public static let version = "0.8.1"
 
     // MARK: - 配置
 
@@ -604,7 +604,8 @@ public enum LogKit {
         }
         let dir = fm.temporaryDirectory.appendingPathComponent("LogKitExport", isDirectory: true)
         try fm.createDirectory(at: dir, withIntermediateDirectories: true)
-        let dest = dir.appendingPathComponent("LogKit-\(archiveStamp()).log")
+        // 时间戳只有毫秒精度，同一毫秒内多次导出会撞名导致 copy 失败，加短 UUID 保证唯一
+        let dest = dir.appendingPathComponent("LogKit-\(archiveStamp())-\(UUID().uuidString.prefix(8)).log")
         try fm.copyItem(at: logFileURL, to: dest)
         return dest
     }
@@ -901,7 +902,7 @@ private func logKitAppendCrashText(_ text: String) {
     if FileManager.default.fileExists(atPath: url.path) {
         if let handle = try? FileHandle(forWritingTo: url) {
             defer { try? handle.close() }
-            try? handle.seekToEnd()
+            _ = try? handle.seekToEnd()
             try? handle.write(contentsOf: data)
         }
     } else {
