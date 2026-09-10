@@ -53,8 +53,12 @@ import SwiftUI
 /// - `View+Shimmer.swift`     微光扫光效果
 /// - `Image+QRCode.swift`     二维码生成（Core Image）
 /// - `View+ConfirmationDialog.swift` 确认弹窗
+/// - `View+StrokeBorder.swift` 渐变描边（渐变 / 虚线渐变）
+/// - `RingProgress.swift`     环形进度（确定进度圆环）
+/// - `AnimatedNumber.swift`   滚动数字（数值变化平滑滚动）
+/// - `View+Watermark.swift`   水印（平铺倾斜文字）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.12.0"
+    public static let version = "0.13.0"
 }

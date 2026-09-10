@@ -1008,3 +1008,66 @@ public extension View {
         confirm(标题, isPresented: 是否显示, message: 说明, confirmTitle: 确认文字, role: 角色, action: 动作)
     }
 }
+
+// MARK: 渐变描边
+
+public extension View {
+
+    /// 渐变描边（等同 `gradientBorder`）
+    /// - Parameters:
+    ///   - 颜色组: 渐变颜色数组
+    ///   - 线宽: 线宽，默认 `1`
+    ///   - 圆角: 圆角半径，默认 `0`
+    ///   - 起点: 渐变起点，默认 `.topLeading`
+    ///   - 终点: 渐变终点，默认 `.bottomTrailing`
+    @ViewBuilder
+    func 渐变描边(_ 颜色组: [Color],
+                线宽: CGFloat = 1,
+                圆角: CGFloat = 0,
+                起点: UnitPoint = .topLeading,
+                终点: UnitPoint = .bottomTrailing) -> some View {
+        gradientBorder(颜色组, lineWidth: 线宽, cornerRadius: 圆角, startPoint: 起点, endPoint: 终点)
+    }
+
+    /// 虚线渐变描边（等同 `gradientDashedBorder`）
+    /// - Parameters:
+    ///   - 颜色组: 渐变颜色数组
+    ///   - 线宽: 线宽，默认 `1`
+    ///   - 段长: 虚线段长，默认 `6`
+    ///   - 间隔: 虚线间隔，默认 `4`
+    ///   - 圆角: 圆角半径，默认 `0`
+    ///   - 起点: 渐变起点，默认 `.topLeading`
+    ///   - 终点: 渐变终点，默认 `.bottomTrailing`
+    @ViewBuilder
+    func 虚线渐变描边(_ 颜色组: [Color],
+                  线宽: CGFloat = 1,
+                  段长: CGFloat = 6,
+                  间隔: CGFloat = 4,
+                  圆角: CGFloat = 0,
+                  起点: UnitPoint = .topLeading,
+                  终点: UnitPoint = .bottomTrailing) -> some View {
+        gradientDashedBorder(颜色组, lineWidth: 线宽, dash: 段长, gap: 间隔,
+                             cornerRadius: 圆角, startPoint: 起点, endPoint: 终点)
+    }
+}
+
+// MARK: 水印
+
+public extension View {
+
+    /// 平铺水印（等同 `watermark`）
+    /// - Parameters:
+    ///   - 文字: 水印文字
+    ///   - 颜色: 水印颜色，默认浅灰半透明
+    ///   - 字体: 水印字体，默认 `.caption`
+    ///   - 间距: 平铺间距（点），默认 `80`
+    ///   - 角度: 倾斜角度，默认 `-30°`
+    @ViewBuilder
+    func 水印(_ 文字: String,
+            颜色: Color = .secondary.opacity(0.15),
+            字体: Font = .caption,
+            间距: CGFloat = 80,
+            角度: Angle = .degrees(-30)) -> some View {
+        watermark(文字, color: 颜色, font: 字体, spacing: 间距, angle: 角度)
+    }
+}

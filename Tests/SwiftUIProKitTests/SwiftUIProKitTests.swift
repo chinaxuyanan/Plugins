@@ -91,4 +91,28 @@ final class SwiftUIProKitTests: XCTestCase {
         XCTAssertNil(Image.qrCode(""), "空文本不应生成二维码")
         XCTAssertNotNil(Image.二维码("hello"))
     }
+
+    // MARK: - 环形进度 / 滚动数字 / 渐变描边 / 水印
+
+    func testRingProgressClampsValue() {
+        XCTAssertEqual(RingProgress(value: 0.5).normalizedValue, 0.5, accuracy: 1e-9)
+        XCTAssertEqual(RingProgress(value: -1).normalizedValue, 0, accuracy: 1e-9)
+        XCTAssertEqual(RingProgress(value: 2).normalizedValue, 1, accuracy: 1e-9)
+        _ = 环形进度(进度: 0.3)
+    }
+
+    func testAnimatedNumberConstructs() {
+        _ = AnimatedNumber(value: 1280)
+        _ = AnimatedNumber(value: 3.14, decimals: 2, prefix: "¥", suffix: " 元")
+        _ = 滚动数字(数值: 42, 后缀: " 分")
+    }
+
+    func testGradientBorderAndWatermarkModifiers() {
+        // View 扩展仅验证可参与类型检查（不渲染）
+        _ = Text("卡片").gradientBorder([.purple, .blue], lineWidth: 2, cornerRadius: 12)
+        _ = Text("卡片").gradientDashedBorder([.gray, .blue], cornerRadius: 12)
+        _ = Text("卡片").渐变描边([.red, .orange])
+        _ = Text("内容").watermark("内部资料")
+        _ = Text("内容").水印("机密")
+    }
 }

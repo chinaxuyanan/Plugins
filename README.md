@@ -6,9 +6,9 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
-- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`，一行代码完成常见交互
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -20,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.12.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.13.0")
 ]
 ```
 
@@ -125,6 +125,9 @@ VStack {
 | `微光` | `shimmer(active:tint:)`（扫光动画，可独立使用）|
 | `二维码` / `二维码纠错级别` | `Image.qrCode(...)` / `QRCodeCorrectionLevel` |
 | `确认弹窗` | `confirm`（`confirmationDialog` 封装）|
+| `渐变描边` / `虚线渐变描边` | `gradientBorder` / `gradientDashedBorder`（渐变 / 虚线描边，支持圆角）|
+| `环形进度` / `滚动数字` | `环形进度` / `滚动数字`（复合组件，见下方「复合组件」）|
+| `水印` | `watermark`（明文平铺水印，铺满整块区域）|
 
 ## 属性速查表
 
@@ -448,6 +451,14 @@ VStack {
 | --- | --- |
 | `confirm(_:isPresented:message:confirmTitle:role:action:)` | 确认弹窗（`confirmationDialog` 封装，可指定按钮角色）|
 
+### 渐变描边与水印
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `gradientBorder(_:lineWidth:cornerRadius:startPoint:endPoint:)` | 渐变描边（圆角叠加 `LinearGradient` 描边）|
+| `gradientDashedBorder(_:lineWidth:dash:gap:cornerRadius:...)` | 虚线渐变描边（渐变 + 虚线样式）|
+| `watermark(_:color:font:spacing:angle:)` | 明文平铺水印（自动铺满视图，不拦截点击）|
+
 ### 条件修饰符
 
 | 方法 | 中文含义 |
@@ -465,6 +476,8 @@ VStack {
 | `CarouselView(systemImages:interval:height:showsIndicators:)` / `CarouselView(views:...)` | 轮播图（自动轮播 + 分页圆点）|
 | `CountdownView(seconds:font:showsProgress:tint:paused:onFinish:)` | 倒计时视图（圆环进度 + 暂停 / 归零回调）|
 | `OnboardingView(pages:...:onSkip:onFinish:)` | 引导页（多页滑动 + 跳过 / 开始使用）|
+| `RingProgress(value:tint:trackColor:lineWidth:size:showsLabel:labelFont:)` | 环形进度（圆环 + 可选百分比标签，值自动钳制到 0~1）|
+| `AnimatedNumber(value:font:tint:decimals:prefix:suffix:)` | 滚动数字（数值变化时平滑滚动到目标值）|
 
 ## 路线图
 
@@ -477,6 +490,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.13.0**：新增「渐变描边」「水印」两个类别封装（`gradientBorder` / `渐变描边`（`LinearGradient` 圆角描边，可指定起止方向）、`gradientDashedBorder` / `虚线渐变描边`（渐变 + 虚线）、`watermark` / `水印`（明文平铺、自动铺满、不拦截点击）），新增复合组件环形进度 `RingProgress` / `环形进度`（圆环 + 可选百分比标签，值自动钳制到 `0~1`）与滚动数字 `AnimatedNumber` / `滚动数字`（基于 `Animatable` 平滑滚动，支持前后缀与小数位），均含中文别名与文档注释并补单元测试。
 
 - **0.12.0**：新增「尺寸监听」「微光扫光」「二维码生成」「确认弹窗」四个类别封装（`readSize` / `读取尺寸`（`PreferenceKey` + `GeometryReader` 观察视图尺寸）、`shimmer(active:tint:)` / `微光`（可独立使用的扫光动画）、`Image.qrCode(...)` / `二维码`（含 `QRCodeCorrectionLevel` / `二维码纠错级别` 纠错级别，基于 `CIQRCodeGenerator`）、`confirm` / `确认弹窗`（`confirmationDialog` 封装，可指定 `ButtonRole`）），均含中文别名与文档注释。
 
