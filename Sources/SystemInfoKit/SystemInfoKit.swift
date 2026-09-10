@@ -31,7 +31,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.7.0"
+    public static let version = "0.8.0"
 
     // MARK: - 系统信息
 
@@ -684,6 +684,138 @@ public enum SystemInfoKit {
     /// 15 分钟平均负载
     public static var loadAverage15Min: Double { loadAverage[2] }
 
+    // MARK: - 网络流量统计
+
+    /// 采样一次网络流量（累计字节 + 每秒速率）
+    ///
+    /// 读取当前活跃网络接口（Wi-Fi `en0` 优先）的累计收发字节，与上次采样做差换算速率。
+    /// 首次调用无历史样本，速率返回 `nil`；之后每次调用都会更新内部样本。
+    ///
+    /// - Returns: 网络流量快照；无活跃接口时返回 `nil`
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if let t = SystemInfoKit.sampleNetworkTraffic() {
+    ///       print("累计接收 \(t.receivedBytes) B · 接收速率 \(t.receivedBytesPerSecond ?? 0) B/s")
+    ///   }
+    ///   ```
+    public static func sampleNetworkTraffic() -> NetworkTraffic? {
+        guard let active = activeNetworkInterface(),
+              let counts = networkByteCounts(interfaceName: active.name) else { return nil }
+        let now = Date()
+        trafficLock.lock()
+        defer { trafficLock.unlock() }
+        let previous = lastTrafficSample
+        lastTrafficSample = (now.timeIntervalSince1970, counts.received, counts.sent)
+
+        var receivedRate: Double?
+        var sentRate: Double?
+        if let prev = previous {
+            let dt = now.timeIntervalSince1970 - prev.timestamp
+            if dt > 0 {
+                receivedRate = Double(delta(from: prev.received, to: counts.received)) / dt
+                sentRate = Double(delta(from: prev.sent, to: counts.sent)) / dt
+            }
+        }
+        return NetworkTraffic(receivedBytes: counts.received,
+                              sentBytes: counts.sent,
+                              receivedBytesPerSecond: receivedRate,
+                              sentBytesPerSecond: sentRate,
+                              interface: active.name,
+                              timestamp: now)
+    }
+
+    /// 计算计数器差值，处理 32 位计数器回绕（溢出归零后继续累加）
+    private static func delta(from old: UInt64, to new: UInt64) -> UInt64 {
+        if new >= old { return new - old }
+        // ifi_ibytes / ifi_obytes 为 u_int32_t，回绕周期约 4 GB
+        return (UInt64(UInt32.max) + 1 - old) + new
+    }
+
+    private static let trafficLock = NSLock()
+    private static var lastTrafficSample: (timestamp: TimeInterval, received: UInt64, sent: UInt64)?
+
+    /// 读取指定接口的累计收发字节（`getifaddrs` 的 AF_LINK `if_data`）
+    private static func networkByteCounts(interfaceName: String) -> (received: UInt64, sent: UInt64)? {
+        var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddrPtr) == 0, let first = ifaddrPtr else { return nil }
+        defer { freeifaddrs(first) }
+        var current: UnsafeMutablePointer<ifaddrs>? = first
+        while let ifa = current {
+            defer { current = ifa.pointee.ifa_next }
+            let name = String(cString: ifa.pointee.ifa_name)
+            guard name == interfaceName else { continue }
+            guard let addr = ifa.pointee.ifa_addr, addr.pointee.sa_family == UInt8(AF_LINK) else { continue }
+            guard let raw = ifa.pointee.ifa_data else { continue }
+            let ifData = raw.assumingMemoryBound(to: if_data.self).pointee
+            return (UInt64(ifData.ifi_ibytes), UInt64(ifData.ifi_obytes))
+        }
+        return nil
+    }
+
+    // MARK: - 磁盘读写速率
+
+    /// 采样一次磁盘 I/O（累计读写字节 + 每秒速率，仅 macOS）
+    ///
+    /// 汇总所有 `IOBlockStorageDriver` 的累计读写字节，与上次采样做差换算速率。
+    /// iOS 无法访问 IOKit 块存储统计，恒返回 `nil`；首次调用速率返回 `nil`。
+    ///
+    /// - Returns: 磁盘读写快照；无法读取时返回 `nil`
+    public static func sampleDiskIOTraffic() -> DiskIOTraffic? {
+        #if os(macOS)
+        guard let counts = diskIOByteCounts() else { return nil }
+        let now = Date()
+        diskIOLock.lock()
+        defer { diskIOLock.unlock() }
+        let previous = lastDiskIOSample
+        lastDiskIOSample = (now.timeIntervalSince1970, counts.read, counts.written)
+
+        var readRate: Double?
+        var writeRate: Double?
+        if let prev = previous {
+            let dt = now.timeIntervalSince1970 - prev.timestamp
+            if dt > 0 {
+                readRate = Double(counts.read >= prev.read ? counts.read - prev.read : 0) / dt
+                writeRate = Double(counts.written >= prev.written ? counts.written - prev.written : 0) / dt
+            }
+        }
+        return DiskIOTraffic(bytesRead: counts.read,
+                             bytesWritten: counts.written,
+                             readBytesPerSecond: readRate,
+                             writeBytesPerSecond: writeRate,
+                             timestamp: now)
+        #else
+        return nil
+        #endif
+    }
+
+    #if os(macOS)
+    private static let diskIOLock = NSLock()
+    private static var lastDiskIOSample: (timestamp: TimeInterval, read: UInt64, written: UInt64)?
+
+    /// 汇总所有 `IOBlockStorageDriver` 的累计读写字节
+    private static func diskIOByteCounts() -> (read: UInt64, written: UInt64)? {
+        var iterator = io_iterator_t()
+        let matching = IOServiceMatching("IOBlockStorageDriver")
+        let result = IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iterator)
+        guard result == KERN_SUCCESS else { return nil }
+        defer { IOObjectRelease(iterator) }
+
+        var read: UInt64 = 0
+        var written: UInt64 = 0
+        while true {
+            let service = IOIteratorNext(iterator)
+            guard service != 0 else { break }
+            defer { IOObjectRelease(service) }
+            guard let stats = IORegistryEntryCreateCFProperty(service, "Statistics" as CFString, kCFAllocatorDefault, 0)?
+                .takeRetainedValue() as? [String: Any] else { continue }
+            if let r = (stats["Bytes (Read)"] as? NSNumber)?.uint64Value { read += r }
+            if let w = (stats["Bytes (Write)"] as? NSNumber)?.uint64Value { written += w }
+        }
+        return (read, written)
+    }
+    #endif
+
     // MARK: - 内部工具
 
     private static func sysctlString(_ name: String) -> String? {
@@ -936,3 +1068,43 @@ public enum SystemInfoError: Error, LocalizedError {
         }
     }
 }
+
+/// 网络流量快照
+///
+/// 由 `SystemInfoKit.sampleNetworkTraffic()` 返回，含累计收发字节与换算后的每秒速率。
+public struct NetworkTraffic {
+    /// 累计接收字节（自系统启动 / 接口计数器开始统计）
+    public let receivedBytes: UInt64
+    /// 累计发送字节
+    public let sentBytes: UInt64
+    /// 接收速率（字节 / 秒；首次采样为 `nil`）
+    public let receivedBytesPerSecond: Double?
+    /// 发送速率（字节 / 秒；首次采样为 `nil`）
+    public let sentBytesPerSecond: Double?
+    /// 网络接口名（如 `en0`）
+    public let interface: String
+    /// 采样时间
+    public let timestamp: Date
+}
+
+/// 中文名：网络流量（等同 `NetworkTraffic`）
+public typealias 网络流量 = NetworkTraffic
+
+/// 磁盘 I/O 快照
+///
+/// 由 `SystemInfoKit.sampleDiskIOTraffic()` 返回（仅 macOS），含累计读写字节与每秒速率。
+public struct DiskIOTraffic {
+    /// 累计读取字节
+    public let bytesRead: UInt64
+    /// 累计写入字节
+    public let bytesWritten: UInt64
+    /// 读取速率（字节 / 秒；首次采样为 `nil`）
+    public let readBytesPerSecond: Double?
+    /// 写入速率（字节 / 秒；首次采样为 `nil`）
+    public let writeBytesPerSecond: Double?
+    /// 采样时间
+    public let timestamp: Date
+}
+
+/// 中文名：磁盘读写（等同 `DiskIOTraffic`）
+public typealias 磁盘读写 = DiskIOTraffic

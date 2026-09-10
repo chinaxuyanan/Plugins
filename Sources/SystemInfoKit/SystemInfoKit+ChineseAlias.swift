@@ -175,4 +175,15 @@ public extension SystemInfoKit {
     static var 负载5分钟: Double { loadAverage5Min }
     /// 15 分钟平均负载（等同 `loadAverage15Min`）
     static var 负载15分钟: Double { loadAverage15Min }
+
+    // MARK: 网络流量与磁盘读写
+
+    /// 采样网络流量（等同 `sampleNetworkTraffic`）
+    static func 采样网络流量() -> NetworkTraffic? {
+        sampleNetworkTraffic()
+    }
+    /// 采样磁盘读写（等同 `sampleDiskIOTraffic`，仅 macOS）
+    static func 采样磁盘读写() -> DiskIOTraffic? {
+        sampleDiskIOTraffic()
+    }
 }

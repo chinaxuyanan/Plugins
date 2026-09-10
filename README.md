@@ -18,6 +18,8 @@
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
 - **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
 - **系统负载**：1 / 5 / 15 分钟平均负载（`getloadavg`）
+- **网络流量统计**：`sampleNetworkTraffic()` 采样活跃接口累计收发字节 + 每秒速率
+- **磁盘读写速率**：`sampleDiskIOTraffic()` 汇总块存储驱动累计读写字节 + 每秒速率（仅 macOS）
 - **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
@@ -31,7 +33,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.7.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.8.0")
 ]
 ```
 
@@ -114,6 +116,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `availableMemoryBytes` / `availableMemory` | 可用内存（字节 / 可读） | `UInt64?` / 人类可读 |
 | `loadAverage` | 系统负载 | `[Double]`，1/5/15 分钟三值 |
 | `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` | 1/5/15 分钟负载 | `Double` |
+| `sampleNetworkTraffic()` | 采样网络流量 | `NetworkTraffic?`，累计收发字节 + 每秒速率（首次速率 `nil`）|
+| `sampleDiskIOTraffic()` | 采样磁盘读写 | `DiskIOTraffic?`，累计读写字节 + 每秒速率（仅 macOS，首次速率 `nil`）|
 | `processCPUUsage` | 当前进程 CPU 使用率 | 相对单核，多线程可 >`1.0` |
 | `processMemoryBytes` / `processMemory` | 当前进程内存占用（字节 / 可读） | `UInt64` / 人类可读 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
@@ -139,8 +143,12 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `CPU使用率` / `内存已用` / `内存使用率` / `进程CPU使用率` / `进程内存` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `processCPUUsage` / `processMemory` / `memoryPressure` / `memoryPressureName` |
 | `可用内存` / `内存压力监听器` | `availableMemory` / `MemoryPressureMonitor`（`.当前压力/.压力变化回调/.开始监听/.停止监听`）|
 | `系统负载` / `负载1分钟` / `负载5分钟` / `负载15分钟` | `loadAverage` / `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` |
+| `采样网络流量()` / `采样磁盘读写()` | `sampleNetworkTraffic()` / `sampleDiskIOTraffic()` |
+| `网络流量` / `磁盘读写` | `NetworkTraffic` / `DiskIOTraffic`（类型别名）|
 
 ## 更新日志
+
+- **0.8.0**：新增网络流量统计（`sampleNetworkTraffic()` / `采样网络流量()`，`getifaddrs` 读活跃接口 `if_data` 累计收发字节并与上次采样做差换算每秒速率，含回绕处理）、磁盘读写速率（`sampleDiskIOTraffic()` / `采样磁盘读写()`，汇总 `IOBlockStorageDriver` 累计读写字节换算每秒速率，仅 macOS），含 `NetworkTraffic` / `DiskIOTraffic` 结构体及中文类型别名 `网络流量` / `磁盘读写`，并补冒烟测试。
 
 - **0.7.0**：新增系统负载（`loadAverage` / `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min`，`getloadavg` 三值）、网络扩展（`dnsServers` 解析 `/etc/resolv.conf`、`defaultGateway` 通过 sysctl 路由表定位、`publicIPAddress()` 异步请求公网 IP，另含 `SystemInfoError`）、电池扩展（`batteryCycleCount` / `batteryHealthPercent` / `batteryHealth`，IOKit `AppleSmartBattery` 读循环次数与健康度），均含中文别名并补冒烟测试。
 

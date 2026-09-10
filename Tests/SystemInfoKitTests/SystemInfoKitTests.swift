@@ -181,4 +181,36 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(SystemInfoKit.电池健康度, SystemInfoKit.batteryHealthPercent)
         XCTAssertEqual(SystemInfoKit.电池健康, SystemInfoKit.batteryHealth)
     }
+
+    // MARK: - 网络流量 / 磁盘读写
+
+    func testNetworkTrafficSampling() {
+        // 沙箱 / 无网时可能为 nil；可读时返回累计字节与（首采样为 nil 的）速率
+        if let t = SystemInfoKit.sampleNetworkTraffic() {
+            XCTAssertFalse(t.interface.isEmpty)
+            XCTAssertGreaterThanOrEqual(t.receivedBytesPerSecond ?? 0, 0)
+            XCTAssertGreaterThanOrEqual(t.sentBytesPerSecond ?? 0, 0)
+        }
+        if let t = SystemInfoKit.sampleNetworkTraffic() {
+            XCTAssertGreaterThanOrEqual(t.receivedBytesPerSecond ?? 0, 0)
+            XCTAssertGreaterThanOrEqual(t.sentBytesPerSecond ?? 0, 0)
+        }
+    }
+
+    func testDiskIOTrafficSampling() {
+        // iOS 恒为 nil；macOS 可能为 nil（无权限 / 无块设备）或有效快照
+        if let t = SystemInfoKit.sampleDiskIOTraffic() {
+            XCTAssertGreaterThanOrEqual(t.readBytesPerSecond ?? 0, 0)
+            XCTAssertGreaterThanOrEqual(t.writeBytesPerSecond ?? 0, 0)
+        }
+        _ = SystemInfoKit.sampleDiskIOTraffic()
+    }
+
+    func testChineseAliasesForTraffic() {
+        _ = SystemInfoKit.采样网络流量()
+        _ = SystemInfoKit.采样磁盘读写()
+        // 类型别名应等价于英文类型
+        let _: 网络流量.Type = NetworkTraffic.self
+        let _: 磁盘读写.Type = DiskIOTraffic.self
+    }
 }
