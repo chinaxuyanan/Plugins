@@ -1,0 +1,59 @@
+name: CI
+
+# 每次 push 与 PR，都在 GitHub 的 macOS runner 上把三个库 + 演示工程过一遍：
+# 构建、单元测试，再单独编一遍 iOS 目标，抓「只写了 #if os(macOS)、漏了 iOS」这类平台专有符号泄漏。
+on:
+  push:
+  pull_request:
+
+jobs:
+  # 主检查：三个库各自构建 + 跑单元测试
+  test-macos:
+    name: 构建与测试（${{ matrix.package }}）
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [SwiftUIProKit, LogKit, SystemInfoKit]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 工具链版本
+        run: swift --version
+
+      - name: 构建
+        run: swift build --package-path ${{ matrix.package }}
+
+      - name: 单元测试
+        run: swift test --package-path ${{ matrix.package }}
+
+  # 交叉检查：逐个编一遍 iOS 目标。SystemInfoKit 大量使用 IOKit / CoreWLAN / sysctl 等
+  # macOS 专有接口，这些分支必须包在 #if os(macOS) 里，本 job 就是用来盯这一点的。
+  build-ios:
+    name: 编译检查（${{ matrix.package }} · iOS）
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [SwiftUIProKit, LogKit, SystemInfoKit]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 用 xcodebuild 编译 iOS 目标
+        run: |
+          cd ${{ matrix.package }}
+          xcodebuild \
+            -scheme ${{ matrix.package }} \
+            -destination 'generic/platform=iOS' \
+            build
+
+  # 演示工程：KitsDemo 用相对路径依赖同仓库的三个库，所以在这里也能一起编。
+  # 它是 macOS 可执行包，没有测试目标，因此只 build 不 test。
+  build-demo:
+    name: 构建演示工程（KitsDemo · macOS）
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 构建
+        run: swift build --package-path KitsDemo

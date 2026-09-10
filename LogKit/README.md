@@ -48,17 +48,17 @@
 
 ## 安装
 
-在 Xcode 中：`File → Add Packages...`，粘贴本仓库地址，选择版本即可。
-
-或在 `Package.swift` 中声明依赖：
+本库是 [Plugins](../README.md) monorepo 里的一个包，和 `SwiftUIProKit`、`SystemInfoKit` 并排放在同一个仓库中。把仓库 clone 到本地，用**本地路径依赖**引入：
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.12.0")
+    .package(path: "../Plugins/LogKit")
 ]
 ```
 
 然后在目标中 `import LogKit`。
+
+> **为什么不是 `.package(url: "...", from: "0.12.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
