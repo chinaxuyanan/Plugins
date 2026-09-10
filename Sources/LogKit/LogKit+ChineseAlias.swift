@@ -232,4 +232,43 @@ public extension LogKit {
     static func 检索全部日志(_ 关键字: String, 上限: Int = 0) -> [String] {
         searchAllFiles(containing: 关键字, limit: 上限)
     }
+
+    /// 采样日志（等同 `sampled`）
+    /// - Parameters:
+    ///   - 消息: 日志内容（惰性求值，被丢弃时不会执行）
+    ///   - 采样率: 输出概率（`0.0` ~ `1.0`）；`nil` 时用全局 `samplingRate`
+    ///   - 级别: 日志级别，默认 `.debug`
+    ///   - 分类: 分类名，默认「通用」
+    ///   - 字段: 附加的扩展字段（键值对）
+    static func 采样日志(_ 消息: @autoclosure () -> Any,
+                         采样率: Double? = nil,
+                         级别: LogLevel = .debug,
+                         分类: String = "通用",
+                         字段: [String: Any] = [:],
+                         文件: String = #file, 行: Int = #line) {
+        sampled(消息(), rate: 采样率, level: 级别, category: 分类, fields: 字段, file: 文件, line: 行)
+    }
+
+    /// 全局默认采样率（等同 `samplingRate`）
+    static var 采样率: Double {
+        get { samplingRate }
+        set { samplingRate = newValue }
+    }
+
+    /// 导出日志（等同 `exportLogs`）
+    /// - Returns: 导出副本的文件 URL
+    /// - Throws: `LogKitError.logFileNotFound`（当前日志文件不存在时）
+    static func 导出日志() throws -> URL {
+        try exportLogs()
+    }
+
+    /// 崩溃日志文件路径（等同 `crashLogFileURL`）
+    static var 崩溃日志路径: URL {
+        crashLogFileURL
+    }
+
+    /// 安装崩溃处理（等同 `installCrashHandler`）
+    static func 安装崩溃处理() {
+        installCrashHandler()
+    }
 }

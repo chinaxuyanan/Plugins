@@ -25,6 +25,9 @@
 - **敏感信息脱敏**：按字段名关键词自动把 `password` / `token` 等值替换为 `***`，可关可配
 - **终端彩色输出**：`coloredConsoleOutput` 开启后控制台文本按级别着色（仅控制台，不写入文件）
 - **日志检索**：`search` / `searchAllFiles` 按关键字搜索当前 / 全部日志文件
+- **日志采样**：`sampled` / `采样日志` 按概率随机输出，高频日志按比例降噪（被丢弃时不构造消息，惰性）
+- **日志导出**：`exportLogs` / `导出日志` 复制当前日志文件到临时目录，直接交给系统分享面板
+- **崩溃兜底**：`installCrashHandler` / `安装崩溃处理` 捕获未捕获异常与常见致命信号，写入崩溃日志文件
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -36,7 +39,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.7.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.8.0")
 ]
 ```
 
@@ -110,6 +113,7 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `redactSensitiveData` | `true` | 是否对敏感字段自动脱敏 |
 | `sensitiveFieldKeywords` | `["password", "token", ...]` | 敏感字段名关键词（不区分大小写，包含即命中）|
 | `coloredConsoleOutput` | `false` | 控制台文本是否按级别着色（仅 `.text` 输出、仅控制台）|
+| `samplingRate` | `0.1` | 采样日志的默认输出概率（`0.0` ~ `1.0`）|
 
 ## 中文命名别名
 
@@ -135,6 +139,9 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.脱敏敏感字段` / `LogKit.敏感字段关键词` | `LogKit.redactSensitiveData` / `LogKit.sensitiveFieldKeywords` |
 | `LogKit.彩色控制台` | `LogKit.coloredConsoleOutput` |
 | `LogKit.检索日志(关键字)` / `LogKit.检索全部日志(关键字)` | `LogKit.search(containing:)` / `LogKit.searchAllFiles(containing:)` |
+| `LogKit.采样日志(...)` / `LogKit.采样率` | `LogKit.sampled(...)` / `LogKit.samplingRate` |
+| `LogKit.导出日志()` | `LogKit.exportLogs()` |
+| `LogKit.安装崩溃处理()` / `LogKit.崩溃日志路径` | `LogKit.installCrashHandler()` / `LogKit.crashLogFileURL` |
 | `LogKit.级别计数(级别)` / `LogKit.日志总数()` / `LogKit.重置计数()` | `LogKit.totalCount(by:)` / `LogKit.totalCount()` / `LogKit.resetCounts()` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
 | `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
@@ -198,7 +205,36 @@ let 行 = LogKit.检索日志("网络请求失败")          // 当前日志文�
 let 全部 = LogKit.检索全部日志("错误", 上限: 50)   // 目录下全部日志文件，最多 50 行
 ```
 
+**日志采样 `sampled`**：高频日志按概率随机保留，被丢弃时消息不构造（惰性）：
+
+```swift
+LogKit.采样率 = 0.05                          // 全局默认采样率改为 5%
+for index in 0..<1000 {
+    LogKit.采样日志("高频事件 \(index)", 采样率: 0.1)   // 约 10% 概率输出
+}
+```
+
+**日志导出 `exportLogs`**：复制当前日志文件到临时目录，交给系统分享面板：
+
+```swift
+do {
+    let url = try LogKit.导出日志()
+    // iOS：UIActivityViewController(activityItems: [url], ...)
+    // macOS：NSSharingServicePicker(items: [url])
+} catch {
+    print("导出失败：\(error.localizedDescription)")
+}
+```
+
+**崩溃兜底 `installCrashHandler`**：在 App 启动早期调用一次，捕获未捕获异常与致命信号：
+
+```swift
+LogKit.安装崩溃处理()   // 崩溃日志写入 LogKit.崩溃日志路径
+```
+
 ## 更新日志
+
+- **0.8.0**：新增日志采样（`sampled` / `采样日志` / `samplingRate` / `采样率`，按概率随机输出、高频日志降噪，被丢弃时惰性不求值）、日志导出（`exportLogs` / `导出日志`，复制当前日志文件到临时目录供系统分享面板）、崩溃兜底（`installCrashHandler` / `安装崩溃处理` / `crashLogFileURL` / `崩溃日志路径`，捕获未捕获 `NSException` 与 `SIGABRT` / `SIGSEGV` 等致命信号写入崩溃日志），均含中文别名并补单元测试。
 
 - **0.7.0**：新增日志限流（`throttled` / `限流日志` / `resetThrottle` / `重置限流`，按「文件:行:级别」或自定义键去重）、敏感信息脱敏（`redactSensitiveData` / `sensitiveFieldKeywords` / `redact` / `脱敏`，按字段名关键词替换为 `***`）、终端彩色输出（`coloredConsoleOutput` / `彩色控制台`，仅控制台 `.text` 按级别着色）、日志检索（`search` / `searchAllFiles` / `检索日志` / `检索全部日志`，按关键字搜当前 / 全部日志文件，含 `limit`），均含中文别名并补单元测试。
 

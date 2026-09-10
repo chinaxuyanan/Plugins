@@ -1,5 +1,6 @@
 import Foundation
 import Dispatch
+import Darwin
 
 /// LogKit —— 中文友好的日志打印工具库
 ///
@@ -31,7 +32,7 @@ import Dispatch
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.7.0"
+    public static let version = "0.8.0"
 
     // MARK: - 配置
 
@@ -283,6 +284,42 @@ public enum LogKit {
         throttleLock.lock()
         defer { throttleLock.unlock() }
         throttleLastEmit.removeAll()
+    }
+
+    // MARK: - 采样输出
+
+    /// 全局默认采样率（`0.0` ~ `1.0`，默认 `0.1`）
+    ///
+    /// 供 `sampled` 在未显式传 `rate` 时使用。采样率表示每条采样日志被输出的概率：
+    /// `1.0` 全部输出、`0.1` 约 10%、`0.0` 全部丢弃。
+    public static var samplingRate: Double = 0.1
+
+    /// 采样日志：以给定概率随机决定是否输出
+    ///
+    /// 用于高频日志降噪——只希望按比例保留日志时（如每 100 条保留约 10 条），
+    /// 用随机采样替代 `throttled` 的按时间限流。被丢弃时消息不会求值（惰性）。
+    ///
+    /// - Parameters:
+    ///   - message: 日志内容（惰性求值，被丢弃时不会执行）
+    ///   - rate: 采样率（`0.0` ~ `1.0`）；`nil` 时用全局 `samplingRate`
+    ///   - level: 日志级别，默认 `.debug`
+    ///   - category: 分类名，默认「通用」
+    ///   - fields: 附加的扩展字段（键值对）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   // 每条约 10% 概率输出
+    ///   LogKit.sampled("高频事件 \(index)", rate: 0.1)
+    ///   ```
+    public static func sampled(_ message: @autoclosure () -> Any,
+                               rate: Double? = nil,
+                               level: LogLevel = .debug,
+                               category: String = "通用",
+                               fields: [String: Any] = [:],
+                               file: String = #file, line: Int = #line) {
+        let r = min(1, max(0, rate ?? samplingRate))
+        guard r > 0, Double.random(in: 0..<1) < r else { return }
+        log(level, message, category: category, fields: fields, file: file, line: line)
     }
 
     // MARK: - 计时测量
@@ -543,6 +580,70 @@ public enum LogKit {
         return results
     }
 
+    // MARK: - 导出与崩溃兜底
+
+    /// 导出当前日志文件，返回可供系统分享面板使用的文件 URL
+    ///
+    /// 把当前日志文件复制到临时目录，返回一个独立副本的路径，可直接交给
+    /// `UIActivityViewController`（iOS）或 `NSSharingServicePicker`（macOS）分享。
+    /// 会先 `flush()` 确保未落盘的日志已写入。
+    ///
+    /// - Returns: 导出副本的文件 URL
+    /// - Throws: `LogKitError.logFileNotFound`（当前日志文件不存在时）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let url = try LogKit.exportLogs()
+    ///   // 交给系统分享面板分享该 url
+    ///   ```
+    public static func exportLogs() throws -> URL {
+        flush()
+        let fm = FileManager.default
+        guard fm.fileExists(atPath: logFileURL.path) else {
+            throw LogKitError.logFileNotFound
+        }
+        let dir = fm.temporaryDirectory.appendingPathComponent("LogKitExport", isDirectory: true)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let dest = dir.appendingPathComponent("LogKit-\(archiveStamp()).log")
+        try fm.copyItem(at: logFileURL, to: dest)
+        return dest
+    }
+
+    /// 崩溃日志文件路径（安装崩溃兜底后才会写入）
+    public static var crashLogFileURL: URL {
+        logDirectory.appendingPathComponent("LogKit-crash.log")
+    }
+
+    /// 安装崩溃兜底：捕获未捕获异常与常见致命信号，写入崩溃日志文件
+    ///
+    /// 调用一次即可（重复调用会被忽略）。安装后：
+    /// - 未捕获的 `NSException`（含 Swift 运行时抛出的部分异常）会记录到崩溃日志；
+    /// - `SIGABRT` / `SIGSEGV` / `SIGBUS` / `SIGFPE` / `SIGILL` 等致命信号会做最小化落盘。
+    ///
+    /// - Note: 信号处理是「尽力而为」的兜底，无法保证 100% 捕获所有崩溃；
+    ///   建议在 App 启动早期调用，崩溃日志路径见 `crashLogFileURL`。
+    public static func installCrashHandler() {
+        guard !crashHandlerInstalled else { return }
+        crashHandlerInstalled = true
+
+        try? FileManager.default.createDirectory(at: logDirectory, withIntermediateDirectories: true)
+        let crashURL = crashLogFileURL
+        logKitCrashFilePath = crashURL.path
+        logKitCrashPathBuffer = Array(crashURL.path.utf8CString)
+
+        // 1) 未捕获的 NSException（正常上下文，可安全用 Foundation）
+        NSSetUncaughtExceptionHandler(logKitExceptionHandler)
+
+        // 2) 致命信号（异步信号安全的最小写入）
+        _ = signal(SIGABRT, logKitCrashSignalHandler)
+        _ = signal(SIGSEGV, logKitCrashSignalHandler)
+        _ = signal(SIGBUS, logKitCrashSignalHandler)
+        _ = signal(SIGFPE, logKitCrashSignalHandler)
+        _ = signal(SIGILL, logKitCrashSignalHandler)
+    }
+
+    private static var crashHandlerInstalled = false
+
     // MARK: - 内部实现
 
     /// 内部统一输出入口：`message` 为普通闭包（非 `@autoclosure`），供各输出方法转发其 `@autoclosure` 参数，
@@ -761,5 +862,82 @@ public enum LogKit {
         for url in sorted.prefix(logs.count - maxLogFiles) {
             try? fm.removeItem(at: url)
         }
+    }
+}
+
+/// LogKit 抛出的错误
+public enum LogKitError: Error, LocalizedError, Equatable {
+    /// 当前日志文件不存在（无法导出）
+    case logFileNotFound
+
+    public var errorDescription: String? {
+        switch self {
+        case .logFileNotFound:
+            return "导出日志失败：当前日志文件不存在"
+        }
+    }
+}
+
+// MARK: - 崩溃兜底处理器（文件级，供 C 调用约定的处理器使用）
+
+/// 崩溃日志路径（C 字符串缓冲，供信号处理器用 Darwin `open`/`write` 落盘）
+private var logKitCrashPathBuffer: [CChar] = []
+
+/// 崩溃日志路径（字符串形式，供 NSException 处理器在正常上下文用 Foundation 追加）
+private var logKitCrashFilePath: String = ""
+
+/// 当前时间戳（自由函数，供 `@convention(c)` 处理器调用，避免捕获类型静态成员）
+private func logKitTimestampNow() -> String {
+    let formatter = DateFormatter()
+    formatter.dateFormat = LogKit.dateFormat
+    return formatter.string(from: Date())
+}
+
+/// 向崩溃日志文件追加一行（自由函数，供 NSException 处理器在正常上下文调用）
+private func logKitAppendCrashText(_ text: String) {
+    guard !logKitCrashFilePath.isEmpty else { return }
+    let url = URL(fileURLWithPath: logKitCrashFilePath)
+    guard let data = text.data(using: .utf8) else { return }
+    if FileManager.default.fileExists(atPath: url.path) {
+        if let handle = try? FileHandle(forWritingTo: url) {
+            defer { try? handle.close() }
+            try? handle.seekToEnd()
+            try? handle.write(contentsOf: data)
+        }
+    } else {
+        try? data.write(to: url)
+    }
+}
+
+/// 未捕获异常处理器：显式 `@convention(c)` 闭包常量，仅引用文件级自由函数与全局量
+private let logKitExceptionHandler: @convention(c) (NSException) -> Void = { exception in
+    let text = "[\(logKitTimestampNow())] 未捕获异常 \(exception.name.rawValue)：\(exception.reason ?? "无描述")\n"
+    logKitAppendCrashText(text)
+}
+
+/// 致命信号处理器：显式 `@convention(c)` 闭包常量，仅引用全局量/C 函数
+///
+/// 注意：不能把 `private func` + 隐式转换传给 `signal`，也不能用普通闭包传
+/// `NSSetUncaughtExceptionHandler`——Swift 无法从「捕获上下文的闭包」构造 C 函数指针，
+/// 会报 *A C function pointer cannot be formed from a closure that captures context*。
+/// 必须用显式的 `@convention(c)` 闭包常量（仅引用全局量、自由函数与 C 函数，不捕获局部变量/类型成员）。
+private let logKitCrashSignalHandler: @convention(c) (Int32) -> Void = { sig in
+    let name: String
+    switch sig {
+    case SIGABRT: name = "SIGABRT"
+    case SIGSEGV: name = "SIGSEGV"
+    case SIGBUS: name = "SIGBUS"
+    case SIGFPE: name = "SIGFPE"
+    case SIGILL: name = "SIGILL"
+    default: name = "SIG\(sig)"
+    }
+    let line = "CRASH \(sig) \(name)\n"
+    let fd = logKitCrashPathBuffer.withUnsafeBufferPointer { buf -> Int32 in
+        guard let base = buf.baseAddress else { return -1 }
+        return open(base, O_WRONLY | O_CREAT | O_APPEND, 0o644)
+    }
+    if fd >= 0 {
+        line.withCString { _ = write(fd, $0, strlen($0)) }
+        close(fd)
     }
 }

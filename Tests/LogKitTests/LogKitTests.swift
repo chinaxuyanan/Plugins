@@ -24,6 +24,7 @@ final class LogKitTests: XCTestCase {
         LogKit.resetThrottle()
         LogKit.coloredConsoleOutput = false
         LogKit.redactSensitiveData = true
+        LogKit.samplingRate = 0.1
     }
 
     override func tearDown() {
@@ -413,5 +414,108 @@ final class LogKitTests: XCTestCase {
         XCTAssertEqual(LogKit.敏感字段关键词, LogKit.sensitiveFieldKeywords)
         XCTAssertEqual(LogKit.脱敏敏感字段, LogKit.redactSensitiveData)
         XCTAssertEqual(LogKit.彩色控制台, LogKit.coloredConsoleOutput)
+    }
+
+    // MARK: - 日志采样
+
+    func testSamplingRateZeroDropsAllAndIsLazy() {
+        LogKit.samplingRate = 0
+        var evaluated = false
+        func expensive() -> String {
+            evaluated = true
+            return "昂贵消息"
+        }
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+
+        LogKit.sampled(expensive())
+
+        XCTAssertFalse(evaluated, "采样率 0 时消息不应被求值")
+        XCTAssertTrue(captured.isEmpty)
+    }
+
+    func testSamplingRateOneAlwaysEmits() {
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+
+        LogKit.sampled("必然输出", rate: 1.0)
+
+        XCTAssertEqual(captured, ["必然输出"])
+    }
+
+    func testSamplingRateIsClamped() {
+        // rate 传超界值不应崩溃，仍按 0...1 处理
+        LogKit.sampled("a", rate: -5)   // 钳到 0，丢弃
+        LogKit.sampled("b", rate: 99)   // 钳到 1，必然输出
+    }
+
+    func testSamplingChineseAlias() {
+        var captured: [String] = []
+        LogKit.customFormatter = { entry in captured.append(entry.message); return entry.message }
+
+        LogKit.采样日志("中文采样", 采样率: 1.0)
+
+        XCTAssertEqual(captured, ["中文采样"])
+
+        // 采样率 属性双向等价
+        LogKit.采样率 = 0.3
+        XCTAssertEqual(LogKit.采样率, LogKit.samplingRate)
+        XCTAssertEqual(LogKit.采样率, 0.3, accuracy: 1e-9)
+    }
+
+    // MARK: - 日志导出
+
+    func testExportLogsCopiesCurrentFile() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+
+        LogKit.info("导出测试内容")
+        LogKit.flush()
+
+        let exported = try LogKit.exportLogs()
+        let content = try String(contentsOf: exported, encoding: .utf8)
+        XCTAssertTrue(content.contains("导出测试内容"))
+        XCTAssertNotEqual(exported.path, LogKit.logFileURL.path, "导出应为独立副本")
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    func testExportLogsThrowsWhenMissing() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = false   // 不写文件
+
+        XCTAssertThrowsError(try LogKit.exportLogs()) { error in
+            XCTAssertEqual(error as? LogKitError, .logFileNotFound)
+        }
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    func testExportLogsChineseAlias() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+
+        LogKit.info("中文导出")
+        LogKit.flush()
+
+        let exported = try LogKit.导出日志()
+        XCTAssertTrue(try String(contentsOf: exported, encoding: .utf8).contains("中文导出"))
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    // MARK: - 崩溃兜底
+
+    func testInstallCrashHandler() {
+        LogKit.installCrashHandler()
+        LogKit.installCrashHandler()   // 重复调用应被忽略，不崩溃
+
+        XCTAssertTrue(LogKit.crashLogFileURL.lastPathComponent.contains("LogKit-crash"))
+        XCTAssertEqual(LogKit.崩溃日志路径, LogKit.crashLogFileURL)
     }
 }
