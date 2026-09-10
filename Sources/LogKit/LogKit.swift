@@ -32,7 +32,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.9.0"
+    public static let version = "0.10.0"
 
     // MARK: - 配置
 
@@ -690,6 +690,70 @@ public enum LogKit {
             }
     }
 
+    // MARK: - 输出预判与作用域追踪 ID
+
+    /// 预判某条日志是否会被输出
+    ///
+    /// 当你想在「构造昂贵消息」之前先判断这条日志会不会被写出来时使用（级别 / 分类过滤）。
+    /// 与内部输出入口使用同一套过滤规则，结果一致。
+    ///
+    /// - Parameters:
+    ///   - level: 日志级别
+    ///   - category: 分类名，默认「通用」
+    /// - Returns: `true` 表示该日志会被输出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if LogKit.isEnabled(level: .debug, category: "网络") {
+    ///       LogKit.debug("响应体：\(try await fetchBody())")   // 仅在会输出时才拉取
+    ///   }
+    ///   ```
+    public static func isEnabled(level: LogLevel, category: String = "通用") -> Bool {
+        guard level >= minimumLevel else { return false }
+        if let enabled = enabledCategories, !enabled.contains(category) { return false }
+        if ignoredCategories.contains(category) { return false }
+        return true
+    }
+
+    /// 在指定追踪 ID 作用域内执行代码块，结束后恢复原 `traceId`
+    ///
+    /// 适合「一次请求」的边界：进入时设置 `traceId`，块内所有日志自动携带，
+    /// 退出时自动还原（含抛错路径）。
+    ///
+    /// - Parameters:
+    ///   - traceId: 该作用域使用的追踪 ID
+    ///   - operation: 要执行的代码块
+    /// - Returns: 代码块的返回值
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let user = try LogKit.withTrace("req-42") {
+    ///       LogKit.info("开始拉取用户")   // 自动带 traceId: req-42
+    ///       return try api.fetchUser()
+    ///   }
+    ///   ```
+    @discardableResult
+    public static func withTrace<T>(_ traceId: String, _ operation: () throws -> T) rethrows -> T {
+        let previous = Self.traceId
+        Self.traceId = traceId
+        defer { Self.traceId = previous }
+        return try operation()
+    }
+
+    /// 异步版的「作用域追踪 ID」，用法同 `withTrace`
+    ///
+    /// - Parameters:
+    ///   - traceId: 该作用域使用的追踪 ID
+    ///   - operation: 要执行的异步代码块
+    /// - Returns: 代码块的返回值
+    @discardableResult
+    public static func withTraceAsync<T>(_ traceId: String, _ operation: () async throws -> T) async rethrows -> T {
+        let previous = Self.traceId
+        Self.traceId = traceId
+        defer { Self.traceId = previous }
+        return try await operation()
+    }
+
     // MARK: - 内部实现
 
     /// 内部统一输出入口：`message` 为普通闭包（非 `@autoclosure`），供各输出方法转发其 `@autoclosure` 参数，
@@ -697,9 +761,7 @@ public enum LogKit {
     static func log(_ level: LogLevel, _ message: () -> Any,
                     traceId: String? = nil,
                     category: String, fields: [String: Any], file: String, line: Int) {
-        guard level >= minimumLevel else { return }
-        if let enabled = enabledCategories, !enabled.contains(category) { return }
-        if ignoredCategories.contains(category) { return }
+        guard isEnabled(level: level, category: category) else { return }
         let effectiveTraceId = traceId ?? Self.traceId
         incrementCount(level: level)
         let safeFields = redactedFields(fields)

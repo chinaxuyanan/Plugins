@@ -31,6 +31,9 @@
 - **日志回调**：`onLog` / `日志回调` 钩子，每条日志输出后回调完整 `LogEntry`（含时间 / 级别 / 分类 / 消息 / 字段等）
 - **尾部读取**：`tail` / `尾部读取` 读取当前日志文件末尾若干行，适合展示「最近日志」面板
 - **归档列表**：`archivedLogFiles` / `归档日志列表` 列出已归档的日志文件（按时间倒序）
+- **输出预判**：`isEnabled(level:category:)` / `是否输出(级别:分类:)` 提前判断某条日志是否会被输出，避免无谓的消息构造
+- **作用域追踪**：`withTrace` / `追踪执行`（含 `withTraceAsync` / `异步追踪执行`）临时设置 `traceId`，执行完自动恢复，串联一次请求的全部日志
+- **单条序列化**：`LogEntry.jsonObject` / `jsonString`（中文别名 `JSON字典` / `JSON字符串`）把任意日志条目转成结构化字典 / JSON 字符串，便于自定义上报
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -42,7 +45,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.9.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.10.0")
 ]
 ```
 
@@ -148,6 +151,9 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.安装崩溃处理()` / `LogKit.崩溃日志路径` | `LogKit.installCrashHandler()` / `LogKit.crashLogFileURL` |
 | `LogKit.尾部读取(行数)` / `LogKit.归档日志列表` / `LogKit.日志回调` | `LogKit.tail(_:)` / `LogKit.archivedLogFiles` / `LogKit.onLog` |
 | `LogKit.级别计数(级别)` / `LogKit.日志总数()` / `LogKit.重置计数()` | `LogKit.totalCount(by:)` / `LogKit.totalCount()` / `LogKit.resetCounts()` |
+| `LogKit.是否输出(级别:分类:)` | `LogKit.isEnabled(level:category:)` |
+| `LogKit.追踪执行(追踪ID) { ... }` / `LogKit.异步追踪执行(追踪ID) { ... }` | `LogKit.withTrace(_:_:)` / `LogKit.withTraceAsync(_:_:)` |
+| `LogEntry.JSON字典` / `LogEntry.JSON字符串` | `LogEntry.jsonObject` / `LogEntry.jsonString` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
 | `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
 | `系统日志器` | `OSLogger`（`.调试/.信息/.通知/.错误/.严重/.故障`）|
@@ -238,6 +244,8 @@ LogKit.安装崩溃处理()   // 崩溃日志写入 LogKit.崩溃日志路径
 ```
 
 ## 更新日志
+
+- **0.10.0**：新增输出预判（`isEnabled(level:category:)` / `是否输出(级别:分类:)`，提前判断日志是否会被输出，避免无谓的消息构造）、作用域追踪（`withTrace` / `withTraceAsync` / `追踪执行` / `异步追踪执行`，临时设置 `traceId` 并在执行完自动恢复，抛错时也恢复）、单条序列化（`LogEntry.jsonObject` / `jsonString` / `JSON字典` / `JSON字符串`，把任意日志条目转成结构化字典 / JSON 字符串，`jsonString` 采用 `.sortedKeys` 键序稳定可复现），均含中文别名并补单元测试。
 
 - **0.9.0**：新增日志回调钩子（`onLog` / `日志回调`，每条日志输出后回调完整 `LogEntry`）、尾部读取（`tail` / `尾部读取`，读取当前日志文件末尾若干行）、归档列表（`archivedLogFiles` / `归档日志列表`，按时间倒序列出已归档日志文件），均含中文别名并补单元测试。
 

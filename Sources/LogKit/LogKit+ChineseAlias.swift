@@ -288,4 +288,41 @@ public extension LogKit {
         get { onLog }
         set { onLog = newValue }
     }
+
+    /// 预判某条日志是否会被输出（等同 `isEnabled(level:category:)`）
+    /// - Parameters:
+    ///   - 级别: 日志级别
+    ///   - 分类: 分类名，默认「通用」
+    static func 是否输出(级别: LogLevel, 分类: String = "通用") -> Bool {
+        isEnabled(level: 级别, category: 分类)
+    }
+
+    /// 在指定追踪 ID 作用域内执行代码块，结束后恢复原 `traceId`（等同 `withTrace`）
+    /// - Parameters:
+    ///   - 追踪ID: 该作用域使用的追踪 ID
+    ///   - 操作: 要执行的代码块
+    @discardableResult
+    static func 追踪执行<T>(_ 追踪ID: String, _ 操作: () throws -> T) rethrows -> T {
+        try withTrace(追踪ID, 操作)
+    }
+
+    /// 异步版「作用域追踪 ID」（等同 `withTraceAsync`）
+    /// - Parameters:
+    ///   - 追踪ID: 该作用域使用的追踪 ID
+    ///   - 操作: 要执行的异步代码块
+    @discardableResult
+    static func 异步追踪执行<T>(_ 追踪ID: String, _ 操作: () async throws -> T) async rethrows -> T {
+        try await withTraceAsync(追踪ID, 操作)
+    }
+}
+
+// MARK: - LogEntry 中文命名别名
+
+public extension LogEntry {
+
+    /// JSON 字典（等同 `jsonObject`）
+    var JSON字典: [String: Any] { jsonObject }
+
+    /// JSON 字符串（等同 `jsonString`）
+    var JSON字符串: String { jsonString }
 }

@@ -609,4 +609,115 @@ final class LogKitTests: XCTestCase {
         LogKit.maxFileSize = 0
         try? FileManager.default.removeItem(at: dir)
     }
+
+    // MARK: - 输出预判 isEnabled
+
+    func testIsEnabledRespectsLevelAndCategory() {
+        LogKit.minimumLevel = .warning
+        XCTAssertFalse(LogKit.isEnabled(level: .debug))
+        XCTAssertTrue(LogKit.isEnabled(level: .warning))
+
+        LogKit.minimumLevel = .debug
+        LogKit.enabledCategories = Set(["网络"])
+        XCTAssertTrue(LogKit.isEnabled(level: .info, category: "网络"))
+        XCTAssertFalse(LogKit.isEnabled(level: .info, category: "存储"))
+
+        LogKit.enabledCategories = nil
+        LogKit.ignoredCategories = Set(["轮询"])
+        XCTAssertFalse(LogKit.isEnabled(level: .info, category: "轮询"))
+        XCTAssertTrue(LogKit.isEnabled(level: .info, category: "网络"))
+
+        XCTAssertTrue(LogKit.是否输出(级别: .info, 分类: "网络"))
+    }
+
+    // MARK: - 作用域追踪 ID withTrace
+
+    func testWithTraceScopesAndRestoresTraceId() {
+        LogKit.traceId = "全局"
+        var captured: [String?] = []
+        LogKit.customFormatter = { entry in captured.append(entry.traceId); return entry.message }
+
+        LogKit.withTrace("请求-1") {
+            LogKit.info("块内")
+        }
+        LogKit.info("块外")
+
+        XCTAssertEqual(captured, ["请求-1", "全局"])
+        XCTAssertEqual(LogKit.traceId, "全局", "withTrace 结束后应恢复原 traceId")
+    }
+
+    func testWithTraceRestoresOnThrow() {
+        LogKit.traceId = "原值"
+        enum TestError: Error { case boom }
+        XCTAssertThrowsError(try LogKit.withTrace("临时") { () -> Int in throw TestError.boom })
+        XCTAssertEqual(LogKit.traceId, "原值")
+    }
+
+    func testWithTraceAsyncScopes() async {
+        LogKit.traceId = nil
+        var captured: String?
+        LogKit.customFormatter = { entry in captured = entry.traceId; return entry.message }
+
+        await LogKit.异步追踪执行("异步请求") {
+            LogKit.info("异步块内")
+        }
+
+        XCTAssertEqual(captured, "异步请求")
+        XCTAssertNil(LogKit.traceId)
+    }
+
+    // MARK: - LogEntry 序列化
+
+    func testLogEntryJSONSerialization() {
+        let entry = LogEntry(timestamp: "2026-09-10 10:00:00.000",
+                             level: .info,
+                             category: "账号",
+                             message: "登录成功",
+                             file: "Login.swift",
+                             line: 42,
+                             fields: ["状态码": 200, "token": "abc"],
+                             traceId: "req-1")
+
+        let object = entry.jsonObject
+        XCTAssertEqual(object["time"] as? String, "2026-09-10 10:00:00.000")
+        XCTAssertEqual(object["level"] as? String, "信息")
+        XCTAssertEqual(object["levelValue"] as? Int, LogLevel.info.rawValue)
+        XCTAssertEqual(object["category"] as? String, "账号")
+        XCTAssertEqual(object["message"] as? String, "登录成功")
+        XCTAssertEqual(object["file"] as? String, "Login.swift")
+        XCTAssertEqual(object["line"] as? Int, 42)
+        XCTAssertEqual(object["traceId"] as? String, "req-1")
+        let fields = object["fields"] as? [String: Any]
+        XCTAssertEqual(fields?["状态码"] as? Int, 200)
+
+        let json = entry.jsonString
+        XCTAssertFalse(json.isEmpty)
+        XCTAssertTrue(json.contains("\"message\":\"登录成功\""))
+
+        // 键序稳定（.sortedKeys）：同一份内容两次序列化结果一致
+        XCTAssertEqual(entry.JSON字符串, json)
+
+        // 中文别名与英文等价：比较解析后的字典，避免依赖 JSON 键序
+        let parsed = try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
+        XCTAssertEqual(parsed?["message"] as? String, "登录成功")
+        XCTAssertEqual((parsed?["fields"] as? [String: Any])?["状态码"] as? Int, 200)
+
+        XCTAssertEqual(entry.JSON字典["message"] as? String, "登录成功")
+    }
+
+    func testLogEntryJSONOmitsLocationWhenNil() {
+        let entry = LogEntry(timestamp: "t",
+                             level: .debug,
+                             category: "通用",
+                             message: "m",
+                             file: nil,
+                             line: nil,
+                             fields: [:],
+                             traceId: nil)
+        let object = entry.jsonObject
+        XCTAssertNil(object["file"])
+        XCTAssertNil(object["line"])
+        XCTAssertNil(object["traceId"])
+        XCTAssertNil(object["fields"])
+    }
 }
