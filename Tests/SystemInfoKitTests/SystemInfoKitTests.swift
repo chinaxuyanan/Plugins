@@ -94,7 +94,10 @@ final class SystemInfoKitTests: XCTestCase {
     func testChineseAliasesEquivalent() {
         XCTAssertEqual(SystemInfoKit.系统版本, SystemInfoKit.systemVersion)
         XCTAssertEqual(SystemInfoKit.内存总量, SystemInfoKit.memoryTotal)
-        XCTAssertEqual(SystemInfoKit.可用内存, SystemInfoKit.availableMemory)
+        // 可用内存是实时值（os_proc_available_memory 每次重读、按 0.1 精度取整），
+        // 两次读取可能不同，故别名只断言非空（能返回格式化结果）。
+        XCTAssertFalse(SystemInfoKit.可用内存.isEmpty)
+        XCTAssertFalse(SystemInfoKit.availableMemory.isEmpty)
         XCTAssertEqual(SystemInfoKit.卷名, SystemInfoKit.volumeName)
         XCTAssertEqual(SystemInfoKit.文件系统名称, SystemInfoKit.fileSystemName)
     }
@@ -130,7 +133,10 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(SystemInfoKit.系统启动时间.timeIntervalSince1970,
                        SystemInfoKit.bootTime.timeIntervalSince1970, accuracy: 2.0)
         XCTAssertEqual(SystemInfoKit.系统启动时间字符串, SystemInfoKit.bootTimeString)
-        XCTAssertEqual(SystemInfoKit.进程内存, SystemInfoKit.processMemory)
+        // 进程内存是实时值（mach task_info 每次重读、按 0.1 精度取整），两次读取可能不同，
+        // 故别名只断言非空（能返回格式化结果）。
+        XCTAssertFalse(SystemInfoKit.进程内存.isEmpty)
+        XCTAssertFalse(SystemInfoKit.processMemory.isEmpty)
         XCTAssertEqual(SystemInfoKit.WiFi信号强度名, SystemInfoKit.wifiSignalStrengthName)
     }
 
@@ -142,10 +148,10 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(SystemInfoKit.loadAverage1Min, 0)
         XCTAssertGreaterThanOrEqual(SystemInfoKit.loadAverage5Min, 0)
         XCTAssertGreaterThanOrEqual(SystemInfoKit.loadAverage15Min, 0)
-        // 各分量应与数组对应项一致
-        XCTAssertEqual(SystemInfoKit.loadAverage1Min, loads[0])
-        XCTAssertEqual(SystemInfoKit.loadAverage5Min, loads[1])
-        XCTAssertEqual(SystemInfoKit.loadAverage15Min, loads[2])
+        // 各分量应与数组对应项一致（三值各自重读 getloadavg，内核每 5 秒重算，用容差避免跨窗口的偶发不一致）
+        XCTAssertEqual(SystemInfoKit.loadAverage1Min, loads[0], accuracy: 1.0)
+        XCTAssertEqual(SystemInfoKit.loadAverage5Min, loads[1], accuracy: 1.0)
+        XCTAssertEqual(SystemInfoKit.loadAverage15Min, loads[2], accuracy: 1.0)
     }
 
     // MARK: - 电池扩展
@@ -171,10 +177,16 @@ final class SystemInfoKitTests: XCTestCase {
     // MARK: - 新增中文别名
 
     func testChineseAliasesForExtensions() {
-        XCTAssertEqual(SystemInfoKit.系统负载, SystemInfoKit.loadAverage)
-        XCTAssertEqual(SystemInfoKit.负载1分钟, SystemInfoKit.loadAverage1Min)
-        XCTAssertEqual(SystemInfoKit.负载5分钟, SystemInfoKit.loadAverage5Min)
-        XCTAssertEqual(SystemInfoKit.负载15分钟, SystemInfoKit.loadAverage15Min)
+        // 负载均值是实时值，别名与英文各自重读 getloadavg，用容差比较
+        let aliasLoad = SystemInfoKit.系统负载
+        let englishLoad = SystemInfoKit.loadAverage
+        XCTAssertEqual(aliasLoad.count, englishLoad.count)
+        for (a, e) in zip(aliasLoad, englishLoad) {
+            XCTAssertEqual(a, e, accuracy: 1.0)
+        }
+        XCTAssertEqual(SystemInfoKit.负载1分钟, SystemInfoKit.loadAverage1Min, accuracy: 1.0)
+        XCTAssertEqual(SystemInfoKit.负载5分钟, SystemInfoKit.loadAverage5Min, accuracy: 1.0)
+        XCTAssertEqual(SystemInfoKit.负载15分钟, SystemInfoKit.loadAverage15Min, accuracy: 1.0)
         XCTAssertEqual(SystemInfoKit.DNS服务器, SystemInfoKit.dnsServers)
         XCTAssertEqual(SystemInfoKit.默认网关, SystemInfoKit.defaultGateway)
         XCTAssertEqual(SystemInfoKit.电池循环次数, SystemInfoKit.batteryCycleCount)

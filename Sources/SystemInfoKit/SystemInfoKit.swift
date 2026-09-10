@@ -31,7 +31,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.8.0"
+    public static let version = "0.8.1"
 
     // MARK: - 系统信息
 
@@ -797,7 +797,7 @@ public enum SystemInfoKit {
     private static func diskIOByteCounts() -> (read: UInt64, written: UInt64)? {
         var iterator = io_iterator_t()
         let matching = IOServiceMatching("IOBlockStorageDriver")
-        let result = IOServiceGetMatchingServices(kIOMasterPortDefault, matching, &iterator)
+        let result = IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator)
         guard result == KERN_SUCCESS else { return nil }
         defer { IOObjectRelease(iterator) }
 
@@ -983,7 +983,7 @@ public enum SystemInfoKit {
     /// 读取 AppleSmartBattery 注册表里某个属性的值（IOKit）
     private static func smartBatteryProperty(_ key: String) -> CFTypeRef? {
         guard let matching = IOServiceMatching("AppleSmartBattery") else { return nil }
-        let service = IOServiceGetMatchingService(kIOMasterPortDefault, matching)
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, matching)
         guard service != 0 else { return nil }
         defer { IOObjectRelease(service) }
         let value = IORegistryEntryCreateCFProperty(service, key as CFString, kCFAllocatorDefault, 0)

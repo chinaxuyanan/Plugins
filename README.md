@@ -33,7 +33,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.8.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.8.1")
 ]
 ```
 
@@ -147,6 +147,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `网络流量` / `磁盘读写` | `NetworkTraffic` / `DiskIOTraffic`（类型别名）|
 
 ## 更新日志
+
+- **0.8.1**：将 IOKit 入口常量 `kIOMasterPortDefault` 替换为 `kIOMainPortDefault`，消除 macOS 12+ 的弃用告警。
 
 - **0.8.0**：新增网络流量统计（`sampleNetworkTraffic()` / `采样网络流量()`，`getifaddrs` 读活跃接口 `if_data` 累计收发字节并与上次采样做差换算每秒速率，含回绕处理）、磁盘读写速率（`sampleDiskIOTraffic()` / `采样磁盘读写()`，汇总 `IOBlockStorageDriver` 累计读写字节换算每秒速率，仅 macOS），含 `NetworkTraffic` / `DiskIOTraffic` 结构体及中文类型别名 `网络流量` / `磁盘读写`，并补冒烟测试。
 
