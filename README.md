@@ -28,6 +28,9 @@
 - **日志采样**：`sampled` / `采样日志` 按概率随机输出，高频日志按比例降噪（被丢弃时不构造消息，惰性）
 - **日志导出**：`exportLogs` / `导出日志` 复制当前日志文件到临时目录，直接交给系统分享面板
 - **崩溃兜底**：`installCrashHandler` / `安装崩溃处理` 捕获未捕获异常与常见致命信号，写入崩溃日志文件
+- **日志回调**：`onLog` / `日志回调` 钩子，每条日志输出后回调完整 `LogEntry`（含时间 / 级别 / 分类 / 消息 / 字段等）
+- **尾部读取**：`tail` / `尾部读取` 读取当前日志文件末尾若干行，适合展示「最近日志」面板
+- **归档列表**：`archivedLogFiles` / `归档日志列表` 列出已归档的日志文件（按时间倒序）
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -39,7 +42,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.8.1")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.9.0")
 ]
 ```
 
@@ -114,6 +117,7 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `sensitiveFieldKeywords` | `["password", "token", ...]` | 敏感字段名关键词（不区分大小写，包含即命中）|
 | `coloredConsoleOutput` | `false` | 控制台文本是否按级别着色（仅 `.text` 输出、仅控制台）|
 | `samplingRate` | `0.1` | 采样日志的默认输出概率（`0.0` ~ `1.0`）|
+| `onLog` | `nil` | 日志回调钩子 `((LogEntry) -> Void)?`，每条日志输出后触发 |
 
 ## 中文命名别名
 
@@ -142,6 +146,7 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.采样日志(...)` / `LogKit.采样率` | `LogKit.sampled(...)` / `LogKit.samplingRate` |
 | `LogKit.导出日志()` | `LogKit.exportLogs()` |
 | `LogKit.安装崩溃处理()` / `LogKit.崩溃日志路径` | `LogKit.installCrashHandler()` / `LogKit.crashLogFileURL` |
+| `LogKit.尾部读取(行数)` / `LogKit.归档日志列表` / `LogKit.日志回调` | `LogKit.tail(_:)` / `LogKit.archivedLogFiles` / `LogKit.onLog` |
 | `LogKit.级别计数(级别)` / `LogKit.日志总数()` / `LogKit.重置计数()` | `LogKit.totalCount(by:)` / `LogKit.totalCount()` / `LogKit.resetCounts()` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
 | `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
@@ -233,6 +238,8 @@ LogKit.安装崩溃处理()   // 崩溃日志写入 LogKit.崩溃日志路径
 ```
 
 ## 更新日志
+
+- **0.9.0**：新增日志回调钩子（`onLog` / `日志回调`，每条日志输出后回调完整 `LogEntry`）、尾部读取（`tail` / `尾部读取`，读取当前日志文件末尾若干行）、归档列表（`archivedLogFiles` / `归档日志列表`，按时间倒序列出已归档日志文件），均含中文别名并补单元测试。
 
 - **0.8.1**：修复 `exportLogs` / `导出日志` 导出的目标文件名仅精确到毫秒、同一毫秒内多次导出会因同名碰撞导致 `copyItem` 失败的问题（目标文件名追加短 UUID 保证唯一）；消除崩溃兜底写文件时 `try?` 返回值未使用的编译告警。
 

@@ -32,7 +32,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.8.1"
+    public static let version = "0.9.0"
 
     // MARK: - 配置
 
@@ -285,6 +285,15 @@ public enum LogKit {
         defer { throttleLock.unlock() }
         throttleLastEmit.removeAll()
     }
+
+    // MARK: - 日志回调
+
+    /// 日志回调钩子：每条「通过过滤、真正输出」的日志都会回调一次
+    ///
+    /// 在日志写入控制台 / 文件之前，把组装好的 `LogEntry` 交给开发者，可用于自定义日志面板、
+    /// 实时刷新日志界面等场景。回调在调用日志方法的线程同步执行，请避免在其中做重活。
+    /// 设为 `nil` 可取消回调。
+    public static var onLog: ((LogEntry) -> Void)?
 
     // MARK: - 采样输出
 
@@ -645,6 +654,42 @@ public enum LogKit {
 
     private static var crashHandlerInstalled = false
 
+    // MARK: - 尾部读取与归档列表
+
+    /// 读取当前日志文件末尾的若干行（最新的在末尾）
+    ///
+    /// 先 `flush` 确保异步写入的日志已落盘，再读取当前日志文件并返回最后 `count` 行。
+    /// 用于「最近发生了什么」式排查。
+    ///
+    /// - Parameter count: 返回的最大行数，默认 `50`；传 `0` 或负数返回空数组
+    /// - Returns: 末尾若干行（保持文件顺序）；文件不存在或为空时返回空数组
+    public static func tail(_ count: Int = 50) -> [String] {
+        guard count > 0 else { return [] }
+        flush()
+        guard let content = try? String(contentsOf: logFileURL, encoding: .utf8), !content.isEmpty else { return [] }
+        let trimmed = content.hasSuffix("\n") ? String(content.dropLast()) : content
+        let lines = trimmed.isEmpty ? [] : trimmed.split(separator: "\n", omittingEmptySubsequences: false).map(String.init)
+        return Array(lines.suffix(count))
+    }
+
+    /// 已归档的日志文件列表（不含当前日志文件）
+    ///
+    /// 文件按修改时间从新到旧排序。当未发生过轮转（`rotateLogFile` 或按大小自动轮转）时为空。
+    public static var archivedLogFiles: [URL] {
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(at: logDirectory,
+                                                      includingPropertiesForKeys: [.contentModificationDateKey],
+                                                      options: []) else { return [] }
+        let current = logFileURL.lastPathComponent
+        return files
+            .filter { $0.pathExtension == "log" && $0.lastPathComponent.hasPrefix("LogKit-") && $0.lastPathComponent != current }
+            .sorted { (a: URL, b: URL) -> Bool in
+                let ta = (try? a.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+                let tb = (try? b.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
+                return ta > tb
+            }
+    }
+
     // MARK: - 内部实现
 
     /// 内部统一输出入口：`message` 为普通闭包（非 `@autoclosure`），供各输出方法转发其 `@autoclosure` 参数，
@@ -658,7 +703,18 @@ public enum LogKit {
         let effectiveTraceId = traceId ?? Self.traceId
         incrementCount(level: level)
         let safeFields = redactedFields(fields)
-        let text = formatLine(level: level, message: message(), traceId: effectiveTraceId,
+        let messageValue = message()
+        if let hook = onLog {
+            hook(LogEntry(timestamp: timestamp(),
+                          level: level,
+                          category: category,
+                          message: String(describing: messageValue),
+                          file: showLocation ? fileName(file) : nil,
+                          line: showLocation ? line : nil,
+                          fields: safeFields,
+                          traceId: effectiveTraceId))
+        }
+        let text = formatLine(level: level, message: messageValue, traceId: effectiveTraceId,
                               category: category, file: file, line: line, fields: safeFields)
         if consoleOutput {
             let shouldColor = coloredConsoleOutput && customFormatter == nil && outputFormat == .text

@@ -25,6 +25,7 @@ final class LogKitTests: XCTestCase {
         LogKit.coloredConsoleOutput = false
         LogKit.redactSensitiveData = true
         LogKit.samplingRate = 0.1
+        LogKit.onLog = nil
     }
 
     override func tearDown() {
@@ -37,6 +38,7 @@ final class LogKitTests: XCTestCase {
         LogKit.traceId = nil
         LogKit.resetCounts()
         LogKit.resetThrottle()
+        LogKit.onLog = nil
         super.tearDown()
     }
 
@@ -517,5 +519,94 @@ final class LogKitTests: XCTestCase {
 
         XCTAssertTrue(LogKit.crashLogFileURL.lastPathComponent.contains("LogKit-crash"))
         XCTAssertEqual(LogKit.崩溃日志路径, LogKit.crashLogFileURL)
+    }
+
+    // MARK: - 日志回调 onLog
+
+    func testOnLogHookReceivesEntry() {
+        var captured: [LogEntry] = []
+        LogKit.onLog = { entry in captured.append(entry) }
+
+        LogKit.info("回调测试", category: "账号")
+
+        XCTAssertEqual(captured.count, 1)
+        XCTAssertEqual(captured[0].message, "回调测试")
+        XCTAssertEqual(captured[0].category, "账号")
+        XCTAssertEqual(captured[0].level, .info)
+    }
+
+    func testOnLogChineseAlias() {
+        var captured: [String] = []
+        LogKit.日志回调 = { entry in captured.append(entry.message) }
+        LogKit.info("中文回调")
+        XCTAssertEqual(captured, ["中文回调"])
+        XCTAssertNotNil(LogKit.onLog)
+    }
+
+    // MARK: - 尾部读取 tail / 归档列表 archivedLogFiles
+
+    func testTailReadsLastLines() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+
+        for i in 1...60 {
+            LogKit.info("第\(i)行")
+        }
+        LogKit.flush()
+
+        let lines = LogKit.tail(10)
+        XCTAssertEqual(lines.count, 10, "应返回末尾 10 行")
+        XCTAssertTrue(lines.last?.contains("第60行") ?? false, "最后一行应为最新日志")
+        XCTAssertTrue(lines.first?.contains("第51行") ?? false)
+
+        // 行数超限时返回全部
+        let all = LogKit.tail(1000)
+        XCTAssertEqual(all.count, 60)
+
+        // 中文别名等价
+        XCTAssertEqual(LogKit.尾部读取(10), lines)
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    func testTailWithInvalidCountReturnsEmpty() {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.info("一行")
+        LogKit.flush()
+
+        XCTAssertTrue(LogKit.tail(0).isEmpty)
+        XCTAssertTrue(LogKit.tail(-1).isEmpty)
+
+        try? FileManager.default.removeItem(at: dir)
+    }
+
+    func testArchivedLogFiles() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.maxFileSize = 1   // 每写一条即超限，触发归档
+
+        LogKit.info("第一条")
+        LogKit.flush()
+        LogKit.info("第二条")
+        LogKit.flush()
+
+        let archived = LogKit.archivedLogFiles
+        XCTAssertFalse(archived.isEmpty, "超出 maxFileSize 后应产生归档文件")
+        for url in archived {
+            XCTAssertTrue(url.lastPathComponent.hasPrefix("LogKit-"))
+            XCTAssertTrue(url.lastPathComponent.hasSuffix(".log"))
+        }
+        // 中文别名等价
+        XCTAssertEqual(LogKit.归档日志列表, archived)
+
+        LogKit.maxFileSize = 0
+        try? FileManager.default.removeItem(at: dir)
     }
 }

@@ -271,4 +271,21 @@ public extension LogKit {
     static func 安装崩溃处理() {
         installCrashHandler()
     }
+
+    /// 尾部读取（等同 `tail`）
+    /// - Parameter 行数: 返回的最大行数，默认 `50`
+    static func 尾部读取(_ 行数: Int = 50) -> [String] {
+        tail(行数)
+    }
+
+    /// 已归档日志文件列表（等同 `archivedLogFiles`）
+    static var 归档日志列表: [URL] {
+        archivedLogFiles
+    }
+
+    /// 日志回调钩子（等同 `onLog`）
+    static var 日志回调: ((LogEntry) -> Void)? {
+        get { onLog }
+        set { onLog = newValue }
+    }
 }
