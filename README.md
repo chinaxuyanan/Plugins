@@ -12,9 +12,10 @@
 - **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放 / 是否深色模式 / 屏幕亮度（macOS）
+- **刷新率与无障碍**：屏幕最大刷新率 `maximumFramesPerSecond` / 减弱动态效果 `isReduceMotionEnabled` / 降低透明度 `isReduceTransparencyEnabled` / 粗体文本 `isBoldTextEnabled`（仅 iOS）/ 无障碍设置摘要 `accessibilitySummary`
 - **运行信息**：运行时长 / 启动时间 / 是否模拟器
-- **App 信息**：名称 / 版本 / 构建号
-- **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 信号强度（macOS）/ DNS / 默认网关（macOS）/ 公网 IP（异步）
+- **App 信息**：名称 / 版本 / 构建号 / 包标识符 `bundleIdentifier` / 团队 ID `teamIdentifier` / 是否 TestFlight `isTestFlight`
+- **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 名称（macOS）/ Wi-Fi 信号强度（macOS）/ 是否走系统代理 `isUsingProxy` + 代理描述 `proxyDescription` / DNS / 默认网关（macOS）/ 公网 IP（异步）
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
 - **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
 - **系统负载**：1 / 5 / 15 分钟平均负载（`getloadavg`）
@@ -23,6 +24,7 @@
 - **运行进程**：`runningProcesses` / `processCount` 枚举内核进程表（`sysctl(KERN_PROC)`，含 pid 与进程名）
 - **交换内存**：`swapTotalBytes` / `swapUsedBytes` / `swapTotal` / `swapUsed`（仅 macOS，`vm.swapusage`）
 - **网络接口**：`networkInterfaces` 枚举所有网络接口（名称 + IPv4 + 是否启用 / 是否回环）
+- **存储卷列表**：`mountedVolumes` 枚举已挂载存储卷（卷名 / 路径 / 总容量 / 可用容量 / 是否可移除 / 是否内置），另有 `removableVolumes` 只看可移除设备
 - **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **运行环境**：内核版本 / 主机名 / 当前用户名 / 是否被调试器附加（`uname` + `sysctl(P_TRACED)`）
 - **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
@@ -38,7 +40,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.11.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.12.0")
 ]
 ```
 
@@ -100,6 +102,14 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `displayScales` | 各显示器缩放因子 | `[CGFloat]` |
 | `isDarkMode` | 是否深色模式 | `Bool`，双平台 |
 | `screenBrightness` | 屏幕亮度 | `Double?`，`0.0`~`1.0`，仅 macOS（无权限 / 取不到为 `nil`）|
+| `maximumFramesPerSecond` | 屏幕最大刷新率 | `Int`，Hz（`60` / `120`）|
+| `isReduceMotionEnabled` | 是否减弱动态效果 | `Bool`，双平台 |
+| `isReduceTransparencyEnabled` | 是否降低透明度 | `Bool`，双平台 |
+| `isBoldTextEnabled` | 是否粗体文本 | `Bool`，仅 iOS（macOS 恒 `false`）|
+| `accessibilitySummary` | 无障碍设置摘要 | 形如 `减弱动态效果 · 降低透明度`，都没开启为 `无` |
+| `mountedVolumes` | 已挂载存储卷列表 | `[MountedVolume]`，按卷名升序 |
+| `mountedVolumeCount` | 已挂载存储卷数量 | `Int` |
+| `removableVolumes` | 可移除存储卷列表 | `[MountedVolume]`，U 盘 / 存储卡 / 外接盘 |
 | `systemUptime` | 系统运行时长（秒） | `TimeInterval` |
 | `systemUptimeString` | 系统运行时长 | 形如 `3 天 5 小时` |
 | `bootTime` | 系统启动时间 | `Date` |
@@ -107,11 +117,17 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `isSimulator` | 是否模拟器 | `Bool` |
 | `appName` | App 显示名称 | `String` |
 | `appVersion` / `appBuildNumber` | App 版本 / 构建号 | `String` |
+| `bundleIdentifier` | App 包标识符 | 形如 `com.example.app` |
+| `teamIdentifier` | 签名团队 ID | `String?`，读 Info.plist / 内嵌描述文件，取不到为 `nil` |
+| `isTestFlight` | 是否 TestFlight 安装 | `Bool`，收据为 `sandboxReceipt` 即内测包 |
 | `localIPAddress` | 本机局域网 IP | `String?` |
 | `isNetworkConnected` | 是否联网 | `Bool` |
 | `networkType` | 网络类型 | `String?` |
+| `wifiSSID` | 当前 Wi-Fi 名称 | `String?`，仅 macOS |
 | `wifiSignalStrength` | Wi-Fi 信号强度（RSSI） | `Int?`，仅 macOS |
 | `wifiSignalStrengthName` | Wi-Fi 信号强度中文名 | 强 / 中 / 弱 / 不支持 |
+| `isUsingProxy` | 是否走系统代理 | `Bool`，`CFNetworkCopySystemProxySettings` |
+| `proxyDescription` | 系统代理描述 | `String?`，形如 `HTTPS 代理 127.0.0.1:8080` |
 | `dnsServers` | DNS 服务器 | `[String]`，仅 macOS |
 | `defaultGateway` | 默认网关 | `String?`，仅 macOS |
 | `publicIPAddress()` | 公网 IP | `async throws`，请求 api.ipify.org |
@@ -140,6 +156,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `isDebuggerAttached` | 是否被调试器附加 | `Bool`，`sysctl` 读 `P_TRACED` 标志 |
 | `snapshot()` | 信息快照 | `[String: String]`，一次性取出全部常用检测项，值均为字符串，可直接 JSON 序列化 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
+| `MountedVolume` | 存储卷 | 卷名 / 路径 / 总容量 / 可用容量 / 已用占比 / 是否可移除 / 是否内置 |
 
 ## 中文命名别名
 
@@ -172,9 +189,16 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `网络接口列表` | `networkInterfaces` |
 | `运行进程` / `网络接口` | `RunningProcess` / `NetworkInterface`（类型别名）|
 | `内核版本` / `主机名` / `当前用户名` / `是否被调试` | `kernelVersion` / `hostName` / `userName` / `isDebuggerAttached` |
+| `最大刷新率` / `减弱动态效果` / `降低透明度` / `粗体文本` / `无障碍摘要` | `maximumFramesPerSecond` / `isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled` / `accessibilitySummary` |
+| `存储卷列表` / `存储卷数量` / `可移除存储卷列表` | `mountedVolumes` / `mountedVolumeCount` / `removableVolumes` |
+| `包标识符` / `团队ID` / `是否TestFlight` | `bundleIdentifier` / `teamIdentifier` / `isTestFlight` |
+| `WiFi名称` / `是否走代理` / `代理描述` | `wifiSSID` / `isUsingProxy` / `proxyDescription` |
+| `存储卷` | `MountedVolume`（`.名称/.路径/.总容量/.可用容量/.是否可移除/.是否内置/.已用字节数/.已用占比/.已用占比文本/.总容量文本/.已用文本/.可用文本/.类型名`）|
 | `信息快照()` | `snapshot()` |
 
 ## 更新日志
+
+- **0.12.0**：新增刷新率与无障碍（`maximumFramesPerSecond` / `最大刷新率`，iOS `UIScreen` / macOS `NSScreen`；`isReduceMotionEnabled` / `减弱动态效果`、`isReduceTransparencyEnabled` / `降低透明度`，iOS `UIAccessibility` / macOS `NSWorkspace.accessibilityDisplayShould*`；`isBoldTextEnabled` / `粗体文本`，仅 iOS，macOS 恒 `false`；另含 `accessibilitySummary` / `无障碍摘要` 汇总文本）、存储卷列表（`mountedVolumes` / `存储卷列表` 枚举已挂载卷，含 `MountedVolume` / `存储卷` 结构体：卷名 / 路径 / 总容量 / 可用容量 / 是否可移除 / 是否内置 + 已用占比等派生值，另有 `mountedVolumeCount` / `存储卷数量` 与 `removableVolumes` / `可移除存储卷列表`）、App 签名信息（`bundleIdentifier` / `包标识符`、`teamIdentifier` / `团队ID` 读 Info.plist 与内嵌描述文件、`isTestFlight` / `是否TestFlight`）、代理检测（`isUsingProxy` / `是否走代理`、`proxyDescription` / `代理描述`，`CFNetworkCopySystemProxySettings` 判断 HTTP / HTTPS / SOCKS，双平台且无需权限）与 Wi-Fi 名称 `wifiSSID` / `WiFi名称`（macOS CoreWLAN），`snapshot()` 同步补入刷新率 / 无障碍摘要 / 包标识符 / 是否 TestFlight / 是否走代理 / 存储卷数量，均含中文别名并补冒烟测试。
 
 - **0.11.0**：新增设备型号友好名（`deviceModelName` / `deviceModelName(for:)` / `deviceModelTable` / `设备型号名称` / `设备型号对照表`，内置约 70 条标识符→机型对照表（iPhone / iPad / Mac），未收录的标识符原样返回，对照表可自行增补新机型）、深色模式（`isDarkMode` / `深色模式`，双平台，AppKit `effectiveAppearance` 优先、`UserDefaults` 兜底）、屏幕亮度（`screenBrightness` / `屏幕亮度`，`0.0`~`1.0`，仅 macOS，经 IOKit `IODisplayGetFloatParameter` 读取，无权限返回 `nil`）、信息快照（`snapshot()` / `信息快照()`，一次性输出约 31 个固定检测项为 `[String: String]`，值均为字符串可直接 JSON 序列化，另有条件键处理器型号 / 屏幕亮度 / 电池电量 / 是否充电），均含中文别名并补冒烟测试。
 

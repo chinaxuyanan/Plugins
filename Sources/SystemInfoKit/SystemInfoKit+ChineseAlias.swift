@@ -106,6 +106,28 @@ public extension SystemInfoKit {
     /// 屏幕亮度（等同 `screenBrightness`，`0.0`~`1.0`，取不到为 `nil`）
     static var 屏幕亮度: Double? { screenBrightness }
 
+    // MARK: 刷新率与无障碍
+
+    /// 屏幕最大刷新率（等同 `maximumFramesPerSecond`，Hz）
+    static var 最大刷新率: Int { maximumFramesPerSecond }
+    /// 是否开启「减弱动态效果」（等同 `isReduceMotionEnabled`）
+    static var 减弱动态效果: Bool { isReduceMotionEnabled }
+    /// 是否开启「降低透明度」（等同 `isReduceTransparencyEnabled`）
+    static var 降低透明度: Bool { isReduceTransparencyEnabled }
+    /// 是否开启「粗体文本」（等同 `isBoldTextEnabled`，仅 iOS）
+    static var 粗体文本: Bool { isBoldTextEnabled }
+    /// 无障碍设置摘要（等同 `accessibilitySummary`，都没开启时为「无」）
+    static var 无障碍摘要: String { accessibilitySummary }
+
+    // MARK: 存储卷
+
+    /// 已挂载存储卷列表（等同 `mountedVolumes`）
+    static var 存储卷列表: [MountedVolume] { mountedVolumes }
+    /// 已挂载存储卷数量（等同 `mountedVolumeCount`）
+    static var 存储卷数量: Int { mountedVolumeCount }
+    /// 可移除存储卷列表（等同 `removableVolumes`）
+    static var 可移除存储卷列表: [MountedVolume] { removableVolumes }
+
     /// 系统运行秒数（等同 `systemUptime`）
     static var 系统运行秒数: TimeInterval { systemUptime }
     /// 系统运行时长（等同 `systemUptimeString`）
@@ -123,6 +145,12 @@ public extension SystemInfoKit {
     static var 应用版本: String { appVersion }
     /// App 构建号（等同 `appBuildNumber`）
     static var 应用构建号: String { appBuildNumber }
+    /// App 包标识符（等同 `bundleIdentifier`）
+    static var 包标识符: String { bundleIdentifier }
+    /// 签名团队 ID（等同 `teamIdentifier`，取不到为 `nil`）
+    static var 团队ID: String? { teamIdentifier }
+    /// 是否通过 TestFlight 安装（等同 `isTestFlight`）
+    static var 是否TestFlight: Bool { isTestFlight }
 
     // MARK: 网络信息
 
@@ -136,6 +164,12 @@ public extension SystemInfoKit {
     static var WiFi信号强度: Int? { wifiSignalStrength }
     /// Wi-Fi 信号强度中文名（等同 `wifiSignalStrengthName`）
     static var WiFi信号强度名: String { wifiSignalStrengthName }
+    /// 当前 Wi-Fi 名称（等同 `wifiSSID`，仅 macOS）
+    static var WiFi名称: String? { wifiSSID }
+    /// 是否走系统代理（等同 `isUsingProxy`）
+    static var 是否走代理: Bool { isUsingProxy }
+    /// 系统代理描述（等同 `proxyDescription`，未启用时为 `nil`）
+    static var 代理描述: String? { proxyDescription }
     /// DNS 服务器列表（等同 `dnsServers`，仅 macOS）
     static var DNS服务器: [String] { dnsServers }
     /// 默认网关（等同 `defaultGateway`，仅 macOS）

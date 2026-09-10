@@ -13,12 +13,16 @@ import IOKit
 import IOKit.ps
 import CoreWLAN
 #endif
+#if canImport(CFNetwork)
+import CFNetwork
+#endif
 
 /// SystemInfoKit —— 中文友好的系统检测工具库
 ///
 /// 解决「查系统信息要记各种零散 API」的痛点：
 /// - 把系统版本、设备型号、硬件、电池、热状态、屏幕、网络、本地化、资源占用、存储详情等常用检测项集中封装；
 /// - 提供设备友好型号名 `deviceModelName`（标识符对照表可自行增补）、深色模式 `isDarkMode`、屏幕亮度 `screenBrightness`、信息快照 `snapshot()`；
+/// - 支持屏幕最大刷新率 `maximumFramesPerSecond`、无障碍设置（`isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled`）、已挂载存储卷列表 `mountedVolumes`（`MountedVolume`）、签名信息（`bundleIdentifier` / `teamIdentifier` / `isTestFlight`）、代理检测（`isUsingProxy` / `proxyDescription`）；
 /// - 每个属性都带中文文档注释 + 中文命名别名，见名即用。
 ///
 /// 快速开始：
@@ -32,7 +36,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.11.0"
+    public static let version = "0.12.0"
 
     // MARK: - 系统信息
 
@@ -536,6 +540,131 @@ public enum SystemInfoKit {
     }
     #endif
 
+    // MARK: - 刷新率与无障碍
+
+    /// 屏幕支持的最大刷新率（Hz，如 `60` / `120`）
+    ///
+    /// iOS 取 `UIScreen`（ProMotion 机型为 `120`）；macOS 取主屏的
+    /// `maximumFramesPerSecond`（macOS 12+，取不到时回退 `60`）。
+    /// 适合据此决定是否启用高帧率动画 / 减少不必要的重绘。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if SystemInfoKit.maximumFramesPerSecond >= 120 {
+    ///       // 高刷屏，可放心使用更细腻的动画
+    ///   }
+    ///   ```
+    public static var maximumFramesPerSecond: Int {
+        #if canImport(UIKit)
+        return UIScreen.main.maximumFramesPerSecond
+        #elseif canImport(AppKit)
+        return NSScreen.main?.maximumFramesPerSecond ?? 60
+        #else
+        return 60
+        #endif
+    }
+
+    /// 是否开启「减弱动态效果」
+    ///
+    /// iOS 读 `UIAccessibility.isReduceMotionEnabled`，macOS 读
+    /// `NSWorkspace.shared.accessibilityDisplayShouldReduceMotion`。开启后应避免大幅位移 /
+    /// 缩放动画，改用淡入淡出等更温和的过渡。
+    public static var isReduceMotionEnabled: Bool {
+        #if canImport(UIKit)
+        return UIAccessibility.isReduceMotionEnabled
+        #elseif canImport(AppKit)
+        return NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        #else
+        return false
+        #endif
+    }
+
+    /// 是否开启「降低透明度」
+    ///
+    /// iOS 读 `UIAccessibility.isReduceTransparencyEnabled`，macOS 读
+    /// `NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency`。开启后毛玻璃
+    /// 材质会被替换成不透明背景，自绘的半透明遮罩建议同步改为实色。
+    public static var isReduceTransparencyEnabled: Bool {
+        #if canImport(UIKit)
+        return UIAccessibility.isReduceTransparencyEnabled
+        #elseif canImport(AppKit)
+        return NSWorkspace.shared.accessibilityDisplayShouldReduceTransparency
+        #else
+        return false
+        #endif
+    }
+
+    /// 是否开启「粗体文本」（仅 iOS）
+    ///
+    /// iOS 读 `UIAccessibility.isBoldTextEnabled`；macOS 系统未提供对应的全局设置开关，
+    /// 固定返回 `false`。
+    public static var isBoldTextEnabled: Bool {
+        #if canImport(UIKit)
+        return UIAccessibility.isBoldTextEnabled
+        #else
+        return false
+        #endif
+    }
+
+    /// 无障碍设置摘要（形如 `减弱动态效果 · 降低透明度`，都没开启时返回 `无`）
+    ///
+    /// 便于一次性打日志 / 上报，判断用户是否开了影响 UI 表现的辅助功能。
+    public static var accessibilitySummary: String {
+        var enabled: [String] = []
+        if isReduceMotionEnabled { enabled.append("减弱动态效果") }
+        if isReduceTransparencyEnabled { enabled.append("降低透明度") }
+        if isBoldTextEnabled { enabled.append("粗体文本") }
+        return enabled.isEmpty ? "无" : enabled.joined(separator: " · ")
+    }
+
+    // MARK: - 存储卷
+
+    /// 当前已挂载的存储卷列表（按卷名排序）
+    ///
+    /// 通过 `FileManager.mountedVolumeURLs` 枚举，跳过隐藏卷（如系统恢复分区）。
+    /// 每个卷含名称、路径、总容量、可用容量、是否可移除（U 盘 / 存储卡）、是否内置磁盘。
+    ///
+    /// - Note: iOS 上一般只返回数据卷本身；macOS 上会列出所有可见挂载点。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   for 卷 in SystemInfoKit.mountedVolumes {
+    ///       print("\(卷.name)：剩余 \(卷.freeDescription) / \(卷.totalDescription)")
+    ///   }
+    ///   ```
+    public static var mountedVolumes: [MountedVolume] {
+        let keys: [URLResourceKey] = [.volumeNameKey,
+                                      .volumeTotalCapacityKey,
+                                      .volumeAvailableCapacityKey,
+                                      .volumeIsRemovableKey,
+                                      .volumeIsInternalKey]
+        let keySet = Set(keys)
+        guard let urls = FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys: keys,
+                                                              options: [.skipHiddenVolumes]) else {
+            return []
+        }
+        let volumes: [MountedVolume] = urls.compactMap { url in
+            guard let values = try? url.resourceValues(forKeys: keySet) else { return nil }
+            return MountedVolume(name: values.volumeName ?? url.lastPathComponent,
+                                 url: url,
+                                 totalBytes: Int64(values.volumeTotalCapacity ?? 0),
+                                 freeBytes: Int64(values.volumeAvailableCapacity ?? 0),
+                                 isRemovable: values.volumeIsRemovable ?? false,
+                                 isInternal: values.volumeIsInternal ?? false)
+        }
+        return volumes.sorted { $0.name < $1.name }
+    }
+
+    /// 已挂载存储卷数量（等同 `mountedVolumes.count`）
+    public static var mountedVolumeCount: Int {
+        mountedVolumes.count
+    }
+
+    /// 可移除存储卷列表（U 盘 / 存储卡 / 外接盘）
+    public static var removableVolumes: [MountedVolume] {
+        mountedVolumes.filter { $0.isRemovable }
+    }
+
     // MARK: - 运行时长与模拟器
 
     /// 系统自启动以来的运行时长（秒）
@@ -592,6 +721,57 @@ public enum SystemInfoKit {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "未知"
     }
 
+    /// App 包标识符（形如 `com.example.app`）
+    public static var bundleIdentifier: String {
+        Bundle.main.bundleIdentifier ?? "未知"
+    }
+
+    /// 是否通过 TestFlight 安装
+    ///
+    /// 判据是 App Store 收据文件名：TestFlight 包为 `sandboxReceipt`，正式上架包为 `receipt`。
+    /// 用 Xcode 直接调试运行时没有收据，同样返回 `false`。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if SystemInfoKit.isTestFlight {
+    ///       // 内测包：可放宽日志级别、显示「内测版」水印
+    ///   }
+    ///   ```
+    public static var isTestFlight: Bool {
+        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+    }
+
+    /// 签名团队 ID（形如 `ABCDE12345`；读取不到时返回 `nil`）
+    ///
+    /// 先查 Info.plist 的 `TeamIdentifierPrefix`（少数构建方式会写入），再解析包内嵌的
+    /// `embedded.mobileprovision` 描述文件中的 `TeamIdentifier`。App Store 分发的包不带
+    /// 描述文件，macOS 包也不带，此时返回 `nil`。
+    public static var teamIdentifier: String? {
+        if let prefix = Bundle.main.object(forInfoDictionaryKey: "TeamIdentifierPrefix") as? String {
+            let trimmed = prefix.trimmingCharacters(in: CharacterSet(charactersIn: "."))
+            if !trimmed.isEmpty { return trimmed }
+        }
+        return teamIdentifierFromProvision()
+    }
+
+    /// 内嵌描述文件中的签名团队 ID（无描述文件 / 解析失败时为 `nil`）
+    private static func teamIdentifierFromProvision() -> String? {
+        guard let url = Bundle.main.url(forResource: "embedded", withExtension: "mobileprovision"),
+              let data = try? Data(contentsOf: url),
+              // 描述文件是 CMS 签名包，中间夹着一段 XML plist，截出前后标记即可交给 plist 解析
+              let text = String(data: data, encoding: .isoLatin1),
+              let start = text.range(of: "<?xml"),
+              let end = text.range(of: "</plist>") else { return nil }
+        let plist = String(text[start.lowerBound..<end.upperBound])
+        guard let plistData = plist.data(using: .isoLatin1),
+              let object = try? PropertyListSerialization.propertyList(from: plistData,
+                                                                       options: [],
+                                                                       format: nil),
+              let dict = object as? [String: Any],
+              let teams = dict["TeamIdentifier"] as? [String] else { return nil }
+        return teams.first
+    }
+
     // MARK: - 网络信息
 
     /// 本机局域网 IP 地址（如 `192.168.1.8`；未接入网络时返回 `nil`）
@@ -631,6 +811,61 @@ public enum SystemInfoKit {
         if rssi >= -50 { return "强" }
         if rssi >= -70 { return "中" }
         return "弱"
+    }
+
+    /// 当前 Wi-Fi 名称（SSID；未连 Wi-Fi 或读取不到时返回 `nil`）
+    ///
+    /// macOS 经 CoreWLAN 读取当前默认 Wi-Fi 接口的 SSID（无需额外权限）。
+    /// iOS 上系统要求 App 声明「Access WiFi Information」权限才允许读取 SSID，
+    /// 本库为保持「零配置直接用」固定返回 `nil`；如确有需要，可在 App 侧自行引入
+    /// `NetworkExtension` 的 `NEHotspotNetwork.fetchCurrent` 并申请该权限。
+    ///
+    /// - Note: SSID 属于可定位到用户的信息，上报前请斟酌是否有必要。
+    public static var wifiSSID: String? {
+        #if os(macOS)
+        return CWWiFiClient.shared().interface()?.ssid()
+        #else
+        return nil
+        #endif
+    }
+
+    /// 当前是否走了系统代理
+    ///
+    /// 读取系统代理设置（`CFNetworkCopySystemProxySettings`）判断 HTTP / HTTPS / SOCKS
+    /// 代理是否至少启用了一项。iOS / macOS 通用，无需任何权限。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if SystemInfoKit.isUsingProxy {
+    ///       print("当前代理：\(SystemInfoKit.proxyDescription ?? "未知")")
+    ///   }
+    ///   ```
+    public static var isUsingProxy: Bool {
+        proxyDescription != nil
+    }
+
+    /// 系统代理描述（形如 `HTTPS 代理 127.0.0.1:8080`；未启用代理时返回 `nil`）
+    ///
+    /// 优先级为 HTTPS → HTTP → SOCKS，返回第一个已启用的代理。
+    public static var proxyDescription: String? {
+        #if canImport(CFNetwork)
+        guard let raw = CFNetworkCopySystemProxySettings()?.takeRetainedValue(),
+              let settings = raw as? [String: Any] else { return nil }
+        let candidates: [(enable: String, host: String, port: String, name: String)] = [
+            ("HTTPSEnable", "HTTPSProxy", "HTTPSPort", "HTTPS 代理"),
+            ("HTTPEnable", "HTTPProxy", "HTTPPort", "HTTP 代理"),
+            ("SOCKSEnable", "SOCKSProxy", "SOCKSProxyPort", "SOCKS 代理"),
+        ]
+        for item in candidates {
+            guard (settings[item.enable] as? NSNumber)?.intValue == 1,
+                  let host = settings[item.host] as? String, !host.isEmpty else { continue }
+            let port = (settings[item.port] as? NSNumber)?.intValue ?? 0
+            return port > 0 ? "\(item.name) \(host):\(port)" : "\(item.name) \(host)"
+        }
+        return nil
+        #else
+        return nil
+        #endif
     }
 
     /// DNS 服务器地址列表（macOS 解析 `/etc/resolv.conf`；iOS 返回空数组）
@@ -1166,6 +1401,8 @@ public enum SystemInfoKit {
             "screenSize": screenSize,
             "screenScale": "\(screenScale)",
             "displayCount": "\(displayCount)",
+            "maximumFramesPerSecond": "\(maximumFramesPerSecond)",
+            "accessibility": accessibilitySummary,
             "isDarkMode": "\(isDarkMode)",
             "languageCode": languageCode,
             "regionCode": regionCode,
@@ -1173,6 +1410,10 @@ public enum SystemInfoKit {
             "appName": appName,
             "appVersion": appVersion,
             "appBuildNumber": appBuildNumber,
+            "bundleIdentifier": bundleIdentifier,
+            "isTestFlight": "\(isTestFlight)",
+            "isUsingProxy": "\(isUsingProxy)",
+            "mountedVolumeCount": "\(mountedVolumeCount)",
             "isSimulator": "\(isSimulator)",
             "systemUptime": systemUptimeString,
             "bootTime": bootTimeString,

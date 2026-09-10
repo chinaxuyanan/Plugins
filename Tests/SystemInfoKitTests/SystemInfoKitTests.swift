@@ -349,4 +349,159 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertNotNil(snapshot["diskUsage"])
         XCTAssertTrue(snapshot["diskUsage"]?.hasSuffix("%") ?? false)
     }
+
+    // MARK: - 刷新率与无障碍
+
+    func testRefreshRateAndAccessibility() {
+        // 刷新率：常见为 60 / 120，取不到时兜底 60，故至少应大于 0
+        XCTAssertGreaterThan(SystemInfoKit.maximumFramesPerSecond, 0)
+
+        // 辅助功能开关随系统设置变化，只保证可取值、不崩溃（macOS 上「粗体文本」恒为 false）
+        _ = SystemInfoKit.isReduceMotionEnabled
+        _ = SystemInfoKit.isReduceTransparencyEnabled
+        _ = SystemInfoKit.isBoldTextEnabled
+
+        // 摘要恒非空（都没开启时为「无」）
+        XCTAssertFalse(SystemInfoKit.accessibilitySummary.isEmpty)
+        // 摘要内容应与各开关一致
+        if SystemInfoKit.isReduceMotionEnabled {
+            XCTAssertTrue(SystemInfoKit.accessibilitySummary.contains("减弱动态效果"))
+        }
+    }
+
+    func testChineseAliasesForAccessibility() {
+        XCTAssertEqual(SystemInfoKit.最大刷新率, SystemInfoKit.maximumFramesPerSecond)
+        XCTAssertEqual(SystemInfoKit.减弱动态效果, SystemInfoKit.isReduceMotionEnabled)
+        XCTAssertEqual(SystemInfoKit.降低透明度, SystemInfoKit.isReduceTransparencyEnabled)
+        XCTAssertEqual(SystemInfoKit.粗体文本, SystemInfoKit.isBoldTextEnabled)
+        XCTAssertEqual(SystemInfoKit.无障碍摘要, SystemInfoKit.accessibilitySummary)
+    }
+
+    // MARK: - 存储卷
+
+    /// MountedVolume 的换算逻辑是纯函数，可做精确断言
+    func testMountedVolumeComputation() {
+        let url = URL(fileURLWithPath: "/Volumes/Demo")
+        let volume = MountedVolume(name: "演示盘", url: url,
+                                   totalBytes: 1_000, freeBytes: 400,
+                                   isRemovable: true, isInternal: false)
+
+        XCTAssertEqual(volume.id, "/Volumes/Demo")
+        XCTAssertEqual(volume.usedBytes, 600)
+        XCTAssertEqual(volume.usedRatio, 0.6, accuracy: 1e-9)
+        XCTAssertEqual(volume.usedPercentText, "60.0%")
+        XCTAssertEqual(volume.kindName, "可移除设备")
+        XCTAssertFalse(volume.totalDescription.isEmpty)
+        XCTAssertFalse(volume.usedDescription.isEmpty)
+        XCTAssertFalse(volume.freeDescription.isEmpty)
+
+        // 中文别名构造应等价（Hashable / Equatable 由存储属性合成）
+        let 中文 = 存储卷(名称: "演示盘", 路径: url, 总容量: 1_000, 可用容量: 400,
+                        是否可移除: true, 是否内置: false)
+        XCTAssertEqual(中文, volume)
+        XCTAssertEqual(中文.名称, "演示盘")
+        XCTAssertEqual(中文.路径, url)
+        XCTAssertEqual(中文.总容量, 1_000)
+        XCTAssertEqual(中文.可用容量, 400)
+        XCTAssertTrue(中文.是否可移除)
+        XCTAssertFalse(中文.是否内置)
+        XCTAssertEqual(中文.已用字节数, 600)
+        XCTAssertEqual(中文.已用占比, 0.6, accuracy: 1e-9)
+        XCTAssertEqual(中文.已用占比文本, "60.0%")
+        XCTAssertEqual(中文.类型名, "可移除设备")
+        XCTAssertEqual(中文.可用文本, volume.freeDescription)
+
+        // 内置磁盘 / 外接磁盘的命名区分
+        let internalDisk = MountedVolume(name: "内置", url: URL(fileURLWithPath: "/"),
+                                         totalBytes: 2_000, freeBytes: 500,
+                                         isRemovable: false, isInternal: true)
+        XCTAssertEqual(internalDisk.kindName, "内置磁盘")
+        let externalDisk = MountedVolume(name: "外接", url: URL(fileURLWithPath: "/Volumes/Ext"),
+                                         totalBytes: 2_000, freeBytes: 1_500,
+                                         isRemovable: false, isInternal: false)
+        XCTAssertEqual(externalDisk.kindName, "外接磁盘")
+        XCTAssertEqual(externalDisk.usedBytes, 500)
+        XCTAssertEqual(externalDisk.usedPercentText, "25.0%")
+
+        // 总容量为 0 时不除零，且已用容量不出现负数
+        let empty = MountedVolume(name: "空卷", url: URL(fileURLWithPath: "/dev/null"),
+                                  totalBytes: 0, freeBytes: 0,
+                                  isRemovable: false, isInternal: false)
+        XCTAssertEqual(empty.usedBytes, 0)
+        XCTAssertEqual(empty.usedRatio, 0, accuracy: 1e-9)
+        let overflow = MountedVolume(name: "异常", url: URL(fileURLWithPath: "/tmp"),
+                                     totalBytes: 100, freeBytes: 300,
+                                     isRemovable: false, isInternal: false)
+        XCTAssertEqual(overflow.usedBytes, 0, "可用大于总量时已用应为 0 而非负数")
+    }
+
+    func testMountedVolumesList() {
+        // 沙箱内可能枚举为空，有值时逐项校验结构
+        let volumes = SystemInfoKit.mountedVolumes
+        for volume in volumes {
+            XCTAssertFalse(volume.name.isEmpty)
+            XCTAssertFalse(volume.url.path.isEmpty)
+            XCTAssertGreaterThanOrEqual(volume.totalBytes, 0)
+            XCTAssertGreaterThanOrEqual(volume.freeBytes, 0)
+            XCTAssertGreaterThanOrEqual(volume.usedRatio, 0)
+            XCTAssertLessThanOrEqual(volume.usedRatio, 1)
+            XCTAssertFalse(volume.kindName.isEmpty)
+        }
+        // 数量、可移除子集应与列表一致
+        XCTAssertEqual(SystemInfoKit.mountedVolumeCount, volumes.count)
+        XCTAssertEqual(SystemInfoKit.removableVolumes.count,
+                       volumes.filter { $0.isRemovable }.count)
+        // 排序稳定：按卷名升序
+        XCTAssertEqual(volumes.map(\.name), volumes.map(\.name).sorted())
+    }
+
+    func testChineseAliasesForVolumes() {
+        XCTAssertEqual(SystemInfoKit.存储卷列表.count, SystemInfoKit.mountedVolumes.count)
+        XCTAssertEqual(SystemInfoKit.存储卷数量, SystemInfoKit.mountedVolumeCount)
+        XCTAssertEqual(SystemInfoKit.可移除存储卷列表.count, SystemInfoKit.removableVolumes.count)
+        // 类型别名等价于英文类型
+        let _: 存储卷.Type = MountedVolume.self
+    }
+
+    // MARK: - App 签名信息 / 代理
+
+    func testAppSigningInfo() {
+        XCTAssertFalse(SystemInfoKit.bundleIdentifier.isEmpty)
+        // Xcode 直接运行 / 未签名时读不到团队 ID，只保证可取值
+        _ = SystemInfoKit.teamIdentifier
+        _ = SystemInfoKit.isTestFlight
+        if let team = SystemInfoKit.teamIdentifier {
+            XCTAssertFalse(team.isEmpty)
+        }
+    }
+
+    func testProxyInfo() {
+        // 是否走代理与代理描述必须一致（描述为空即未启用代理）
+        XCTAssertEqual(SystemInfoKit.isUsingProxy, SystemInfoKit.proxyDescription != nil)
+        if let description = SystemInfoKit.proxyDescription {
+            XCTAssertFalse(description.isEmpty)
+            XCTAssertTrue(description.contains("代理"))
+        }
+        // iOS 恒为 nil；macOS 未连 Wi-Fi 或未授权定位时也可能为 nil
+        _ = SystemInfoKit.wifiSSID
+    }
+
+    func testChineseAliasesForAppAndProxy() {
+        XCTAssertEqual(SystemInfoKit.包标识符, SystemInfoKit.bundleIdentifier)
+        XCTAssertEqual(SystemInfoKit.团队ID, SystemInfoKit.teamIdentifier)
+        XCTAssertEqual(SystemInfoKit.是否TestFlight, SystemInfoKit.isTestFlight)
+        XCTAssertEqual(SystemInfoKit.是否走代理, SystemInfoKit.isUsingProxy)
+        XCTAssertEqual(SystemInfoKit.代理描述, SystemInfoKit.proxyDescription)
+        XCTAssertEqual(SystemInfoKit.WiFi名称, SystemInfoKit.wifiSSID)
+    }
+
+    func testSnapshotIncludesNewItems() {
+        let snapshot = SystemInfoKit.snapshot()
+        XCTAssertEqual(snapshot["maximumFramesPerSecond"], "\(SystemInfoKit.maximumFramesPerSecond)")
+        XCTAssertEqual(snapshot["accessibility"], SystemInfoKit.accessibilitySummary)
+        XCTAssertEqual(snapshot["bundleIdentifier"], SystemInfoKit.bundleIdentifier)
+        XCTAssertEqual(snapshot["isTestFlight"], "\(SystemInfoKit.isTestFlight)")
+        XCTAssertEqual(snapshot["isUsingProxy"], "\(SystemInfoKit.isUsingProxy)")
+        XCTAssertEqual(snapshot["mountedVolumeCount"], "\(SystemInfoKit.mountedVolumeCount)")
+    }
 }
