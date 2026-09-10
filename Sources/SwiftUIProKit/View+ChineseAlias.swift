@@ -890,9 +890,9 @@ public extension View {
 
 public extension View {
     /// 下拉刷新（等同 `pullToRefresh`）
-    /// - Parameter 操作: 下拉触发的异步刷新操作
+    /// - Parameter 操作: 下拉触发的异步刷新操作（`@Sendable`）
     @ViewBuilder
-    func 下拉刷新(_ 操作: @escaping () async -> Void) -> some View {
+    func 下拉刷新(_ 操作: @escaping @Sendable () async -> Void) -> some View {
         pullToRefresh(操作)
     }
 

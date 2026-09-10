@@ -7,8 +7,8 @@ public extension View {
     /// 下拉刷新（等同 `.refreshable`）
     ///
     /// 需要配合可滚动容器（`List` / `ScrollView`）使用。
-    /// - Parameter action: 下拉触发的异步刷新操作
-    func pullToRefresh(_ action: @escaping () async -> Void) -> some View {
+    /// - Parameter action: 下拉触发的异步刷新操作（`@Sendable`，与 `refreshable(action:)` 契约一致）
+    func pullToRefresh(_ action: @escaping @Sendable () async -> Void) -> some View {
         refreshable(action: action)
     }
 

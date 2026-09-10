@@ -20,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.13.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.13.1")
 ]
 ```
 
@@ -490,6 +490,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.13.1**：修复编译告警——`pullToRefresh` / `下拉刷新` 的参数由 `@escaping () async -> Void` 改为 `@escaping @Sendable () async -> Void`，与 SwiftUI `refreshable(action:)` 要求的 `@Sendable` 契约对齐（此前转发时报 `passing non-Sendable parameter 'action' to function expecting a '@Sendable' closure`）。与既有的 `asyncTask` / `异步任务` 写法保持一致，调用方式不变。
 
 - **0.13.0**：新增「渐变描边」「水印」两个类别封装（`gradientBorder` / `渐变描边`（`LinearGradient` 圆角描边，可指定起止方向）、`gradientDashedBorder` / `虚线渐变描边`（渐变 + 虚线）、`watermark` / `水印`（明文平铺、自动铺满、不拦截点击）），新增复合组件环形进度 `RingProgress` / `环形进度`（圆环 + 可选百分比标签，值自动钳制到 `0~1`）与滚动数字 `AnimatedNumber` / `滚动数字`（基于 `Animatable` 平滑滚动，支持前后缀与小数位），均含中文别名与文档注释并补单元测试。
 

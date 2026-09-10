@@ -115,4 +115,11 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = Text("内容").watermark("内部资料")
         _ = Text("内容").水印("机密")
     }
+
+    /// `pullToRefresh` / `下拉刷新` 的参数据 `refreshable(action:)` 契约要求为 `@Sendable`，
+    /// 此处用不带捕获的闭包锁住签名，避免退回非 Sendable 版本时又冒编译告警。
+    func testPullToRefreshAcceptsSendableAction() {
+        _ = List { Text("项") }.pullToRefresh { await Task.yield() }
+        _ = List { Text("项") }.下拉刷新 { await Task.yield() }
+    }
 }
