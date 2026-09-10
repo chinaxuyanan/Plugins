@@ -73,7 +73,10 @@ public extension LoadingButton {
     ///   - 加载中: 是否加载中（`true` 时转圈并禁用），默认 `false`
     ///   - 图标: 非加载态显示的 SF Symbol 图标名（可选）
     ///   - 动作: 点击时执行的操作
-    init(_ 标题: String, 加载中: Bool = false, 图标: String? = nil, 动作: @escaping () -> Void) {
+    ///
+    /// - Note: 首个参数带 `标题:` 标签——英文 `init` 的首参是无标签 `String`，
+    ///   两个重载若都无标签，`加载按钮("x") { }` 会报 `ambiguous use of 'init'`。
+    init(标题: String, 加载中: Bool = false, 图标: String? = nil, 动作: @escaping () -> Void) {
         self.init(标题, isLoading: 加载中, icon: 图标, action: 动作)
     }
 }

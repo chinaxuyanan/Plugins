@@ -37,7 +37,8 @@ final class SwiftUIProKitTests: XCTestCase {
     func testLoadingButtonConstructs() {
         let button = LoadingButton("提交", isLoading: true) {}
         _ = button
-        let chinese = 加载按钮("提交", 加载中: true) {}
+        // 中文 init 首参带「标题:」标签——与英文无标签首参区分，避免重载歧义
+        let chinese = 加载按钮(标题: "提交", 加载中: true) {}
         _ = chinese
     }
 
@@ -53,7 +54,8 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = CollapsibleView("更多设置", isExpanded: .constant(false)) {
             Text("折叠内容")
         }
-        _ = 可折叠面板("更多设置", 展开: .constant(false)) {
+        // 中文 init 首参带「标题:」标签——与英文无标签首参区分，避免重载歧义
+        _ = 可折叠面板(标题: "更多设置", 展开: .constant(false)) {
             Text("折叠内容")
         }
     }
@@ -121,5 +123,48 @@ final class SwiftUIProKitTests: XCTestCase {
     func testPullToRefreshAcceptsSendableAction() {
         _ = List { Text("项") }.pullToRefresh { await Task.yield() }
         _ = List { Text("项") }.下拉刷新 { await Task.yield() }
+    }
+
+    // MARK: - 远程图片 / 验证码输入框 / 跑马灯 / 步骤条
+
+    func testRemoteImageConstructs() {
+        let url = URL(string: "https://example.com/a.png")
+        _ = RemoteImage(url: url, cornerRadius: 8, size: CGSize(width: 64, height: 64))
+        _ = RemoteImage(url: nil)
+        _ = RemoteImage(url: url) {
+            ProgressView()
+        } failure: {
+            Text("加载失败")
+        }
+        _ = 远程图片(网址: url, 圆角: 8, 尺寸: CGSize(width: 64, height: 64))
+        _ = 远程图片(网址: url) {
+            Text("加载中")
+        } 失败: {
+            Text("失败")
+        }
+    }
+
+    func testOTPFieldConstructs() {
+        _ = OTPField(code: .constant("123456"), length: 6)
+        _ = OTPField(code: .constant(""), length: 4, boxSize: 40, spacing: 8, cornerRadius: 6) { _ in }
+        _ = 验证码输入框(验证码: .constant("1234"), 位数: 4, 格子尺寸: 40)
+        _ = 验证码输入框(验证码: .constant(""), 位数: 6, 输满回调: { _ in })
+    }
+
+    func testMarqueeTextConstructs() {
+        _ = MarqueeText("一条很长的公告文字")
+        _ = MarqueeText("反向滚动", font: .headline, tint: .red, speed: 60, gap: 24,
+                        direction: .leftToRight, isActive: false)
+        // 中文 init 首参带「文字:」标签——与英文无标签首参区分，避免重载歧义
+        _ = 跑马灯(文字: "中文别名")
+        _ = 跑马灯(文字: "中文别名", 速度: 50, 方向: .leftToRight)
+    }
+
+    func testStepsViewConstructs() {
+        let steps = ["填信息", "选套餐", "付定金", "完成"]
+        _ = StepsView(steps: steps, current: 1)
+        _ = StepsView(steps: steps, current: 2, direction: .vertical, showsIndex: false)
+        _ = 步骤条(步骤: steps, 当前: 1)
+        _ = 步骤条(步骤: steps, 当前: 3, 方向: .vertical, 圆点尺寸: 24)
     }
 }

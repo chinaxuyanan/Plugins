@@ -8,7 +8,7 @@
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
 - **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
-- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`，一行代码完成常见交互
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -20,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.13.1")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.14.0")
 ]
 ```
 
@@ -128,6 +128,9 @@ VStack {
 | `渐变描边` / `虚线渐变描边` | `gradientBorder` / `gradientDashedBorder`（渐变 / 虚线描边，支持圆角）|
 | `环形进度` / `滚动数字` | `环形进度` / `滚动数字`（复合组件，见下方「复合组件」）|
 | `水印` | `watermark`（明文平铺水印，铺满整块区域）|
+| `远程图片` / `验证码输入框` | `RemoteImage` / `OTPField`（复合组件，占位 / 重试、分格验证码）|
+| `跑马灯` / `跑马灯方向` | `MarqueeText` / `MarqueeDirection`（超宽自动循环滚动）|
+| `步骤条` / `步骤条方向` | `StepsView` / `StepsDirection`（横向 / 纵向步骤指示）|
 
 ## 属性速查表
 
@@ -478,6 +481,12 @@ VStack {
 | `OnboardingView(pages:...:onSkip:onFinish:)` | 引导页（多页滑动 + 跳过 / 开始使用）|
 | `RingProgress(value:tint:trackColor:lineWidth:size:showsLabel:labelFont:)` | 环形进度（圆环 + 可选百分比标签，值自动钳制到 0~1）|
 | `AnimatedNumber(value:font:tint:decimals:prefix:suffix:)` | 滚动数字（数值变化时平滑滚动到目标值）|
+| `RemoteImage(url:cornerRadius:size:contentMode:showsRetry:)` / `RemoteImage(url:...:placeholder:failure:)` | 远程图片（`AsyncImage` 封装：加载占位 + 失败点击重试 + 圆角 / 固定尺寸，可自定义占位与失败视图）|
+| `OTPField(code:length:boxSize:spacing:cornerRadius:onComplete:)` | 验证码输入框（分格显示、只收数字、输满回调；支持粘贴整段与 iOS 短信验证码自动填充）|
+| `MarqueeText(_:font:tint:speed:gap:direction:isActive:)` | 跑马灯文字（超出容器宽度才滚动，速度 / 间隔 / 方向可调，可选暂停）|
+| `StepsView(steps:current:tint:inactiveColor:direction:showsIndex:circleSize:)` | 步骤条（已完成打勾 / 当前高亮，横向或纵向排布）|
+
+> 中文构造器（如 `跑马灯(文字:速度:方向:)`、`加载按钮(标题:加载中:动作:)`、`可折叠面板(标题:展开:内容:)`）的**首个参数一律带中文标签**，与英文 `init` 的无标签首参区分开，避免 Swift 报 `ambiguous use of 'init'`。英文写法仍可省略首参标签（`MarqueeText("公告")`、`LoadingButton("提交") { }`）。
 
 ## 路线图
 
@@ -490,6 +499,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.14.0**：新增四个复合组件——远程图片 `RemoteImage` / `远程图片`（`AsyncImage` 封装：加载占位、失败点击重试、圆角与固定尺寸，可用 `@ViewBuilder` 自定义占位 / 失败视图）、验证码输入框 `OTPField` / `验证码输入框`（分格显示、只保留数字、输满 `onComplete` 回调，底层是 1×1 透明 `TextField`，粘贴整段验证码与 iOS 短信自动填充都可用）、跑马灯 `MarqueeText` / `跑马灯`（用 `readSize` 量出文字与容器尺寸，只有超宽才滚动；速度 / 间隔 / 方向可调，两份文字首尾相接实现无缝循环）、步骤条 `StepsView` / `步骤条`（已完成打勾、当前高亮、未完成置灰，横向与纵向两种排布），均含中文别名与文档注释并补测试。另修一处重载歧义：`MarqueeText` / `LoadingButton` / `CollapsibleView` 的中文构造器首参改为带标签（`文字:` / `标题:`）——此前英文与中文 `init` 的首参都省略标签，`跑马灯("x")` 这类调用会因两个重载无法区分而报 `ambiguous use of 'init'`；英文写法不变（`MarqueeText("x")`、`LoadingButton("x") { }` 仍可省略标签）。
 
 - **0.13.1**：修复编译告警——`pullToRefresh` / `下拉刷新` 的参数由 `@escaping () async -> Void` 改为 `@escaping @Sendable () async -> Void`，与 SwiftUI `refreshable(action:)` 要求的 `@Sendable` 契约对齐（此前转发时报 `passing non-Sendable parameter 'action' to function expecting a '@Sendable' closure`）。与既有的 `asyncTask` / `异步任务` 写法保持一致，调用方式不变。
 

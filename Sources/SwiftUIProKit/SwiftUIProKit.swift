@@ -57,8 +57,12 @@ import SwiftUI
 /// - `RingProgress.swift`     环形进度（确定进度圆环）
 /// - `AnimatedNumber.swift`   滚动数字（数值变化平滑滚动）
 /// - `View+Watermark.swift`   水印（平铺倾斜文字）
+/// - `RemoteImage.swift`      远程图片（占位 / 失败重试 / 圆角）
+/// - `OTPField.swift`         验证码输入框（分格 + 输满回调）
+/// - `MarqueeText.swift`      跑马灯文字（超宽自动循环滚动）
+/// - `StepsView.swift`        步骤条（横向 / 纵向）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.13.1"
+    public static let version = "0.14.0"
 }

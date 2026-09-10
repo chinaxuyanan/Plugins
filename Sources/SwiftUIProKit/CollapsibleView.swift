@@ -98,7 +98,10 @@ public extension CollapsibleView {
     ///   - 图标: 标题前 SF Symbol 图标名（可选）
     ///   - 展开: 展开状态绑定
     ///   - 内容: 展开后显示的内容
-    init<Content: View>(_ 标题: String,
+    ///
+    /// - Note: 首个参数带 `标题:` 标签——英文 `init` 的首参是无标签 `String`，
+    ///   两个重载若都无标签，`可折叠面板("x", 展开: $b) { }` 会报 `ambiguous use of 'init'`。
+    init<Content: View>(标题: String,
                         图标: String? = nil,
                         展开: Binding<Bool>,
                         @ViewBuilder 内容: () -> Content) {
