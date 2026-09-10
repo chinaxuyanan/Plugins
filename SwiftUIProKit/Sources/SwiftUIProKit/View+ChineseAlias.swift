@@ -130,7 +130,7 @@ public extension View {
     func 文字行间距(_ 间距: CGFloat) -> some View { textLineSpacing(间距) }
 
     /// 文字加粗（等同 `boldText`）
-    @available(macOS 13.0, *)
+    @available(iOS 16.0, macOS 13.0, *)
     @ViewBuilder
     func 加粗() -> some View { boldText() }
 
@@ -141,7 +141,7 @@ public extension View {
     ///   - 字重: 字重，默认 `.regular`
     ///   - 对齐: 对齐方式，默认 `.leading`
     ///   - 间距: 行间距，默认 `0`
-    @available(macOS 13.0, *)
+    @available(iOS 16.0, macOS 13.0, *)
     @ViewBuilder
     func 文字样式(字体: Font,
                    颜色: Color = .primary,

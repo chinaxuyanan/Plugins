@@ -68,11 +68,16 @@ public extension View {
     ///
     /// 将文字设置为粗体，等效于 `.fontWeight(.bold)`。
     ///
+    /// - Note: 这里的 `@available` 不能删。实现里用的是 `View.fontWeight(_:)`
+    ///   （iOS 16 / macOS 13 起），而本包部署下限是 iOS 15 / macOS 12；
+    ///   少写 iOS 这一项，编 iOS 目标就会报 `'fontWeight' is only available in iOS 16.0 or newer`。
+    ///   注意 `Text.fontWeight(_:)` 是 iOS 13 就有的另一个重载，两者别混为一谈。
+    ///
     /// - Example:
     ///   ```swift
     ///   Text("重点").boldText()
     ///   ```
-    @available(macOS 13.0, *)
+    @available(iOS 16.0, macOS 13.0, *)
     func boldText() -> some View {
         fontWeight(.bold)
     }
@@ -88,12 +93,15 @@ public extension View {
     ///   - alignment: 对齐方式，默认 `.leading`。
     ///   - spacing: 行间距，默认 `0`。
     ///
+    /// - Note: 可用性下限由 `.fontWeight(_:)` 决定（iOS 16 / macOS 13），
+    ///   同 `boldText()`，`@available` 不能删。
+    ///
     /// - Example:
     ///   ```swift
     ///   Text("标题")
     ///       .textStyle(font: .title, color: .blue, weight: .bold)
     ///   ```
-    @available(macOS 13.0, *)
+    @available(iOS 16.0, macOS 13.0, *)
     func textStyle(font: Font,
                    color: Color = .primary,
                    weight: Font.Weight = .regular,

@@ -169,8 +169,10 @@ VStack {
 | `textAlignment(_:)` | 文字对齐方式 |
 | `maxLines(_:)` | 限制最大行数 |
 | `textLineSpacing(_:)` | 设置行间距 |
-| `boldText()` | 文字加粗 |
-| `textStyle(font:color:weight:alignment:spacing:)` | 一站式文字样式 |
+| `boldText()` | 文字加粗（iOS 16+ / macOS 13+） |
+| `textStyle(font:color:weight:alignment:spacing:)` | 一站式文字样式（iOS 16+ / macOS 13+） |
+
+> `boldText` / `textStyle` 内部用的是 `View.fontWeight(_:)`，它自 iOS 16 / macOS 13 才有（`Text.fontWeight(_:)` 是另一个 iOS 13 就有的重载）。这两个方法带有 `@available(iOS 16.0, macOS 13.0, *)`，**别删**——删了 iOS 目标就编不过。iOS 15 上请直接用 `.font(.body.weight(.semibold))`。
 
 ### 图片
 
