@@ -962,3 +962,49 @@ public extension View {
         toast(消息, position: 位置, duration: 时长, icon: 图标)
     }
 }
+
+// MARK: 尺寸读取
+
+public extension View {
+    /// 读取视图实际尺寸（等同 `readSize`）
+    /// - Parameter 变化时: 尺寸变化回调，参数为当前 `CGSize`
+    @ViewBuilder
+    func 读取尺寸(变化时: @escaping (CGSize) -> Void) -> some View {
+        readSize(onChange: 变化时)
+    }
+}
+
+// MARK: 微光扫光
+
+public extension View {
+    /// 微光扫光效果（等同 `shimmer`）
+    /// - Parameters:
+    ///   - 激活: 是否播放扫光动画，默认 `true`
+    ///   - 颜色: 高光颜色，默认白色半透明
+    @ViewBuilder
+    func 微光(激活: Bool = true, 颜色: Color = .white.opacity(0.6)) -> some View {
+        shimmer(active: 激活, tint: 颜色)
+    }
+}
+
+// MARK: 确认弹窗
+
+public extension View {
+    /// 确认弹窗（等同 `confirm`）
+    /// - Parameters:
+    ///   - 标题: 弹窗标题
+    ///   - 是否显示: 是否显示（`Binding`）
+    ///   - 说明: 说明文字，默认 `nil`
+    ///   - 确认文字: 确认按钮文字，默认「确定」
+    ///   - 角色: 确认按钮角色（如 `.destructive`），默认 `nil`
+    ///   - 动作: 点击确认后执行
+    @ViewBuilder
+    func 确认弹窗(_ 标题: String,
+                  是否显示: Binding<Bool>,
+                  说明: String? = nil,
+                  确认文字: String = "确定",
+                  角色: ButtonRole? = nil,
+                  动作: @escaping () -> Void) -> some View {
+        confirm(标题, isPresented: 是否显示, message: 说明, confirmTitle: 确认文字, role: 角色, action: 动作)
+    }
+}

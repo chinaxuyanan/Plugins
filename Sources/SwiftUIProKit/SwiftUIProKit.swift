@@ -49,8 +49,12 @@ import SwiftUI
 /// - `CarouselView.swift`     轮播图（自动轮播 + 分页圆点）
 /// - `CountdownView.swift`    倒计时视图（圆环进度 + 归零回调）
 /// - `OnboardingView.swift`   引导页（多页滑动 + 跳过 / 开始使用）
+/// - `View+ReadSize.swift`    尺寸读取（`readSize` 监听视图实际尺寸）
+/// - `View+Shimmer.swift`     微光扫光效果
+/// - `Image+QRCode.swift`     二维码生成（Core Image）
+/// - `View+ConfirmationDialog.swift` 确认弹窗
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.11.1"
+    public static let version = "0.12.0"
 }

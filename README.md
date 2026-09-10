@@ -6,7 +6,7 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
 - **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
@@ -20,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.11.1")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.12.0")
 ]
 ```
 
@@ -121,6 +121,10 @@ VStack {
 | `角标` | `cornerBadge` |
 | `空状态视图` | `EmptyStateView`（`.图标/.标题/.描述/.操作文字/.操作`）|
 | `轻提示` / `轻提示位置` | `toast` / `ToastPosition` |
+| `读取尺寸` | `readSize`（回调视图尺寸变化）|
+| `微光` | `shimmer(active:tint:)`（扫光动画，可独立使用）|
+| `二维码` / `二维码纠错级别` | `Image.qrCode(...)` / `QRCodeCorrectionLevel` |
+| `确认弹窗` | `confirm`（`confirmationDialog` 封装）|
 
 ## 属性速查表
 
@@ -420,6 +424,30 @@ VStack {
 | --- | --- |
 | `toast(_:position:duration:icon:)` | 顶部 / 底部浮出轻提示，自动消失（`ToastPosition` 位置）|
 
+### 尺寸监听
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `readSize(onChange:)` | 观察视图尺寸变化（`PreferenceKey` + `GeometryReader`）|
+
+### 微光扫光
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `shimmer(active:tint:)` | 扫光动画（可独立使用，配合骨架屏）|
+
+### 二维码生成
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `Image.qrCode(_:scale:correctionLevel:)` | 生成二维码图片（`CIQRCodeGenerator`，纠错级别 `.l/.m/.q/.h`）|
+
+### 确认弹窗
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `confirm(_:isPresented:message:confirmTitle:role:action:)` | 确认弹窗（`confirmationDialog` 封装，可指定按钮角色）|
+
 ### 条件修饰符
 
 | 方法 | 中文含义 |
@@ -449,6 +477,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.12.0**：新增「尺寸监听」「微光扫光」「二维码生成」「确认弹窗」四个类别封装（`readSize` / `读取尺寸`（`PreferenceKey` + `GeometryReader` 观察视图尺寸）、`shimmer(active:tint:)` / `微光`（可独立使用的扫光动画）、`Image.qrCode(...)` / `二维码`（含 `QRCodeCorrectionLevel` / `二维码纠错级别` 纠错级别，基于 `CIQRCodeGenerator`）、`confirm` / `确认弹窗`（`confirmationDialog` 封装，可指定 `ButtonRole`）），均含中文别名与文档注释。
 
 - **0.11.1**：修复 macOS 编译错误——轮播图 `CarouselView` 与引导页 `OnboardingView` 中的 `.tabViewStyle(.page(indexDisplayMode:))` 为 iOS 专有，在 macOS 上不可用。现按平台分流：iOS 保持 `TabView(.page)` 左右滑动，macOS 改用交叉淡入淡出切换当前页。
 

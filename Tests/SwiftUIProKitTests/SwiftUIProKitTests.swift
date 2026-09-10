@@ -81,4 +81,14 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = 引导页(页面: pages, 完成: { })
         _ = 引导页内容(图标: "star", 标题: "标题", 描述: "描述")
     }
+
+    // MARK: - 二维码生成（@MainActor：qrCode 依赖 CoreImage 且标注主线程）
+
+    @MainActor
+    func testQRCodeGeneration() {
+        XCTAssertNotNil(Image.qrCode("https://example.com"))
+        XCTAssertNotNil(Image.qrCode("hello", scale: 12, correctionLevel: .h))
+        XCTAssertNil(Image.qrCode(""), "空文本不应生成二维码")
+        XCTAssertNotNil(Image.二维码("hello"))
+    }
 }
