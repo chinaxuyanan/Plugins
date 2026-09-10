@@ -2,6 +2,10 @@ name: CI
 
 # 每次 push 与 PR，都在 GitHub 的 macOS runner 上把三个库 + 演示工程过一遍：
 # 构建、单元测试，再单独编一遍 iOS 目标，抓「只写了 #if os(macOS)、漏了 iOS」这类平台专有符号泄漏。
+#
+# runner 固定用 macos-26：它自带的默认 Xcode 是 26.6（build 17F113），与本地开发机一致。
+# 之前用 macos-14（默认 Xcode 15/16 一代）出现过「本地编得过、CI 报编译器类型推断超时」的
+# 工具链差异；而且 macos-14 镜像官方已公告 2026-11-02 起不再支持。
 on:
   push:
   pull_request:
@@ -10,7 +14,7 @@ jobs:
   # 主检查：三个库各自构建 + 跑单元测试
   test-macos:
     name: 构建与测试（${{ matrix.package }}）
-    runs-on: macos-14
+    runs-on: macos-26
     strategy:
       fail-fast: false
       matrix:
@@ -19,7 +23,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: 工具链版本
-        run: swift --version
+        run: |
+          swift --version
+          xcodebuild -version
 
       - name: 构建
         run: swift build --package-path ${{ matrix.package }}
@@ -31,13 +37,16 @@ jobs:
   # macOS 专有接口，这些分支必须包在 #if os(macOS) 里，本 job 就是用来盯这一点的。
   build-ios:
     name: 编译检查（${{ matrix.package }} · iOS）
-    runs-on: macos-14
+    runs-on: macos-26
     strategy:
       fail-fast: false
       matrix:
         package: [SwiftUIProKit, LogKit, SystemInfoKit]
     steps:
       - uses: actions/checkout@v4
+
+      - name: 工具链版本
+        run: xcodebuild -version
 
       - name: 用 xcodebuild 编译 iOS 目标
         run: |
@@ -51,9 +60,12 @@ jobs:
   # 它是 macOS 可执行包，没有测试目标，因此只 build 不 test。
   build-demo:
     name: 构建演示工程（KitsDemo · macOS）
-    runs-on: macos-14
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+
+      - name: 工具链版本
+        run: swift --version
 
       - name: 构建
         run: swift build --package-path KitsDemo
