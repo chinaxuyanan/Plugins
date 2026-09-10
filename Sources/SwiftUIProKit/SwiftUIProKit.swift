@@ -46,8 +46,11 @@ import SwiftUI
 /// - `LoadingButton.swift`    加载按钮（转圈 + 禁用）
 /// - `RatingView.swift`       评分视图（星级，只读 / 可交互）
 /// - `CollapsibleView.swift`  可折叠面板（手风琴）
+/// - `CarouselView.swift`     轮播图（自动轮播 + 分页圆点）
+/// - `CountdownView.swift`    倒计时视图（圆环进度 + 归零回调）
+/// - `OnboardingView.swift`   引导页（多页滑动 + 跳过 / 开始使用）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.10.0"
+    public static let version = "0.11.0"
 }

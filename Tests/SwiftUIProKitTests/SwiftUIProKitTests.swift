@@ -57,4 +57,28 @@ final class SwiftUIProKitTests: XCTestCase {
             Text("折叠内容")
         }
     }
+
+    func testCarouselViewConstructs() {
+        _ = CarouselView(systemImages: ["photo", "camera", "star"])
+        _ = CarouselView(views: [Text("第一页"), Text("第二页")])
+        _ = 轮播图(系统图标: ["star"])
+        _ = 轮播图(视图: [Text("第一页")])
+    }
+
+    func testCountdownViewConstructs() {
+        _ = CountdownView(seconds: 60)
+        _ = CountdownView(seconds: 10, paused: .constant(false)) { }
+        _ = 倒计时视图(秒数: 60)
+    }
+
+    func testOnboardingViewConstructs() {
+        let pages = [
+            OnboardingPage(icon: "sparkles", title: "欢迎", message: "第一页"),
+            OnboardingPage(icon: "star", title: "强大", message: "第二页"),
+        ]
+        _ = OnboardingView(pages: pages)
+        _ = OnboardingView(pages: pages, onFinish: { })
+        _ = 引导页(页面: pages, 完成: { })
+        _ = 引导页内容(图标: "star", 标题: "标题", 描述: "描述")
+    }
 }
