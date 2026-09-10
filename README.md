@@ -38,6 +38,11 @@
 - **按天数清理**：`maxLogAgeDays` / `日志保留天数` 自动删除超过 N 天的日志文件，可与 `maxLogFiles` 叠加使用
 - **CSV 导出**：`exportCSV` / `导出CSV` 把日志条目导出成 CSV（`fields` 自动展开成独立列，带 UTF-8 BOM，Excel 打开中文不乱码），`csvString(from:)` / `CSV字符串(条目:)` 只取文本
 - **时区配置**：`timeZone` / `时区` 统一时间戳与日志文件名的时区（如都按 UTC 记录）
+- **条目过滤**：`LogFilter` / `日志过滤条件` 按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 组合筛选日志条目，可筛文件读出的行，也可筛内存里的最近日志
+- **内存检索**：`maxRecentEntries` / `最近保留条数` 把最近 N 条日志留在内存，`recentEntries` / `最近日志` 取用、`filteredRecentEntries` / `过滤最近日志` 直接按条件筛，无需读文件
+- **统计摘要**：`LogSummary` / `日志摘要` 汇总条数 / 各级别条数 / 错误率 / 时间跨度 / 分类排行，`text()` 直接产出中文摘要文本
+- **压缩归档导出**：`exportArchive` / `导出压缩包` 把当前日志 + 崩溃日志 + 历史归档一次打包成 zip（纯 Foundation 手写 ZIP，零依赖）
+- **按天自动轮转**：`dailyRotation` / `按天轮转` 开启后，跨天写入时自动把前一天的按天日志文件归档改名
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -49,7 +54,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.11.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.12.0")
 ]
 ```
 
@@ -117,6 +122,8 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `maxFileSize` | `0`（不限制） | 单文件大小上限（字节），超出自动归档 |
 | `maxLogFiles` | `0`（不清理） | 最多保留的日志文件数，超出删最旧 |
 | `maxLogAgeDays` | `0`（不清理） | 日志文件最长保留天数，超出删最旧（按修改时间，可与其他清理项叠加）|
+| `dailyRotation` | `false` | 是否按天自动轮转：跨天写入时把前一天的按天日志文件归档改名 |
+| `maxRecentEntries` | `0`（不保留） | 内存中保留的最近日志条数上限，大于 `0` 时才缓存（供过滤 / 摘要使用）|
 | `enabledCategories` | `nil`（全部） | 分类白名单，只输出名单内分类 |
 | `ignoredCategories` | `[]`（空） | 分类黑名单，跳过名单内分类 |
 | `outputFormat` | `.text` | 输出格式：`.text` 单行文本 / `.json` 结构化 JSON |
@@ -161,6 +168,13 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.追踪执行(追踪ID) { ... }` / `LogKit.异步追踪执行(追踪ID) { ... }` | `LogKit.withTrace(_:_:)` / `LogKit.withTraceAsync(_:_:)` |
 | `LogKit.添加输出 { ... }` / `LogKit.移除输出(标识)` / `LogKit.清空输出()` / `LogKit.输出数量` | `LogKit.addSink(_:)` / `LogKit.removeSink(_:)` / `LogKit.removeAllSinks()` / `LogKit.sinkCount` |
 | `LogKit.日志保留天数` / `LogKit.时区` | `LogKit.maxLogAgeDays` / `LogKit.timeZone` |
+| `LogKit.按天轮转` / `LogKit.最近保留条数` | `LogKit.dailyRotation` / `LogKit.maxRecentEntries` |
+| `LogKit.最近日志` / `LogKit.清空最近日志()` | `LogKit.recentEntries` / `LogKit.clearRecentEntries()` |
+| `LogKit.过滤日志(条目, 条件:)` / `LogKit.过滤最近日志(条件)` | `LogKit.filterEntries(_:matching:)` / `LogKit.filteredRecentEntries(matching:)` |
+| `LogKit.统计摘要(条目, 分类排行数量:)` / `LogKit.最近日志摘要(分类排行数量:)` | `LogKit.summary(of:topCategories:)` / `LogKit.summaryOfRecentEntries(topCategories:)` |
+| `LogKit.导出压缩包(含归档:文件名:)` | `LogKit.exportArchive(includeArchived:fileName:)` |
+| `LogEntry.产生时间` | `LogEntry.date` |
+| `日志过滤条件` / `日志摘要` | `LogFilter`（`.按关键字/.按级别/.按追踪ID/.时间段(从:到:)/.为空/.匹配(_:)/.过滤(_:)`）/ `LogSummary`（`.总计/.各级别条数/.最早时间/.最晚时间/.级别条数/.错误条数/.错误率/.时间跨度/.分类排行/.摘要文本`）|
 | `LogKit.CSV字符串(条目:含表头:)` / `LogKit.导出CSV(条目:文件名:)` | `LogKit.csvString(from:includeHeader:)` / `LogKit.exportCSV(_:fileName:)` |
 | `LogEntry.JSON字典` / `LogEntry.JSON字符串` | `LogEntry.jsonObject` / `LogEntry.jsonString` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
@@ -305,7 +319,71 @@ LogKit.maxLogFiles = 30      // 同时最多保留 30 个文件
 LogKit.轮转日志()            // 触发一次检查；当前正在写入的文件始终不会被删除
 ```
 
+**内存检索与过滤 `LogFilter`**：把最近若干条日志留在内存，随时按条件筛，不用读文件：
+
+```swift
+LogKit.最近保留条数 = 500        // 之后每条日志都会缓存进内存（环形，超出丢最旧）
+
+// 组合条件：错误级以上 + 网络分类 + 关键字
+let 条件 = LogFilter(级别: [.error, .critical], 分类: ["网络"], 关键字: "超时")
+
+LogKit.最近日志.count                        // 当前缓存的条数
+LogKit.过滤最近日志(条件)                    // 内存里直接筛
+LogKit.过滤日志(LogKit.最近日志, 条件: 条件)  // 等价写法
+LogKit.清空最近日志()                        // 用完清掉，释放内存
+```
+
+单独的过滤条件也可用静态方法拼装：`LogFilter.按关键字("超时")`、`LogFilter.按级别(.error)`、
+`LogFilter.按追踪ID("req-1")`、`LogFilter.时间段(从: 起点, 到: 终点)`（`到` 可省略）。
+`关键字` 会扫描消息、分类、追踪 ID、文件名与字段值（不区分大小写）；`LogFilter().为空` 可判断是否没设任何条件。
+
+> 中文构造器的首参 `级别` 没有默认值，这样零参写法 `LogFilter()` 才不会与英文
+> `init(levels:categories:keyword:from:to:traceId:)`（参数全有默认值）产生歧义。
+> 只想按分类 / 关键字筛时，把 `级别` 显式传 `nil` 即可：`LogFilter(级别: nil, 分类: ["网络"])`。
+
+**统计摘要 `LogSummary`**：一眼看清这段时间的日志概况，适合做开发面板或随崩溃报告一起上报：
+
+```swift
+let 摘要 = LogKit.最近日志摘要()
+print(摘要.摘要文本())
+// 日志共 128 条
+// 各级别：调试 96，信息 24，警告 6，错误 2，严重 0
+// 错误率：1.6%
+// 时间跨度：42.31 秒
+// 分类排行：网络(64)，存储(32)，账号(32)
+
+摘要.错误条数       // 错误 + 严重
+摘要.错误率         // 0.0 ~ 1.0
+摘要.时间跨度       // 秒；条数不足时 nil
+摘要.分类排行       // 次数从多到少，次数相同按分类名排序（结果稳定可复现）
+```
+
+**压缩归档导出 `exportArchive`**：把当前日志、崩溃日志、历史归档一次性打包成 zip 交给用户：
+
+```swift
+let 压缩包 = try LogKit.导出压缩包()                 // 含归档，返回 zip 的 URL
+let 仅当前 = try LogKit.导出压缩包(含归档: false, 文件名: "问题反馈")
+// iOS：UIActivityViewController(activityItems: [压缩包], ...)
+// macOS：NSSharingServicePicker(items: [压缩包])
+```
+
+zip 由纯 Foundation 手写生成（存储方式、不压缩，文件名标记 UTF-8），macOS 访达、Windows
+资源管理器、`unzip` 都能直接打开，不引入任何第三方依赖。目录里一条日志都没有时抛出
+`LogKitError.logFileNotFound`。
+
+**按天自动轮转 `dailyRotation`**：默认关闭，开启后跨天第一次写日志时，自动把前一天的
+`LogKit-yyyy-MM-dd.log` 归档改名为 `LogKit-旧日期-时间戳.log`，当天的日志从新文件写起：
+
+```swift
+LogKit.fileOutput = true
+LogKit.按天轮转 = true    // 跨天后自动归档昨天的文件（崩溃日志不受影响）
+```
+
+配合 `maxFileSize` / `maxLogFiles` / `maxLogAgeDays` 一起用，按天分文件 + 按需清理，长期运行也不会堆满磁盘。
+
 ## 更新日志
+
+- **0.12.0**：新增条目过滤（`LogFilter` / `日志过滤条件`，按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 组合筛选 `LogEntry`，另有 `filterEntries(_:matching:)` / `过滤日志` 与静态构造 `按关键字` / `按级别` / `按追踪ID` / `时间段`）、内存检索（`maxRecentEntries` / `最近保留条数` 缓存最近 N 条，`recentEntries` / `最近日志` / `clearRecentEntries` / `清空最近日志` / `filteredRecentEntries` / `过滤最近日志`，`NSLock` 保护，为 `0` 时不缓存零开销）、统计摘要（`LogSummary` / `日志摘要`，条数 / 各级别条数 / 错误率 / 时间跨度 / 分类排行，`text()` 产出中文摘要，排行次数相同按分类名排序保证稳定）、压缩归档导出（`exportArchive` / `导出压缩包`，纯 Foundation 手写 ZIP 打包当前 + 崩溃 + 归档日志，零依赖，无文件时抛 `logFileNotFound`）、按天自动轮转（`dailyRotation` / `按天轮转`，跨天写入自动归档前一天的按天日志文件），`LogEntry` 新增 `date` / `产生时间`（真正的时间点，不受 `dateFormat` 影响，供时间段筛选），均含中文别名并补单元测试。中文构造器 `init(级别:分类:关键字:起始时间:结束时间:追踪ID:)` 的首参 `级别` 无默认值，以避免与英文零参 `LogFilter()`（参数全有默认值）产生「歧义调用」。
 
 - **0.11.0**：新增自定义输出去向（`addSink` / `removeSink` / `removeAllSinks` / `sinkCount` / `添加输出` / `移除输出` / `清空输出` / `输出数量`，在控制台 / 文件之外挂第三方接收者，`NSLock` 保护、先复制快照再回调避免重入死锁，仅在有接收方时才组装 `LogEntry`）、按天数清理（`maxLogAgeDays` / `日志保留天数`，按修改时间删除过期日志文件，与 `maxLogFiles` 叠加，当前文件不删）、CSV 导出（`exportCSV` / `csvString(from:includeHeader:)` / `导出CSV` / `CSV字符串(条目:含表头:)`，`fields` 自动展开成独立列、键排序、双引号转义、UTF-8 BOM 防中文乱码）、时区配置（`timeZone` / `时区`，统一时间戳与日志文件名日期），均含中文别名并补单元测试。
 

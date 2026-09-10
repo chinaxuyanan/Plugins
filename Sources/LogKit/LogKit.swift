@@ -12,6 +12,7 @@ import Darwin
 /// - 支持 `ScopedLogger` 作用域日志器（分模块分类）、`PerformanceCounter` 性能计数器（累计耗时）、`OSLogger` 系统日志桥接（os.Logger）；
 /// - 支持追踪 ID `traceId`（全局 / 作用域日志器两级，串联一次请求的全部日志）、按构建环境自适应默认级别（DEBUG `.debug` / RELEASE `.warning`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`）；
 /// - 支持自定义输出去向 `addSink`（控制台 / 文件之外的第三方接收者，可移除）、按天数清理 `maxLogAgeDays`、CSV 导出 `exportCSV`、时区配置 `timeZone`；
+/// - 支持内存检索（`maxRecentEntries` 保留最近若干条 + `LogFilter` 按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 过滤）、统计摘要 `LogSummary`、压缩归档导出 `exportArchive`（纯 Foundation 打包 zip）、按天自动轮转 `dailyRotation`；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -33,7 +34,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.11.0"
+    public static let version = "0.12.0"
 
     // MARK: - 配置
 
@@ -136,6 +137,32 @@ public enum LogKit {
     ///
     /// - Note: 与 `maxLogFiles` 可同时生效：先按天数清掉过期文件，再按数量只留最新的若干个。
     public static var maxLogAgeDays: Int = 0
+
+    /// 是否按天自动轮转日志文件（默认 `false`）
+    ///
+    /// 日志文件名本身就带日期（`LogKit-yyyy-MM-dd.log`），跨天后自然写入新文件；
+    /// 打开本开关后，跨天第一次写日志时还会把**昨天的文件归档**（重命名为
+    /// `LogKit-旧日期-时间戳.log`），让日志目录里「当前文件」永远只有一个。
+    ///
+    /// - Note: 归档后的文件同样受 `maxLogFiles` / `maxLogAgeDays` 管理。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.fileOutput = true
+    ///   LogKit.dailyRotation = true       // 每天一个文件，跨天自动归档昨天
+    ///   LogKit.maxLogFiles = 7            // 只留最近 7 个
+    ///   ```
+    public static var dailyRotation: Bool = false
+
+    /// 内存中保留的最近日志条数上限（默认 `0`，即不保留）
+    ///
+    /// 设为正数后，日志除了写控制台 / 文件，还会在内存里保留最近 `maxRecentEntries` 条
+    /// `LogEntry`，供 `recentEntries` 读取、`filteredRecentEntries(matching:)` 检索、
+    /// `summaryOfRecentEntries()` 汇总——用于做「App 内日志面板」这类功能，无需读文件。
+    ///
+    /// - Note: 会带来额外的内存占用与一次 `LogEntry` 组装开销；只在确有用处时打开。
+    ///   每条日志都会保留，因此级别 / 分类过滤（`minimumLevel` 等）依然生效——被过滤掉的日志不会进内存。
+    public static var maxRecentEntries: Int = 0
 
     /// 分类白名单：只输出这些分类的日志
     ///
@@ -868,6 +895,144 @@ public enum LogKit {
             }
     }
 
+    // MARK: - 内存检索与统计摘要
+
+    /// 内存里保留的最近日志条目（从旧到新）
+    ///
+    /// 只有把 `maxRecentEntries` 设为正数后才有内容。返回的是快照副本，改动它不影响内部缓存。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.maxRecentEntries = 200
+    ///   // …运行一段时间…
+    ///   for entry in LogKit.recentEntries { print(entry.message) }
+    ///   ```
+    public static var recentEntries: [LogEntry] {
+        recentLock.lock()
+        defer { recentLock.unlock() }
+        return recentBuffer
+    }
+
+    /// 清空内存中保留的日志条目
+    public static func clearRecentEntries() {
+        recentLock.lock()
+        defer { recentLock.unlock() }
+        recentBuffer.removeAll()
+    }
+
+    /// 按条件过滤一批日志条目
+    ///
+    /// 适合过滤自己用 `onLog` / `addSink` 收集到的条目。
+    ///
+    /// - Parameters:
+    ///   - entries: 待过滤的日志条目
+    ///   - filter: 过滤条件（`LogFilter`）
+    /// - Returns: 满足条件的条目（保持原顺序）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let errors = LogKit.filterEntries(collected, matching: LogFilter(levels: [.error, .critical]))
+    ///   ```
+    public static func filterEntries(_ entries: [LogEntry], matching filter: LogFilter) -> [LogEntry] {
+        filter.filter(entries)
+    }
+
+    /// 按条件过滤内存中保留的最近日志（需先设置 `maxRecentEntries`）
+    ///
+    /// - Parameter filter: 过滤条件（`LogFilter`）
+    /// - Returns: 满足条件的条目（从旧到新）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let 近期错误 = LogKit.filteredRecentEntries(matching: LogFilter(levels: [.error, .critical], keyword: "超时"))
+    ///   ```
+    public static func filteredRecentEntries(matching filter: LogFilter) -> [LogEntry] {
+        filter.filter(recentEntries)
+    }
+
+    /// 汇总一批日志条目的统计信息
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组
+    ///   - topCategories: 分类排行最多保留几项，默认 `5`
+    /// - Returns: `LogSummary` 统计摘要
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let 摘要 = LogKit.summary(of: collected)
+    ///   print(摘要.text())     // 一段可直接展示的中文摘要
+    ///   ```
+    public static func summary(of entries: [LogEntry], topCategories: Int = 5) -> LogSummary {
+        LogSummary(entries: entries, topCategories: topCategories)
+    }
+
+    /// 汇总内存中保留的最近日志（需先设置 `maxRecentEntries`）
+    ///
+    /// - Parameter topCategories: 分类排行最多保留几项，默认 `5`
+    /// - Returns: `LogSummary` 统计摘要
+    public static func summaryOfRecentEntries(topCategories: Int = 5) -> LogSummary {
+        LogSummary(entries: recentEntries, topCategories: topCategories)
+    }
+
+    private static let recentLock = NSLock()
+    private static var recentBuffer: [LogEntry] = []
+
+    /// 内部：把条目追加进内存缓存，超出 `maxRecentEntries` 时丢弃最旧的
+    private static func appendRecent(_ entry: LogEntry) {
+        guard maxRecentEntries > 0 else { return }
+        recentLock.lock()
+        defer { recentLock.unlock() }
+        recentBuffer.append(entry)
+        if recentBuffer.count > maxRecentEntries {
+            recentBuffer.removeFirst(recentBuffer.count - maxRecentEntries)
+        }
+    }
+
+    // MARK: - 压缩归档导出
+
+    /// 把日志文件打包成 zip，返回可供系统分享面板使用的文件 URL
+    ///
+    /// 打包内容：当前日志文件 + 崩溃日志（若存在）+ 已归档的日志文件（`includeArchived` 为 `true` 时）。
+    /// 用纯 Foundation 实现的标准 ZIP（存储方式，不压缩），macOS 访达 / Windows 资源管理器 /
+    /// `unzip` 都能直接打开。先 `flush()` 确保未落盘的日志已写入。
+    ///
+    /// - Parameters:
+    ///   - includeArchived: 是否连历史归档文件一起打包，默认 `true`
+    ///   - fileName: 压缩包文件名（不含扩展名）；默认 `LogKit-时间戳-短UUID`
+    /// - Returns: 压缩包的 URL（位于临时目录）
+    /// - Throws: `LogKitError.logFileNotFound`（一个日志文件都没有时）；写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let zip = try LogKit.exportArchive()
+    ///   // 交给系统分享面板分享该 zip
+    ///   ```
+    public static func exportArchive(includeArchived: Bool = true, fileName: String? = nil) throws -> URL {
+        flush()
+        let fm = FileManager.default
+
+        var sources: [URL] = []
+        if fm.fileExists(atPath: logFileURL.path) { sources.append(logFileURL) }
+        if fm.fileExists(atPath: crashLogFileURL.path) { sources.append(crashLogFileURL) }
+        if includeArchived { sources.append(contentsOf: archivedLogFiles) }
+        guard !sources.isEmpty else { throw LogKitError.logFileNotFound }
+
+        let entries: [ZipWriter.Entry] = sources.compactMap { url in
+            guard let data = try? Data(contentsOf: url) else { return nil }
+            let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                ?? Date()
+            return ZipWriter.Entry(name: url.lastPathComponent, data: data, modificationDate: date)
+        }
+        guard !entries.isEmpty else { throw LogKitError.logFileNotFound }
+
+        let dir = fm.temporaryDirectory.appendingPathComponent("LogKitExport", isDirectory: true)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let name = fileName ?? "LogKit-\(archiveStamp())-\(UUID().uuidString.prefix(8))"
+        let dest = dir.appendingPathComponent("\(name).zip")
+        try ZipWriter.archive(entries).write(to: dest)
+        return dest
+    }
+
     // MARK: - 输出预判与作用域追踪 ID
 
     /// 预判某条日志是否会被输出
@@ -944,9 +1109,10 @@ public enum LogKit {
         incrementCount(level: level)
         let safeFields = redactedFields(fields)
         let messageValue = message()
-        // 只有确有接收方（回调 / 自定义去向）时才组装 LogEntry，避免每次都多一次字符串化
+        // 只有确有接收方（回调 / 自定义去向 / 内存检索）时才组装 LogEntry，避免每次都多一次字符串化
         let hasSinks = sinkCount > 0
-        if onLog != nil || hasSinks {
+        let keepsRecent = maxRecentEntries > 0
+        if onLog != nil || hasSinks || keepsRecent {
             let entry = LogEntry(timestamp: timestamp(),
                                  level: level,
                                  category: category,
@@ -955,6 +1121,7 @@ public enum LogKit {
                                  line: showLocation ? line : nil,
                                  fields: safeFields,
                                  traceId: effectiveTraceId)
+            if keepsRecent { appendRecent(entry) }
             onLog?(entry)
             if hasSinks { dispatchToSinks(entry) }
         }
@@ -1105,6 +1272,7 @@ public enum LogKit {
         let fm = FileManager.default
         do {
             try fm.createDirectory(at: logDirectory, withIntermediateDirectories: true)
+            if dailyRotation { archivePreviousDayFiles() }
             let url = logFileURL
             // 大小轮转：当前文件达到上限时先归档
             if maxFileSize > 0, fm.fileExists(atPath: url.path),
@@ -1135,6 +1303,27 @@ public enum LogKit {
         let ext = url.pathExtension
         let archived = logDirectory.appendingPathComponent("\(base)-\(archiveStamp()).\(ext)")
         try? FileManager.default.moveItem(at: url, to: archived)
+    }
+
+    /// 按天轮转：把日志目录里「不是今天」的按天日志文件归档掉
+    ///
+    /// 文件名形如 `LogKit-2026-09-09.log`（`LogKit-` 与 `.log` 之间恰好是 10 个字符的日期、
+    /// 含两个短横线），归档后形如 `LogKit-2026-09-09-093000123.log`，不会再被本方法识别，
+    /// 因此不会重复归档。崩溃日志（`LogKit-crash.log`）与已归档文件都不匹配该形状，会被跳过。
+    private static func archivePreviousDayFiles() {
+        let today = dayStamp()
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(at: logDirectory,
+                                                      includingPropertiesForKeys: nil,
+                                                      options: []) else { return }
+        for url in files where url.pathExtension == "log" {
+            let name = url.lastPathComponent
+            guard name.hasPrefix("LogKit-") else { continue }
+            let body = String(name.dropFirst("LogKit-".count).dropLast(".log".count))
+            guard body.count == 10, body.filter({ $0 == "-" }).count == 2 else { continue }
+            guard body != today else { continue }
+            archiveCurrentFile(url)
+        }
     }
 
     /// 归档文件名的时间戳（毫秒级，避免同秒冲突）

@@ -366,6 +366,62 @@ public extension LogKit {
     static func 导出CSV(_ 条目: [LogEntry], 文件名: String? = nil) throws -> URL {
         try exportCSV(条目, fileName: 文件名)
     }
+
+    /// 是否按天自动轮转（等同 `dailyRotation`）
+    static var 按天轮转: Bool {
+        get { dailyRotation }
+        set { dailyRotation = newValue }
+    }
+
+    /// 内存中保留的最近日志条数上限（等同 `maxRecentEntries`）
+    static var 最近保留条数: Int {
+        get { maxRecentEntries }
+        set { maxRecentEntries = newValue }
+    }
+
+    /// 内存里保留的最近日志条目（等同 `recentEntries`）
+    static var 最近日志: [LogEntry] { recentEntries }
+
+    /// 清空内存中保留的日志条目（等同 `clearRecentEntries`）
+    static func 清空最近日志() {
+        clearRecentEntries()
+    }
+
+    /// 按条件过滤一批日志条目（等同 `filterEntries(_:matching:)`）
+    /// - Parameters:
+    ///   - 条目: 待过滤的日志条目
+    ///   - 条件: 过滤条件（`LogFilter`）
+    static func 过滤日志(_ 条目: [LogEntry], 条件: LogFilter) -> [LogEntry] {
+        filterEntries(条目, matching: 条件)
+    }
+
+    /// 按条件过滤内存中保留的最近日志（等同 `filteredRecentEntries(matching:)`）
+    /// - Parameter 条件: 过滤条件（`LogFilter`）
+    static func 过滤最近日志(_ 条件: LogFilter) -> [LogEntry] {
+        filteredRecentEntries(matching: 条件)
+    }
+
+    /// 汇总一批日志条目的统计信息（等同 `summary(of:topCategories:)`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 分类排行数量: 分类排行最多保留几项，默认 `5`
+    static func 统计摘要(_ 条目: [LogEntry], 分类排行数量: Int = 5) -> LogSummary {
+        summary(of: 条目, topCategories: 分类排行数量)
+    }
+
+    /// 汇总内存中保留的最近日志（等同 `summaryOfRecentEntries(topCategories:)`）
+    /// - Parameter 分类排行数量: 分类排行最多保留几项，默认 `5`
+    static func 最近日志摘要(分类排行数量: Int = 5) -> LogSummary {
+        summaryOfRecentEntries(topCategories: 分类排行数量)
+    }
+
+    /// 把日志文件打包成 zip（等同 `exportArchive`）
+    /// - Parameters:
+    ///   - 含归档: 是否连历史归档文件一起打包，默认 `true`
+    ///   - 文件名: 压缩包文件名（不含扩展名）
+    static func 导出压缩包(含归档: Bool = true, 文件名: String? = nil) throws -> URL {
+        try exportArchive(includeArchived: 含归档, fileName: 文件名)
+    }
 }
 
 // MARK: - LogEntry 中文命名别名
@@ -377,4 +433,7 @@ public extension LogEntry {
 
     /// JSON 字符串（等同 `jsonString`）
     var JSON字符串: String { jsonString }
+
+    /// 日志产生的时刻（等同 `date`）
+    var 产生时间: Date { date }
 }

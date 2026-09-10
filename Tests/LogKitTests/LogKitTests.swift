@@ -863,4 +863,331 @@ final class LogKitTests: XCTestCase {
         XCTAssertTrue(fm.fileExists(atPath: recentURL.path), "7 天内的日志应保留")
         XCTAssertTrue(fm.fileExists(atPath: LogKit.logFileURL.path), "当前日志文件不应被删")
     }
+
+    // MARK: - 条目过滤 LogFilter
+
+    /// 构造一条测试用日志（`date` 显式指定，便于断言时间段过滤）
+    private func makeEntry(_ message: String,
+                           level: LogLevel = .info,
+                           category: String = "通用",
+                           fields: [String: Any] = [:],
+                           traceId: String? = nil,
+                           date: Date = Date()) -> LogEntry {
+        LogEntry(timestamp: "2026-09-10 10:00:00.000",
+                 date: date,
+                 level: level,
+                 category: category,
+                 message: message,
+                 file: "Demo.swift",
+                 line: 42,
+                 fields: fields,
+                 traceId: traceId)
+    }
+
+    func testLogFilterByLevelAndCategory() {
+        let networkError = makeEntry("网络超时", level: .error, category: "网络")
+        let networkInfo = makeEntry("网络正常", level: .info, category: "网络")
+        let storageError = makeEntry("磁盘写入失败", level: .error, category: "存储")
+
+        let filter = LogFilter(levels: [.error, .critical], categories: ["网络"])
+        XCTAssertTrue(filter.matches(networkError))
+        XCTAssertFalse(filter.matches(networkInfo), "级别不符应被过滤")
+        XCTAssertFalse(filter.matches(storageError), "分类不符应被过滤")
+
+        let all = [networkError, networkInfo, storageError]
+        XCTAssertEqual(filter.filter(all).map(\.message), ["网络超时"])
+        XCTAssertEqual(LogKit.filterEntries(all, matching: filter).map(\.message), ["网络超时"])
+
+        // 未设条件时全部通过
+        XCTAssertTrue(LogFilter().isEmpty)
+        XCTAssertEqual(LogFilter().filter(all).count, 3)
+    }
+
+    func testLogFilterKeywordAndTimeRange() {
+        let base = Date()
+        let old = makeEntry("很久以前", date: base.addingTimeInterval(-600))
+        let recent = makeEntry("订单 A100 已支付", fields: ["订单号": "A100"], date: base)
+        let entryWithTrace = makeEntry("无关消息", traceId: "req-1", date: base)
+
+        // 关键字命中消息、字段值、追踪 ID（不区分大小写）
+        XCTAssertTrue(LogFilter.byKeyword("a100").matches(recent), "应能命中字段值，且忽略大小写")
+        XCTAssertTrue(LogFilter.byKeyword("已支付").matches(recent))
+        XCTAssertTrue(LogFilter.byKeyword("REQ-1").matches(entryWithTrace))
+        XCTAssertFalse(LogFilter.byKeyword("不存在").matches(recent))
+
+        // 时间段：只保留最近 5 分钟
+        let range = LogFilter.inRange(from: base.addingTimeInterval(-300))
+        XCTAssertFalse(range.matches(old), "超出起始时间的应被过滤")
+        XCTAssertTrue(range.matches(recent))
+
+        // 追踪 ID 精确匹配
+        XCTAssertTrue(LogFilter.byTraceId("req-1").matches(entryWithTrace))
+        XCTAssertFalse(LogFilter.byTraceId("req-2").matches(entryWithTrace))
+        XCTAssertFalse(LogFilter.byTraceId("req-1").matches(recent), "无追踪 ID 的条目不应命中")
+    }
+
+    func testLogFilterChineseAliases() {
+        let entry = makeEntry("超时", level: .error, category: "网络", date: Date())
+        let filter = LogFilter(级别: [.error], 分类: ["网络"], 关键字: "超时")
+        XCTAssertTrue(filter.matches(entry))
+        XCTAssertEqual(LogFilter.按关键字("超时").filter([entry]).count, 1)
+        XCTAssertEqual(LogFilter.按级别(.error).filter([entry]).count, 1)
+        XCTAssertEqual(LogFilter.按追踪ID("无").filter([entry]).count, 0)
+        XCTAssertTrue(LogFilter.时间段(从: Date().addingTimeInterval(-60)).matches(entry))
+        // 零参 Filter 没设任何条件 → 为空；下面的中文构造器刚好相反
+        XCTAssertTrue(LogFilter().为空)
+        // 中文构造器首参「级别」必填（这样零参 LogFilter() 才不会与英文 init 歧义），其余可省
+        XCTAssertEqual(LogFilter(级别: nil, 分类: ["网络"]).filter([entry]).count, 1)
+        XCTAssertFalse(LogFilter(级别: nil, 分类: ["网络"]).为空)
+        XCTAssertTrue(filter.匹配(entry))
+        XCTAssertEqual(filter.过滤([entry]).count, 1)
+    }
+
+    // MARK: - 内存检索 maxRecentEntries / recentEntries
+
+    func testRecentEntriesBufferKeepsLatest() {
+        let previous = LogKit.maxRecentEntries
+        defer { LogKit.maxRecentEntries = previous }
+
+        LogKit.maxRecentEntries = 3
+        for i in 1...5 {
+            LogKit.info("第\(i)条")
+        }
+
+        XCTAssertEqual(LogKit.recentEntries.map(\.message), ["第3条", "第4条", "第5条"],
+                       "只保留最近 3 条，且按时间从旧到新")
+
+        // 按条件过滤内存中的条目
+        let filtered = LogKit.filteredRecentEntries(matching: LogFilter.byKeyword("第4条"))
+        XCTAssertEqual(filtered.map(\.message), ["第4条"])
+
+        // 中文别名等价
+        XCTAssertEqual(LogKit.最近日志.count, 3)
+        XCTAssertEqual(LogKit.过滤最近日志(LogFilter.byKeyword("第5条")).count, 1)
+
+        LogKit.清空最近日志()
+        XCTAssertTrue(LogKit.recentEntries.isEmpty)
+    }
+
+    func testRecentEntriesDisabledByDefault() {
+        XCTAssertEqual(LogKit.maxRecentEntries, 0)
+        LogKit.info("不应进内存")
+        XCTAssertTrue(LogKit.recentEntries.isEmpty, "maxRecentEntries 为 0 时不保留任何条目")
+    }
+
+    // MARK: - 统计摘要 LogSummary
+
+    func testLogSummaryCounts() {
+        let base = Date()
+        let entries = [
+            makeEntry("a", level: .info, category: "网络", date: base.addingTimeInterval(-4)),
+            makeEntry("b", level: .info, category: "网络", date: base.addingTimeInterval(-3)),
+            makeEntry("c", level: .info, category: "网络", date: base.addingTimeInterval(-2)),
+            makeEntry("d", level: .error, category: "存储", date: base.addingTimeInterval(-1)),
+            makeEntry("e", level: .critical, category: "通用", date: base),
+        ]
+
+        let summary = LogKit.summary(of: entries)
+        XCTAssertEqual(summary.total, 5)
+        XCTAssertEqual(summary.count(of: .info), 3)
+        XCTAssertEqual(summary.count(of: .debug), 0, "未出现的级别应返回 0")
+        XCTAssertEqual(summary.errorCount, 2, "错误条数 = 错误 + 严重")
+        XCTAssertEqual(summary.errorRate, 0.4, accuracy: 1e-9)
+        XCTAssertEqual(summary.topCategories.first?.category, "网络")
+        XCTAssertEqual(summary.topCategories.first?.count, 3)
+        XCTAssertEqual(summary.duration ?? -1, 4, accuracy: 1e-6)
+
+        let text = summary.text()
+        XCTAssertTrue(text.contains("日志共 5 条"))
+        XCTAssertTrue(text.contains("错误率：40.0%"))
+        XCTAssertTrue(text.contains("分类排行：网络(3)"))
+
+        // 空数组不崩
+        let empty = LogSummary(entries: [])
+        XCTAssertEqual(empty.total, 0)
+        XCTAssertEqual(empty.errorRate, 0, accuracy: 1e-9)
+        XCTAssertNil(empty.duration)
+    }
+
+    func testLogSummaryChineseAliases() {
+        let entry = makeEntry("a", level: .error)
+        let summary = LogSummary(条目: [entry], 分类排行数量: 3)
+        XCTAssertEqual(summary.总计, 1)
+        XCTAssertEqual(summary.各级别条数[.error], 1)
+        XCTAssertEqual(summary.最早时间, entry.date)
+        XCTAssertEqual(summary.最晚时间, entry.date)
+        XCTAssertEqual(summary.级别条数(.error), 1)
+        XCTAssertEqual(summary.错误条数, 1)
+        XCTAssertEqual(summary.错误率, 1, accuracy: 1e-9)
+        XCTAssertEqual(summary.分类排行.count, 1)
+        XCTAssertTrue(summary.摘要文本().contains("日志共 1 条"))
+    }
+
+    // MARK: - 压缩归档导出 zip
+
+    /// 读取小端 16 位整数（ZIP 头字段用）
+    private func le16(_ bytes: [UInt8], _ offset: Int) -> UInt16 {
+        UInt16(bytes[offset]) | (UInt16(bytes[offset + 1]) << 8)
+    }
+
+    /// 读取小端 32 位整数（ZIP 头字段用）
+    private func le32(_ bytes: [UInt8], _ offset: Int) -> UInt32 {
+        UInt32(bytes[offset])
+            | (UInt32(bytes[offset + 1]) << 8)
+            | (UInt32(bytes[offset + 2]) << 16)
+            | (UInt32(bytes[offset + 3]) << 24)
+    }
+
+    func testZipWriterCRC32() {
+        // 已知校验向量：空串 → 0，'123456789' → 0xCBF43926
+        XCTAssertEqual(ZipWriter.crc32(Data()), 0)
+        XCTAssertEqual(ZipWriter.crc32(Data("123456789".utf8)), 0xCBF43926)
+    }
+
+    func testZipWriterArchiveStructure() {
+        let content = Data("你好".utf8)     // 6 字节 UTF-8
+        let entries = [
+            ZipWriter.Entry(name: "a.txt", data: content, modificationDate: Date()),
+            ZipWriter.Entry(name: "b.log", data: Data("hello".utf8), modificationDate: Date()),
+        ]
+        let bytes = [UInt8](ZipWriter.archive(entries))
+
+        // 本地文件头：签名 / 压缩方式 0（存储）/ CRC / 大小 / 文件名长度
+        XCTAssertEqual(Array(bytes.prefix(4)), [0x50, 0x4B, 0x03, 0x04])
+        XCTAssertEqual(le16(bytes, 8), 0, "应采用存储方式（不压缩）")
+        XCTAssertEqual(le32(bytes, 14), ZipWriter.crc32(content))
+        XCTAssertEqual(le32(bytes, 18), UInt32(content.count), "存储方式下压缩后大小 = 原始大小")
+        XCTAssertEqual(le16(bytes, 26), 5, "文件名 'a.txt' 长度应为 5")
+
+        // 中央目录结束记录在最后 22 字节：签名 + 总条目数
+        let eocd = bytes.count - 22
+        XCTAssertEqual(Array(bytes[eocd..<(eocd + 4)]), [0x50, 0x4B, 0x05, 0x06])
+        XCTAssertEqual(le16(bytes, eocd + 8), 2, "应记录 2 个条目")
+        XCTAssertEqual(le16(bytes, eocd + 10), 2)
+        // 空数组也应是合法 zip（只有结束记录）
+        XCTAssertEqual([UInt8](ZipWriter.archive([])).count, 22)
+    }
+
+    func testExportArchive() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.info("压缩包测试内容")
+        LogKit.flush()
+
+        let zip = try LogKit.exportArchive()
+        XCTAssertEqual(zip.pathExtension, "zip")
+        let data = try Data(contentsOf: zip)
+        let bytes = [UInt8](data)
+        XCTAssertEqual(Array(bytes.prefix(4)), [0x50, 0x4B, 0x03, 0x04], "应是合法的 ZIP 本地文件头")
+        let name = LogKit.logFileURL.lastPathComponent
+        XCTAssertNotNil(data.range(of: Data(name.utf8)), "包内应包含当前日志文件名")
+
+        // 中文别名等价
+        let alias = try LogKit.导出压缩包(含归档: false)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: alias.path))
+    }
+
+    func testExportArchiveThrowsWhenNoLogFile() {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = false
+        XCTAssertThrowsError(try LogKit.exportArchive()) { error in
+            XCTAssertEqual(error as? LogKitError, .logFileNotFound)
+        }
+    }
+
+    // MARK: - 按天自动轮转 dailyRotation
+
+    func testDailyRotationArchivesPreviousDayFile() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        // 放一个「昨天的」按天日志文件（过去某天，名字符合 LogKit-yyyy-MM-dd.log）
+        let yesterday = dir.appendingPathComponent("LogKit-2000-01-01.log")
+        _ = fm.createFile(atPath: yesterday.path, contents: Data("旧日志\n".utf8))
+        // 崩溃日志改名后不应被当成按天文件
+        let crash = dir.appendingPathComponent("LogKit-crash.log")
+        _ = fm.createFile(atPath: crash.path, contents: Data("崩溃\n".utf8))
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        let previousRotation = LogKit.dailyRotation
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+            LogKit.dailyRotation = previousRotation
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.dailyRotation = true
+        LogKit.信息("跨天写入")
+
+        XCTAssertFalse(fm.fileExists(atPath: yesterday.path), "非今天的按天文件应被归档改名")
+        XCTAssertTrue(LogKit.archivedLogFiles.contains { $0.lastPathComponent.hasPrefix("LogKit-2000-01-01-") },
+                      "归档文件名应为 LogKit-旧日期-时间戳.log")
+        XCTAssertTrue(fm.fileExists(atPath: crash.path), "崩溃日志不应被归档")
+        XCTAssertTrue(fm.fileExists(atPath: LogKit.logFileURL.path), "当前日志文件应正常创建")
+
+        // 中文别名双向等价
+        XCTAssertTrue(LogKit.按天轮转)
+        LogKit.按天轮转 = false
+        XCTAssertFalse(LogKit.dailyRotation)
+    }
+
+    func testDailyRotationDisabledKeepsOldFile() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        let old = dir.appendingPathComponent("LogKit-2000-01-01.log")
+        _ = fm.createFile(atPath: old.path, contents: Data("旧日志\n".utf8))
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        let previousRotation = LogKit.dailyRotation
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+            LogKit.dailyRotation = previousRotation
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.dailyRotation = false
+        LogKit.信息("普通写入")
+
+        XCTAssertTrue(fm.fileExists(atPath: old.path), "未开启按天轮转时不应动旧文件")
+    }
 }

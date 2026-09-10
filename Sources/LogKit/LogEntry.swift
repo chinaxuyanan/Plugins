@@ -9,6 +9,12 @@ public struct LogEntry {
     /// 时间戳字符串（已按 `LogKit.dateFormat` 格式化）
     public let timestamp: String
 
+    /// 这条日志产生的时刻
+    ///
+    /// `timestamp` 是它按 `LogKit.dateFormat` 格式化后的字符串；需要按时间段过滤 / 排序时用本属性，
+    /// 不受时间戳格式影响。
+    public var date: Date = Date()
+
     /// 日志级别
     public let level: LogLevel
 
