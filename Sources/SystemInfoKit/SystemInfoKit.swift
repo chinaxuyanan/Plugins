@@ -31,7 +31,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.9.0"
+    public static let version = "0.10.0"
 
     // MARK: - 系统信息
 
@@ -557,6 +557,44 @@ public enum SystemInfoKit {
     /// 当前日历标识（形如 `gregorian`）
     public static var calendarIdentifier: String {
         String(describing: Calendar.current.identifier)
+    }
+
+    // MARK: - 运行环境
+
+    /// 内核版本（Darwin 版本号，形如 `23.6.0`）
+    ///
+    /// 来自 `uname` 的 `release` 字段，比 `systemVersion`（面向用户的系统版本）更底层，
+    /// 排查底层 / 驱动问题时有用。
+    public static var kernelVersion: String {
+        var uts = utsname()
+        guard uname(&uts) == 0 else { return "未知" }
+        var release = uts.release
+        return withUnsafeBytes(of: &release) { raw in
+            String(cString: raw.bindMemory(to: CChar.self).baseAddress!)
+        }
+    }
+
+    /// 主机名（macOS 形如 `MacBook-Pro.local`；iOS 形如 `iPhone`）
+    public static var hostName: String {
+        ProcessInfo.processInfo.hostName
+    }
+
+    /// 当前用户名（macOS 为登录用户名；iOS 恒为 `mobile`）
+    public static var userName: String {
+        NSUserName()
+    }
+
+    /// 是否被调试器附加（`sysctl` 进程标志位 `P_TRACED`）
+    ///
+    /// 常用于「仅开发期启用某些行为」的判断。经 Xcode / 模拟器运行时为 `true`，
+    /// 独立安装启动的正式包为 `false`。
+    public static var isDebuggerAttached: Bool {
+        var info = kinfo_proc()
+        var mib = [CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()]
+        var size = MemoryLayout<kinfo_proc>.size
+        let result = sysctl(&mib, u_int(mib.count), &info, &size, nil, 0)
+        guard result == 0 else { return false }
+        return (info.kp_proc.p_flag & P_TRACED) != 0
     }
 
     // MARK: - 资源占用

@@ -273,4 +273,20 @@ final class SystemInfoKitTests: XCTestCase {
         let _: 运行进程.Type = RunningProcess.self
         let _: 网络接口.Type = NetworkInterface.self
     }
+
+    // MARK: - 运行环境
+
+    func testRuntimeEnvironment() {
+        XCTAssertFalse(SystemInfoKit.kernelVersion.isEmpty)
+        XCTAssertFalse(SystemInfoKit.hostName.isEmpty)
+        XCTAssertFalse(SystemInfoKit.userName.isEmpty)
+        _ = SystemInfoKit.isDebuggerAttached   // 视运行方式而定，只保证可取值
+    }
+
+    func testChineseAliasesForRuntimeEnvironment() {
+        XCTAssertEqual(SystemInfoKit.内核版本, SystemInfoKit.kernelVersion)
+        XCTAssertEqual(SystemInfoKit.主机名, SystemInfoKit.hostName)
+        XCTAssertEqual(SystemInfoKit.当前用户名, SystemInfoKit.userName)
+        XCTAssertEqual(SystemInfoKit.是否被调试, SystemInfoKit.isDebuggerAttached)
+    }
 }

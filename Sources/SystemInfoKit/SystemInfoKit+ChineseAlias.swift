@@ -201,4 +201,15 @@ public extension SystemInfoKit {
     static var 交换内存已用: String { swapUsed }
     /// 网络接口列表（等同 `networkInterfaces`）
     static var 网络接口列表: [NetworkInterface] { networkInterfaces }
+
+    // MARK: 运行环境
+
+    /// 内核版本（等同 `kernelVersion`）
+    static var 内核版本: String { kernelVersion }
+    /// 主机名（等同 `hostName`）
+    static var 主机名: String { hostName }
+    /// 当前用户名（等同 `userName`）
+    static var 当前用户名: String { userName }
+    /// 是否被调试器附加（等同 `isDebuggerAttached`）
+    static var 是否被调试: Bool { isDebuggerAttached }
 }
