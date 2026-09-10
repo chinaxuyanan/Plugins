@@ -117,10 +117,21 @@ enum ZipWriter {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = LogKit.timeZone
         let parts = calendar.dateComponents([.year, .month, .day, .hour, .minute, .second], from: date)
-        let year = max(1980, parts.year ?? 1980)
-        let time = UInt16(((parts.hour ?? 0) << 11) | ((parts.minute ?? 0) << 5) | ((parts.second ?? 0) / 2))
-        let day = UInt16(((year - 1980) << 9) | ((parts.month ?? 1) << 5) | (parts.day ?? 1))
-        return (time, day)
+
+        // 先把可选项拆到各自具名的 Int 常量里，再拼位。
+        // 整条写成一行（含多个 `??`、`<<`、`|`、`/` 与最外层 `UInt16(...)`）时，
+        // 类型推断的组合数会爆炸——GitHub Actions 上直接报
+        // "unable to type-check this expression in reasonable time"。
+        let year: Int = max(1980, parts.year ?? 1980)
+        let hour: Int = parts.hour ?? 0
+        let minute: Int = parts.minute ?? 0
+        let second: Int = parts.second ?? 0
+        let month: Int = parts.month ?? 1
+        let dayOfMonth: Int = parts.day ?? 1
+
+        let packedTime: Int = (hour << 11) | (minute << 5) | (second / 2)
+        let packedDate: Int = ((year - 1980) << 9) | (month << 5) | dayOfMonth
+        return (UInt16(packedTime), UInt16(packedDate))
     }
 }
 
