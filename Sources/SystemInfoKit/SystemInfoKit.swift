@@ -31,7 +31,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.8.1"
+    public static let version = "0.9.0"
 
     // MARK: - 系统信息
 
@@ -816,6 +816,123 @@ public enum SystemInfoKit {
     }
     #endif
 
+    // MARK: - 运行进程
+
+    /// 系统当前运行进程列表
+    ///
+    /// 通过 `sysctl(KERN_PROC, KERN_PROC_ALL)` 枚举内核进程表，返回每个进程的 pid 与名称。
+    /// 进程表实时变化，两次调用结果可能不同。iOS 沙盒下只能看到有限信息。
+    public static var runningProcesses: [RunningProcess] {
+        var mib = [CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0]
+        var length = 0
+        guard sysctl(&mib, u_int(mib.count), nil, &length, nil, 0) == 0, length > 0 else { return [] }
+        var buffer = [UInt8](repeating: 0, count: length)
+        let result = buffer.withUnsafeMutableBytes { (raw: UnsafeMutableRawBufferPointer) -> Int32 in
+            sysctl(&mib, u_int(mib.count), raw.baseAddress, &length, nil, 0)
+        }
+        guard result == 0, length > 0 else { return [] }
+
+        let count = length / MemoryLayout<kinfo_proc>.size
+        var processes: [RunningProcess] = []
+        processes.reserveCapacity(count)
+        buffer.withUnsafeBytes { raw in
+            let base = raw.bindMemory(to: kinfo_proc.self).baseAddress!
+            for i in 0..<count {
+                let kp = base[i]
+                let pid = kp.kp_proc.p_pid
+                var comm = kp.kp_proc.p_comm
+                let name = withUnsafeBytes(of: &comm) { raw in
+                    String(cString: raw.bindMemory(to: CChar.self).baseAddress!)
+                }
+                processes.append(RunningProcess(pid: pid, name: name))
+            }
+        }
+        return processes
+    }
+
+    /// 运行进程数量（实时重新枚举 `runningProcesses`）
+    public static var processCount: Int {
+        runningProcesses.count
+    }
+
+    // MARK: - 交换内存
+
+    /// 交换空间总量（字节，仅 macOS；其它平台返回 `nil`）
+    public static var swapTotalBytes: UInt64? { swapUsage()?.total }
+
+    /// 交换空间已用（字节，仅 macOS；其它平台返回 `nil`）
+    public static var swapUsedBytes: UInt64? { swapUsage()?.used }
+
+    /// 交换空间总量（人类可读，非 macOS 返回「不支持」）
+    public static var swapTotal: String {
+        guard let bytes = swapTotalBytes else { return "不支持" }
+        return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .memory)
+    }
+
+    /// 交换空间已用（人类可读，非 macOS 返回「不支持」）
+    public static var swapUsed: String {
+        guard let bytes = swapUsedBytes else { return "不支持" }
+        return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .memory)
+    }
+
+    /// 读取交换空间统计（`vm.swapusage`，仅 macOS）
+    private static func swapUsage() -> (total: UInt64, used: UInt64)? {
+        #if os(macOS)
+        var mib = [CTL_VM, VM_SWAPUSAGE]
+        var usage = xsw_usage()
+        var size = MemoryLayout<xsw_usage>.size
+        let result = withUnsafeMutablePointer(to: &usage) { ptr in
+            sysctl(&mib, u_int(mib.count), ptr, &size, nil, 0)
+        }
+        guard result == 0 else { return nil }
+        return (usage.xsu_total, usage.xsu_used)
+        #else
+        return nil
+        #endif
+    }
+
+    // MARK: - 网络接口
+
+    /// 网络接口列表（名称 + IPv4 地址 + 是否启用 / 是否回环）
+    ///
+    /// 通过 `getifaddrs` 枚举所有接口，含虚拟接口（`lo0`、`utun` 等）。
+    public static var networkInterfaces: [NetworkInterface] {
+        var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
+        guard getifaddrs(&ifaddrPtr) == 0, let first = ifaddrPtr else { return [] }
+        defer { freeifaddrs(first) }
+
+        var flagsByName: [String: (up: Bool, loopback: Bool)] = [:]
+        var addressByName: [String: String] = [:]
+        var order: [String] = []
+
+        var current: UnsafeMutablePointer<ifaddrs>? = first
+        while let ifa = current {
+            defer { current = ifa.pointee.ifa_next }
+            let name = String(cString: ifa.pointee.ifa_name)
+            guard let addr = ifa.pointee.ifa_addr else { continue }
+            let family = addr.pointee.sa_family
+            let flags = Int32(ifa.pointee.ifa_flags)
+
+            if family == UInt8(AF_LINK) {
+                if flagsByName[name] == nil { order.append(name) }
+                flagsByName[name] = ((flags & IFF_UP) == IFF_UP, (flags & IFF_LOOPBACK) == IFF_LOOPBACK)
+            } else if family == UInt8(AF_INET) {
+                var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
+                if getnameinfo(addr, socklen_t(addr.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST) == 0 {
+                    addressByName[name] = String(cString: host)
+                }
+            }
+        }
+
+        return order.map { name in
+            let f = flagsByName[name] ?? (up: false, loopback: false)
+            return NetworkInterface(name: name,
+                                    address: addressByName[name],
+                                    isUp: f.up,
+                                    isLoopback: f.loopback)
+        }
+    }
+
     // MARK: - 内部工具
 
     private static func sysctlString(_ name: String) -> String? {
@@ -1108,3 +1225,33 @@ public struct DiskIOTraffic {
 
 /// 中文名：磁盘读写（等同 `DiskIOTraffic`）
 public typealias 磁盘读写 = DiskIOTraffic
+
+/// 单个运行进程的信息
+///
+/// 由 `SystemInfoKit.runningProcesses` 返回的列表元素。
+public struct RunningProcess {
+    /// 进程 ID
+    public let pid: Int32
+    /// 进程名（内核截断后的名称）
+    public let name: String
+}
+
+/// 中文名：运行进程（等同 `RunningProcess`）
+public typealias 运行进程 = RunningProcess
+
+/// 单个网络接口的信息
+///
+/// 由 `SystemInfoKit.networkInterfaces` 返回的列表元素。
+public struct NetworkInterface {
+    /// 接口名（如 `en0` / `lo0` / `utun0`）
+    public let name: String
+    /// IPv4 地址（无则 `nil`）
+    public let address: String?
+    /// 是否已启用（`IFF_UP`）
+    public let isUp: Bool
+    /// 是否回环接口（`IFF_LOOPBACK`，如 `lo0`）
+    public let isLoopback: Bool
+}
+
+/// 中文名：网络接口（等同 `NetworkInterface`）
+public typealias 网络接口 = NetworkInterface

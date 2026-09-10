@@ -20,6 +20,9 @@
 - **系统负载**：1 / 5 / 15 分钟平均负载（`getloadavg`）
 - **网络流量统计**：`sampleNetworkTraffic()` 采样活跃接口累计收发字节 + 每秒速率
 - **磁盘读写速率**：`sampleDiskIOTraffic()` 汇总块存储驱动累计读写字节 + 每秒速率（仅 macOS）
+- **运行进程**：`runningProcesses` / `processCount` 枚举内核进程表（`sysctl(KERN_PROC)`，含 pid 与进程名）
+- **交换内存**：`swapTotalBytes` / `swapUsedBytes` / `swapTotal` / `swapUsed`（仅 macOS，`vm.swapusage`）
+- **网络接口**：`networkInterfaces` 枚举所有网络接口（名称 + IPv4 + 是否启用 / 是否回环）
 - **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
@@ -33,7 +36,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.8.1")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.9.0")
 ]
 ```
 
@@ -120,6 +123,10 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `sampleDiskIOTraffic()` | 采样磁盘读写 | `DiskIOTraffic?`，累计读写字节 + 每秒速率（仅 macOS，首次速率 `nil`）|
 | `processCPUUsage` | 当前进程 CPU 使用率 | 相对单核，多线程可 >`1.0` |
 | `processMemoryBytes` / `processMemory` | 当前进程内存占用（字节 / 可读） | `UInt64` / 人类可读 |
+| `runningProcesses` / `processCount` | 运行进程列表 / 数量 | `[RunningProcess]` / `Int`，`sysctl(KERN_PROC)` |
+| `swapTotalBytes` / `swapUsedBytes` | 交换内存总 / 已用（字节） | `UInt64?`，仅 macOS |
+| `swapTotal` / `swapUsed` | 交换内存总 / 已用（可读） | 非 macOS 返回「不支持」 |
+| `networkInterfaces` | 网络接口列表 | `[NetworkInterface]`，`getifaddrs` |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
 
 ## 中文命名别名
@@ -145,8 +152,15 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `系统负载` / `负载1分钟` / `负载5分钟` / `负载15分钟` | `loadAverage` / `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` |
 | `采样网络流量()` / `采样磁盘读写()` | `sampleNetworkTraffic()` / `sampleDiskIOTraffic()` |
 | `网络流量` / `磁盘读写` | `NetworkTraffic` / `DiskIOTraffic`（类型别名）|
+| `运行进程列表` / `运行进程数量` | `runningProcesses` / `processCount` |
+| `交换内存总字节数` / `交换内存已用字节数` | `swapTotalBytes` / `swapUsedBytes` |
+| `交换内存总量` / `交换内存已用` | `swapTotal` / `swapUsed` |
+| `网络接口列表` | `networkInterfaces` |
+| `运行进程` / `网络接口` | `RunningProcess` / `NetworkInterface`（类型别名）|
 
 ## 更新日志
+
+- **0.9.0**：新增运行进程（`runningProcesses` / `processCount`，`sysctl(KERN_PROC, KERN_PROC_ALL)` 枚举内核进程表，含 `RunningProcess` / `运行进程` 结构体与别名）、交换内存（`swapTotalBytes` / `swapUsedBytes` / `swapTotal` / `swapUsed`，macOS `vm.swapusage`，非 macOS 返回「不支持」）、网络接口（`networkInterfaces`，`getifaddrs` 枚举接口名 + IPv4 + 启用 / 回环，含 `NetworkInterface` / `网络接口` 结构体与别名），均含中文别名并补冒烟测试。
 
 - **0.8.1**：将 IOKit 入口常量 `kIOMasterPortDefault` 替换为 `kIOMainPortDefault`，消除 macOS 12+ 的弃用告警。
 

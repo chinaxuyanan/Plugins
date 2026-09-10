@@ -225,4 +225,52 @@ final class SystemInfoKitTests: XCTestCase {
         let _: 网络流量.Type = NetworkTraffic.self
         let _: 磁盘读写.Type = DiskIOTraffic.self
     }
+
+    // MARK: - 运行进程 / 交换内存 / 网络接口
+
+    func testRunningProcesses() {
+        let processes = SystemInfoKit.runningProcesses
+        XCTAssertFalse(processes.isEmpty, "进程表应至少含若干进程")
+        XCTAssertGreaterThan(SystemInfoKit.processCount, 0)
+        for p in processes {
+            XCTAssertGreaterThanOrEqual(p.pid, 0)
+            // 进程名可能为空（内核态进程），故不断言非空
+        }
+    }
+
+    func testSwapMemory() {
+        // iOS 恒为 nil；macOS 返回字节数。字符串形态恒非空（「不支持」或数值）。
+        _ = SystemInfoKit.swapTotalBytes
+        _ = SystemInfoKit.swapUsedBytes
+        XCTAssertFalse(SystemInfoKit.swapTotal.isEmpty)
+        XCTAssertFalse(SystemInfoKit.swapUsed.isEmpty)
+    }
+
+    func testNetworkInterfaces() {
+        let interfaces = SystemInfoKit.networkInterfaces
+        XCTAssertFalse(interfaces.isEmpty, "至少应有 lo0 回环接口")
+        for i in interfaces {
+            XCTAssertFalse(i.name.isEmpty)
+        }
+        // 回环接口 lo0 应存在且被标记为回环
+        XCTAssertTrue(interfaces.contains { $0.name == "lo0" && $0.isLoopback })
+    }
+
+    func testChineseAliasesForProcessSwapInterfaces() {
+        // 运行进程 / 网络接口是实时值，别名与英文各自重新枚举，只断言非空 / 结构合理
+        XCTAssertFalse(SystemInfoKit.运行进程列表.isEmpty)
+        XCTAssertGreaterThan(SystemInfoKit.运行进程数量, 0)
+        XCTAssertFalse(SystemInfoKit.网络接口列表.isEmpty)
+        XCTAssertTrue(SystemInfoKit.网络接口列表.contains { $0.isLoopback })
+
+        // 交换内存字符串形态恒非空
+        XCTAssertFalse(SystemInfoKit.交换内存总量.isEmpty)
+        XCTAssertFalse(SystemInfoKit.交换内存已用.isEmpty)
+        _ = SystemInfoKit.交换内存总字节数
+        _ = SystemInfoKit.交换内存已用字节数
+
+        // 类型别名等价于英文类型
+        let _: 运行进程.Type = RunningProcess.self
+        let _: 网络接口.Type = NetworkInterface.self
+    }
 }

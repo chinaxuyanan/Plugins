@@ -186,4 +186,19 @@ public extension SystemInfoKit {
     static func 采样磁盘读写() -> DiskIOTraffic? {
         sampleDiskIOTraffic()
     }
+
+    /// 运行进程列表（等同 `runningProcesses`）
+    static var 运行进程列表: [RunningProcess] { runningProcesses }
+    /// 运行进程数量（等同 `processCount`）
+    static var 运行进程数量: Int { processCount }
+    /// 交换空间总量字节（等同 `swapTotalBytes`，仅 macOS）
+    static var 交换内存总字节数: UInt64? { swapTotalBytes }
+    /// 交换空间已用字节（等同 `swapUsedBytes`，仅 macOS）
+    static var 交换内存已用字节数: UInt64? { swapUsedBytes }
+    /// 交换空间总量（等同 `swapTotal`）
+    static var 交换内存总量: String { swapTotal }
+    /// 交换空间已用（等同 `swapUsed`）
+    static var 交换内存已用: String { swapUsed }
+    /// 网络接口列表（等同 `networkInterfaces`）
+    static var 网络接口列表: [NetworkInterface] { networkInterfaces }
 }
