@@ -167,4 +167,117 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = 步骤条(步骤: steps, 当前: 1)
         _ = 步骤条(步骤: steps, 当前: 3, 方向: .vertical, 圆点尺寸: 24)
     }
+
+    // MARK: - 头像 / 时间轴 / 迷你图表 / 搜索栏
+
+    func testAvatarInitials() {
+        // 中文取前两字
+        XCTAssertEqual(Avatar.initials(from: "张三"), "张三")
+        XCTAssertEqual(Avatar.initials(from: "李四光"), "李四")
+        // 英文按单词：单个词取首字母大写，多个词取前两个词首字母
+        XCTAssertEqual(Avatar.initials(from: "Alice"), "A")
+        XCTAssertEqual(Avatar.initials(from: "alice"), "A")
+        XCTAssertEqual(Avatar.initials(from: "Alice Wang"), "AW")
+        // 空白 / 空串兜底
+        XCTAssertEqual(Avatar.initials(from: ""), "?")
+        XCTAssertEqual(Avatar.initials(from: "   "), "?")
+    }
+
+    func testAvatarAndGroupConstruct() {
+        _ = Avatar("张三")
+        _ = Avatar("Alice", size: 56, tint: .blue, showsBorder: true, status: .online)
+        _ = Avatar(image: Image(systemName: "person.crop.circle"))
+        _ = Avatar(url: URL(string: "https://example.com/a.png"), status: .away)
+        _ = 头像(姓名: "张三", 尺寸: 56, 状态: .busy)
+        _ = 头像(图片: Image(systemName: "person"))
+        _ = 头像(网址: nil)
+
+        let avatars = [Avatar("张三", size: 32), Avatar("李四", size: 32)]
+        _ = AvatarGroup(avatars: avatars, size: 32, maxVisible: 1)
+        _ = 头像组(头像列表: avatars, 尺寸: 32, 重叠: 8, 最多显示: 1)
+    }
+
+    func testTimelineConstructs() {
+        let items = [
+            TimelineItem(title: "已下单", detail: "09:12", icon: "cart.fill", isDone: true),
+            TimelineItem(title: "运输中"),
+        ]
+        _ = Timeline(items: items)
+        _ = Timeline(items: items, tint: .orange, showsIcons: false, spacing: 12)
+        _ = 时间轴条目(标题: "已签收", 详情: "昨天", 图标: "checkmark", 已完成: true)
+        _ = 时间轴(节点: items, 颜色: .green, 未完成颜色: .gray, 间距: 12)
+    }
+
+    func testSparklineNormalization() {
+        // 空数组不画线
+        XCTAssertEqual(Sparkline.normalizedRatios([]), [])
+        // 单值 / 全相等 → 一律中线，且不除零
+        XCTAssertEqual(Sparkline.normalizedRatios([5]), [0.5])
+        XCTAssertEqual(Sparkline.normalizedRatios([2, 2, 2]), [0.5, 0.5, 0.5])
+        // 常规归一化：最小 0、最大 1
+        let ratios = Sparkline.normalizedRatios([0, 5, 10])
+        XCTAssertEqual(ratios.count, 3)
+        XCTAssertEqual(ratios[0], 0, accuracy: 1e-9)
+        XCTAssertEqual(ratios[1], 0.5, accuracy: 1e-9)
+        XCTAssertEqual(ratios[2], 1, accuracy: 1e-9)
+    }
+
+    func testMiniChartConstructs() {
+        _ = Sparkline(values: [3, 7, 4, 9])
+        _ = Sparkline(values: [1, 2], tint: .green, lineWidth: 3, height: 32,
+                      showsArea: false, showsDots: true)
+        _ = 迷你折线图(数值: [1, 2, 3], 颜色: .blue, 高度: 28, 显示面积: false)
+
+        _ = MiniBarChart(values: [3, 7, 4, 9])
+        _ = MiniBarChart(values: [1], height: 48, spacing: 4, cornerRadius: 2, highlightsMax: false)
+        _ = 迷你柱状图(数值: [1, 2, 3], 颜色: .orange, 高度: 48, 高亮最大值: false)
+    }
+
+    func testMiniBarRatios() {
+        XCTAssertEqual(MiniBarChart.barRatios([]), [])
+        // 最大值非正 → 全 0（由视图层兜底最小柱高）
+        XCTAssertEqual(MiniBarChart.barRatios([0, 0]), [0, 0])
+        XCTAssertEqual(MiniBarChart.barRatios([-1, -2]), [0, 0])
+        // 负数按 0 处理，不让柱子反向
+        let ratios = MiniBarChart.barRatios([-3, 4, 8])
+        XCTAssertEqual(ratios.count, 3)
+        XCTAssertEqual(ratios[0], 0, accuracy: 1e-9)
+        XCTAssertEqual(ratios[1], 0.5, accuracy: 1e-9)
+        XCTAssertEqual(ratios[2], 1, accuracy: 1e-9)
+    }
+
+    func testSearchBarConstructs() {
+        _ = SearchBar(text: .constant(""))
+        _ = SearchBar(text: .constant("键盘"),
+                      placeholder: "搜索商品",
+                      showsCancel: false,
+                      cancelTitle: "关闭",
+                      debounceInterval: 0,
+                      tint: .blue) {
+            // 提交回调
+        } onDebounce: { _ in
+            // 防抖回调
+        }
+        _ = 搜索栏(文本: .constant(""))
+        _ = 搜索栏(文本: .constant("手机"), 占位: "搜商品", 防抖间隔: 0.5, 防抖回调: { _ in })
+    }
+
+    @available(iOS 16.0, macOS 13.0, *)
+    func testFlowLayoutInitSignatures() {
+        // 签名锁定：零参 FlowLayout() 必须能编译（只匹配英文 init，不与中文 init 歧义）
+        let 默认 = FlowLayout()
+        XCTAssertEqual(默认.spacing, 8)
+        XCTAssertEqual(默认.lineSpacing, 8)
+
+        // 英文具名
+        let 英文 = FlowLayout(spacing: 4, lineSpacing: 12)
+        XCTAssertEqual(英文.spacing, 4)
+        XCTAssertEqual(英文.lineSpacing, 12)
+
+        // 中文构造器首参「间距」必填、行间距可省
+        let 中文 = 流式布局(间距: 4)
+        XCTAssertEqual(中文.spacing, 4)
+        XCTAssertEqual(中文.lineSpacing, 8)
+        XCTAssertEqual(流式布局(间距: 6, 行间距: 16).lineSpacing, 16)
+    }
 }

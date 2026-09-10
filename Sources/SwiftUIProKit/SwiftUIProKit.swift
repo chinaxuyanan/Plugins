@@ -61,8 +61,12 @@ import SwiftUI
 /// - `OTPField.swift`         验证码输入框（分格 + 输满回调）
 /// - `MarqueeText.swift`      跑马灯文字（超宽自动循环滚动）
 /// - `StepsView.swift`        步骤条（横向 / 纵向）
+/// - `Avatar.swift`           头像与头像组（文字 / 图片 / 远程图 + 在线状态）
+/// - `Timeline.swift`         时间轴（纵向节点 + 连接线）
+/// - `MiniChart.swift`        迷你图表（迷你折线图 / 迷你柱状图）
+/// - `SearchBar.swift`        搜索栏（防抖 + 一键清空 + 取消）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.14.0"
+    public static let version = "0.15.0"
 }

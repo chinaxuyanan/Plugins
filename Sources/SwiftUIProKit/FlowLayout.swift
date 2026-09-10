@@ -82,10 +82,15 @@ public typealias 流式布局 = FlowLayout
 @available(iOS 16.0, macOS 13.0, *)
 public extension FlowLayout {
     /// 中文参数初始化（等同 `init(spacing:lineSpacing:)`）
+    ///
+    /// 首参 `间距` 无默认值：这样 `FlowLayout()`（以及 `FlowLayout() { ... }`）才不会与
+    /// 英文 `init(spacing:lineSpacing:)`（参数全有默认值）产生「歧义调用」。
+    /// 只想改行间距时可写 `流式布局(间距: 8, 行间距: 20)`。
+    ///
     /// - Parameters:
     ///   - 间距: 同行相邻子视图的间距，默认 `8`
     ///   - 行间距: 行与行之间的间距，默认 `8`
-    init(间距: CGFloat = 8, 行间距: CGFloat = 8) {
+    init(间距: CGFloat, 行间距: CGFloat = 8) {
         self.init(spacing: 间距, lineSpacing: 行间距)
     }
 }

@@ -8,7 +8,7 @@
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
 - **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
-- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`，一行代码完成常见交互
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -20,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.14.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.15.0")
 ]
 ```
 
@@ -131,6 +131,10 @@ VStack {
 | `远程图片` / `验证码输入框` | `RemoteImage` / `OTPField`（复合组件，占位 / 重试、分格验证码）|
 | `跑马灯` / `跑马灯方向` | `MarqueeText` / `MarqueeDirection`（超宽自动循环滚动）|
 | `步骤条` / `步骤条方向` | `StepsView` / `StepsDirection`（横向 / 纵向步骤指示）|
+| `头像` / `头像组` / `头像状态` | `Avatar` / `AvatarGroup` / `AvatarStatus`（文字 / 图片 / 远程图，可带在线状态小圆点）|
+| `时间轴` / `时间轴条目` | `Timeline` / `TimelineItem`（纵向节点 + 连接线）|
+| `迷你折线图` / `迷你柱状图` | `Sparkline` / `MiniBarChart`（无坐标轴的迷你趋势图）|
+| `搜索栏` | `SearchBar`（防抖 + 一键清空 + 取消）|
 
 ## 属性速查表
 
@@ -397,6 +401,9 @@ VStack {
 | --- | --- |
 | `FlowLayout(spacing:lineSpacing:)` | 标签自动换行容器（iOS 16+ / macOS 13+）|
 
+> 中文名 `流式布局`（等同 `FlowLayout`），用法 `流式布局(间距: 8, 行间距: 8) { ... }` 或零参 `FlowLayout() { ... }`；
+> 中文构造器的首参 `间距` 无默认值，以免与英文零参构造冲突（详见更新日志）。
+
 ### 触觉反馈
 
 | 方法 | 中文含义 |
@@ -485,6 +492,12 @@ VStack {
 | `OTPField(code:length:boxSize:spacing:cornerRadius:onComplete:)` | 验证码输入框（分格显示、只收数字、输满回调；支持粘贴整段与 iOS 短信验证码自动填充）|
 | `MarqueeText(_:font:tint:speed:gap:direction:isActive:)` | 跑马灯文字（超出容器宽度才滚动，速度 / 间隔 / 方向可调，可选暂停）|
 | `StepsView(steps:current:tint:inactiveColor:direction:showsIndex:circleSize:)` | 步骤条（已完成打勾 / 当前高亮，横向或纵向排布）|
+| `Avatar(_:size:tint:showsBorder:borderColor:status:)` / `Avatar(image:...)` / `Avatar(url:...)` | 头像（文字占位自动取首字、同名同色 / 本地图片 / 远程图片，可加描边与右下角在线状态）|
+| `AvatarGroup(avatars:size:overlap:maxVisible:separatorColor:overflowTint:)` | 头像组（重叠排列，超出部分折叠成「+N」气泡）|
+| `Timeline(items:tint:inactiveColor:dotSize:lineWidth:showsIcons:spacing:)` | 时间轴（纵向节点 + 连接线，节点含标题 / 详情 / 图标 / 是否已完成）|
+| `Sparkline(values:tint:lineWidth:height:showsArea:showsDots:)` | 迷你折线图（无坐标轴，按自身最值归一化）|
+| `MiniBarChart(values:tint:height:spacing:cornerRadius:highlightsMax:)` | 迷你柱状图（按最大值比例算柱高，可高亮最大值）|
+| `SearchBar(text:placeholder:showsCancel:cancelTitle:debounceInterval:tint:onSubmit:onDebounce:)` | 搜索栏（放大镜 + 一键清空 + 取消，内置防抖 `Task`）|
 
 > 中文构造器（如 `跑马灯(文字:速度:方向:)`、`加载按钮(标题:加载中:动作:)`、`可折叠面板(标题:展开:内容:)`）的**首个参数一律带中文标签**，与英文 `init` 的无标签首参区分开，避免 Swift 报 `ambiguous use of 'init'`。英文写法仍可省略首参标签（`MarqueeText("公告")`、`LoadingButton("提交") { }`）。
 
@@ -499,6 +512,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.15.0**：新增四个复合组件——头像 `Avatar` / `头像`（三种内容来源：文字占位（中文取前两字、英文取首字母，底色按姓名稳定派生、同名同色）、本地图片、远程图片（内部转发 `RemoteImage`），可选描边与右下角在线状态小圆点 `AvatarStatus` / `头像状态`）与头像组 `AvatarGroup` / `头像组`（重叠排列 + 超出折叠成「+N」气泡）、时间轴 `Timeline` / `时间轴`（纵向节点 + 连接线，节点 `TimelineItem` / `时间轴条目` 含标题 / 详情 / 图标 / 是否已完成；连接线高度用 `readSize` 量出内容实际高度后再补足，标题换行也不断线）、迷你图表（迷你折线图 `Sparkline` / `迷你折线图`、迷你柱状图 `MiniBarChart` / `迷你柱状图`，数值按自身最小 / 最大值归一化，空数组 / 单值 / 全相等都不除零、不跳顶）、搜索栏 `SearchBar` / `搜索栏`（放大镜图标 + 一键清空 + 可选取消，内置 `Task` + `Task.sleep` 防抖，连续输入只在停顿后回调一次；`debounceInterval` 传 `0` 即退化为即时回调），均含中文别名与文档注释并补测试。另修复 `FlowLayout` / `流式布局` 中文构造器的「歧义调用」隐患：其首参 `间距` 改为无默认值，否则 `FlowLayout()`（以及 `FlowLayout() { ... }`）会与英文 `init(spacing:lineSpacing:)`（参数全有默认值）冲突、编译报 `ambiguous use of 'init'`。
 
 - **0.14.0**：新增四个复合组件——远程图片 `RemoteImage` / `远程图片`（`AsyncImage` 封装：加载占位、失败点击重试、圆角与固定尺寸，可用 `@ViewBuilder` 自定义占位 / 失败视图）、验证码输入框 `OTPField` / `验证码输入框`（分格显示、只保留数字、输满 `onComplete` 回调，底层是 1×1 透明 `TextField`，粘贴整段验证码与 iOS 短信自动填充都可用）、跑马灯 `MarqueeText` / `跑马灯`（用 `readSize` 量出文字与容器尺寸，只有超宽才滚动；速度 / 间隔 / 方向可调，两份文字首尾相接实现无缝循环）、步骤条 `StepsView` / `步骤条`（已完成打勾、当前高亮、未完成置灰，横向与纵向两种排布），均含中文别名与文档注释并补测试。另修一处重载歧义：`MarqueeText` / `LoadingButton` / `CollapsibleView` 的中文构造器首参改为带标签（`文字:` / `标题:`）——此前英文与中文 `init` 的首参都省略标签，`跑马灯("x")` 这类调用会因两个重载无法区分而报 `ambiguous use of 'init'`；英文写法不变（`MarqueeText("x")`、`LoadingButton("x") { }` 仍可省略标签）。
 
