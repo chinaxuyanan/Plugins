@@ -52,5 +52,5 @@ import SwiftUI
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.11.0"
+    public static let version = "0.11.1"
 }

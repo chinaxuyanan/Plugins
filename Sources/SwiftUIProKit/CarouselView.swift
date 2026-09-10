@@ -5,8 +5,8 @@ import Combine
 
 /// 轮播图：自动轮播的多页内容 + 分页圆点指示器
 ///
-/// 基于 `TabView(.page)` + `Timer` 实现，每隔固定时长自动切到下一页，循环播放。
-/// 支持两种内容来源：SF Symbol 图标数组、任意视图数组（内部做类型擦除）。
+/// 基于 `Timer` 每隔固定时长自动切到下一页、循环播放。iOS 用 `TabView(.page)` 左右滑动，
+/// macOS 无 `.page` 样式，改用交叉淡入淡出切换当前页。支持两种内容来源：SF Symbol 图标数组、任意视图数组（内部做类型擦除）。
 ///
 /// - Example:
 ///   ```swift
@@ -92,9 +92,10 @@ public struct CarouselView: View {
         }
     }
 
-    /// 分页内容区
+    /// 分页内容区（iOS 用 `TabView(.page)`，macOS 用交叉淡入淡出切换当前页）
     @ViewBuilder
     private var pageView: some View {
+        #if os(iOS)
         TabView(selection: $currentIndex) {
             ForEach(pages.indices, id: \.self) { index in
                 pages[index]
@@ -103,6 +104,15 @@ public struct CarouselView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .never))
         .frame(height: height)
+        #else
+        if pages.indices.contains(currentIndex) {
+            pages[currentIndex]
+                .id(currentIndex)
+                .transition(.opacity)
+                .frame(maxWidth: .infinity)
+                .frame(height: height)
+        }
+        #endif
     }
 
     /// 分页圆点指示器

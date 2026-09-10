@@ -26,8 +26,8 @@ public struct OnboardingPage {
 
 /// 引导页：多页滑动引导 + 跳过 / 下一步 / 开始使用
 ///
-/// 基于 `TabView(.page)` 翻页，底部提供「跳过」与「下一步 / 开始使用」按钮，
-/// 最后一页的按钮文案变为「开始使用」并触发 `onFinish`。
+/// 跨平台实现：iOS 用 `TabView(.page)` 左右滑动翻页，macOS 用交叉淡入淡出切换。
+/// 底部提供「跳过」与「下一步 / 开始使用」按钮，最后一页的按钮文案变为「开始使用」并触发 `onFinish`。
 ///
 /// - Example:
 ///   ```swift
@@ -84,14 +84,7 @@ public struct OnboardingView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            TabView(selection: $index) {
-                ForEach(pages.indices, id: \.self) { i in
-                    pageView(pages[i])
-                        .tag(i)
-                }
-            }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .animation(.easeInOut(duration: 0.2), value: index)
+            pager
 
             indicators
                 .padding(.vertical, 12)
@@ -101,6 +94,33 @@ public struct OnboardingView: View {
                 .padding(.bottom, 12)
         }
     }
+
+    #if os(iOS)
+    /// 分页内容（iOS：可左右滑动的 `TabView(.page)`）
+    private var pager: some View {
+        TabView(selection: $index) {
+            ForEach(pages.indices, id: \.self) { i in
+                pageView(pages[i])
+                    .tag(i)
+            }
+        }
+        .tabViewStyle(.page(indexDisplayMode: .never))
+        .animation(.easeInOut(duration: 0.2), value: index)
+    }
+    #else
+    /// 分页内容（macOS：无 `.page` 样式，改用交叉淡入淡出切换当前页）
+    private var pager: some View {
+        Group {
+            if pages.indices.contains(index) {
+                pageView(pages[index])
+                    .id(index)
+                    .transition(.opacity)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: index)
+    }
+    #endif
 
     /// 单页内容
     private func pageView(_ page: OnboardingPage) -> some View {

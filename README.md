@@ -20,7 +20,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.11.0")
+    .package(url: "https://github.com/<你的账号>/SwiftUIProKit", from: "0.11.1")
 ]
 ```
 
@@ -449,6 +449,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.11.1**：修复 macOS 编译错误——轮播图 `CarouselView` 与引导页 `OnboardingView` 中的 `.tabViewStyle(.page(indexDisplayMode:))` 为 iOS 专有，在 macOS 上不可用。现按平台分流：iOS 保持 `TabView(.page)` 左右滑动，macOS 改用交叉淡入淡出切换当前页。
 
 - **0.11.0**：新增复合组件「轮播图 `CarouselView` / `轮播图`（自动轮播 + 分页圆点，SF Symbol 或任意视图）、倒计时视图 `CountdownView` / `倒计时视图`（圆环进度 + 暂停 / 归零回调）、引导页 `OnboardingView` / `引导页`（多页滑动 + 跳过 / 开始使用，含 `OnboardingPage` / `引导页内容`）」，均含中文别名与文档注释。
 
