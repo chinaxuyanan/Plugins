@@ -6,12 +6,12 @@
 ## 特性
 
 - **系统信息**：系统名称 / 版本号 / 完整版本
-- **设备信息**：标识符 / 名称 / 类型
+- **设备信息**：标识符 / 名称 / 类型 / 友好型号名（`deviceModelName`，内置标识符→机型对照表，可自行增补）
 - **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
 - **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
 - **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
-- **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放
+- **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放 / 是否深色模式 / 屏幕亮度（macOS）
 - **运行信息**：运行时长 / 启动时间 / 是否模拟器
 - **App 信息**：名称 / 版本 / 构建号
 - **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 信号强度（macOS）/ DNS / 默认网关（macOS）/ 公网 IP（异步）
@@ -26,6 +26,7 @@
 - **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **运行环境**：内核版本 / 主机名 / 当前用户名 / 是否被调试器附加（`uname` + `sysctl(P_TRACED)`）
 - **内存压力监听**：`MemoryPressureMonitor` 实时回调压力变化（仅 macOS）
+- **信息快照**：`snapshot()` / `信息快照()` 一次性取出全部常用检测项为 `[String: String]`，值均为字符串，可直接 JSON 序列化上报
 - **中文别名**：`SystemInfoKit.系统版本` 等，与英文属性一一等价
 - **纯 Foundation + Darwin 系统接口**，iOS 15+ / macOS 12+
 
@@ -37,7 +38,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.10.0")
+    .package(url: "https://github.com/<你的账号>/SystemInfoKit", from: "0.11.0")
 ]
 ```
 
@@ -67,6 +68,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `deviceIdentifier` | 设备标识符 | 形如 `MacBookPro18,1` |
 | `deviceName` | 设备名称 | 用户命名 / 主机名 |
 | `deviceType` | 设备类型 | `iPhone` / `iPad` / `Mac` |
+| `deviceModelName` | 当前设备友好型号名 | 由 `deviceIdentifier` 查 `deviceModelTable` |
+| `deviceModelTable` | 标识符 → 友好型号名对照表 | `[String: String]`，可自行增补新机型 |
+| `deviceModelName(for:)` | 标识符转友好型号名 | 未收录的标识符原样返回 |
 | `memoryTotalBytes` | 内存总量（字节） | `UInt64` |
 | `memoryTotal` | 内存总量 | 形如 `16 GB` |
 | `processorCount` | 处理器逻辑核心数 | `Int` |
@@ -94,6 +98,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `displayCount` | 显示器数量 | 内置 + 外接屏 |
 | `displayResolutions` | 各显示器分辨率 | `[String]`，逻辑点 |
 | `displayScales` | 各显示器缩放因子 | `[CGFloat]` |
+| `isDarkMode` | 是否深色模式 | `Bool`，双平台 |
+| `screenBrightness` | 屏幕亮度 | `Double?`，`0.0`~`1.0`，仅 macOS（无权限 / 取不到为 `nil`）|
 | `systemUptime` | 系统运行时长（秒） | `TimeInterval` |
 | `systemUptimeString` | 系统运行时长 | 形如 `3 天 5 小时` |
 | `bootTime` | 系统启动时间 | `Date` |
@@ -132,6 +138,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `hostName` | 主机名 | `ProcessInfo.hostName` |
 | `userName` | 当前用户名 | `NSUserName()` |
 | `isDebuggerAttached` | 是否被调试器附加 | `Bool`，`sysctl` 读 `P_TRACED` 标志 |
+| `snapshot()` | 信息快照 | `[String: String]`，一次性取出全部常用检测项，值均为字符串，可直接 JSON 序列化 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
 
 ## 中文命名别名
@@ -140,12 +147,14 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | --- | --- |
 | `系统名称` / `系统版本` / `系统完整版本` | `systemName` / `systemVersion` / `systemVersionString` |
 | `设备标识符` / `设备名称` / `设备类型` | `deviceIdentifier` / `deviceName` / `deviceType` |
+| `设备型号名称` / `设备型号名称(标识符:)` / `设备型号对照表` | `deviceModelName` / `deviceModelName(for:)` / `deviceModelTable` |
 | `内存总量` / `处理器核心数` / `处理器型号` / `CPU架构` | `memoryTotal` / `processorCount` / `processorName` / `cpuArchitecture` |
 | `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
 | `可用容量` / `机会容量` / `卷名` / `文件系统名称` | `availableCapacity` / `opportunisticCapacity` / `volumeName` / `fileSystemName` |
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
 | `电池循环次数` / `电池健康度` / `电池健康` | `batteryCycleCount` / `batteryHealthPercent` / `batteryHealth` |
 | `屏幕分辨率` / `屏幕缩放` / `显示器数量` / `显示器分辨率` / `显示器缩放` | `screenSize` / `screenScale` / `displayCount` / `displayResolutions` / `displayScales` |
+| `深色模式` / `屏幕亮度` | `isDarkMode` / `screenBrightness` |
 | `系统运行时长` / `系统启动时间` / `是否模拟器` | `systemUptimeString` / `bootTime` / `isSimulator` |
 | `应用名称` / `应用版本` / `应用构建号` | `appName` / `appVersion` / `appBuildNumber` |
 | `本机IP地址` / `是否联网` / `网络类型` / `WiFi信号强度` / `WiFi信号强度名` | `localIPAddress` / `isNetworkConnected` / `networkType` / `wifiSignalStrength` / `wifiSignalStrengthName` |
@@ -163,8 +172,11 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `网络接口列表` | `networkInterfaces` |
 | `运行进程` / `网络接口` | `RunningProcess` / `NetworkInterface`（类型别名）|
 | `内核版本` / `主机名` / `当前用户名` / `是否被调试` | `kernelVersion` / `hostName` / `userName` / `isDebuggerAttached` |
+| `信息快照()` | `snapshot()` |
 
 ## 更新日志
+
+- **0.11.0**：新增设备型号友好名（`deviceModelName` / `deviceModelName(for:)` / `deviceModelTable` / `设备型号名称` / `设备型号对照表`，内置约 70 条标识符→机型对照表（iPhone / iPad / Mac），未收录的标识符原样返回，对照表可自行增补新机型）、深色模式（`isDarkMode` / `深色模式`，双平台，AppKit `effectiveAppearance` 优先、`UserDefaults` 兜底）、屏幕亮度（`screenBrightness` / `屏幕亮度`，`0.0`~`1.0`，仅 macOS，经 IOKit `IODisplayGetFloatParameter` 读取，无权限返回 `nil`）、信息快照（`snapshot()` / `信息快照()`，一次性输出约 31 个固定检测项为 `[String: String]`，值均为字符串可直接 JSON 序列化，另有条件键处理器型号 / 屏幕亮度 / 电池电量 / 是否充电），均含中文别名并补冒烟测试。
 
 - **0.10.0**：新增运行环境检测（`kernelVersion` / `内核版本`（`uname` 内核 release）、`hostName` / `主机名`（`ProcessInfo.hostName`）、`userName` / `当前用户名`（`NSUserName()`）、`isDebuggerAttached` / `是否被调试`（`sysctl` 读取 `kinfo_proc` 的 `P_TRACED` 标志）），均含中文别名并补冒烟测试。
 

@@ -18,6 +18,7 @@ import CoreWLAN
 ///
 /// 解决「查系统信息要记各种零散 API」的痛点：
 /// - 把系统版本、设备型号、硬件、电池、热状态、屏幕、网络、本地化、资源占用、存储详情等常用检测项集中封装；
+/// - 提供设备友好型号名 `deviceModelName`（标识符对照表可自行增补）、深色模式 `isDarkMode`、屏幕亮度 `screenBrightness`、信息快照 `snapshot()`；
 /// - 每个属性都带中文文档注释 + 中文命名别名，见名即用。
 ///
 /// 快速开始：
@@ -31,7 +32,7 @@ import CoreWLAN
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.10.0"
+    public static let version = "0.11.0"
 
     // MARK: - 系统信息
 
@@ -96,6 +97,118 @@ public enum SystemInfoKit {
         #else
         return "Mac"
         #endif
+    }
+
+    /// 设备标识符 → 友好型号名对照表
+    ///
+    /// 内置常见 iPhone / iPad / Apple Silicon Mac 型号；标识符未收录时 `deviceModelName(for:)`
+    /// 会原样返回标识符。新机型发布后可直接向本表增补：
+    ///
+    /// ```swift
+    /// SystemInfoKit.deviceModelTable["iPhone18,1"] = "iPhone 17 Pro"
+    /// ```
+    public static var deviceModelTable: [String: String] = [
+        // iPhone
+        "iPhone12,1": "iPhone 11",
+        "iPhone12,3": "iPhone 11 Pro",
+        "iPhone12,5": "iPhone 11 Pro Max",
+        "iPhone12,8": "iPhone SE（第二代）",
+        "iPhone13,1": "iPhone 12 mini",
+        "iPhone13,2": "iPhone 12",
+        "iPhone13,3": "iPhone 12 Pro",
+        "iPhone13,4": "iPhone 12 Pro Max",
+        "iPhone14,2": "iPhone 13 Pro",
+        "iPhone14,3": "iPhone 13 Pro Max",
+        "iPhone14,4": "iPhone 13 mini",
+        "iPhone14,5": "iPhone 13",
+        "iPhone14,6": "iPhone SE（第三代）",
+        "iPhone14,7": "iPhone 14",
+        "iPhone14,8": "iPhone 14 Plus",
+        "iPhone15,2": "iPhone 14 Pro",
+        "iPhone15,3": "iPhone 14 Pro Max",
+        "iPhone15,4": "iPhone 15",
+        "iPhone15,5": "iPhone 15 Plus",
+        "iPhone16,1": "iPhone 15 Pro",
+        "iPhone16,2": "iPhone 15 Pro Max",
+        "iPhone17,1": "iPhone 16 Pro",
+        "iPhone17,2": "iPhone 16 Pro Max",
+        "iPhone17,3": "iPhone 16",
+        "iPhone17,4": "iPhone 16 Plus",
+        "iPhone17,5": "iPhone 16e",
+        // iPad
+        "iPad12,1": "iPad（第九代）",
+        "iPad12,2": "iPad（第九代）",
+        "iPad13,1": "iPad Air（第四代）",
+        "iPad13,2": "iPad Air（第四代）",
+        "iPad13,18": "iPad（第十代）",
+        "iPad13,19": "iPad（第十代）",
+        "iPad14,1": "iPad mini（第六代）",
+        "iPad14,2": "iPad mini（第六代）",
+        "iPad13,4": "iPad Pro 11 英寸（第三代）",
+        "iPad13,5": "iPad Pro 11 英寸（第三代）",
+        "iPad13,6": "iPad Pro 11 英寸（第三代）",
+        "iPad13,7": "iPad Pro 11 英寸（第三代）",
+        "iPad13,8": "iPad Pro 12.9 英寸（第五代）",
+        "iPad13,9": "iPad Pro 12.9 英寸（第五代）",
+        "iPad13,10": "iPad Pro 12.9 英寸（第五代）",
+        "iPad13,11": "iPad Pro 12.9 英寸（第五代）",
+        // Apple Silicon Mac
+        "MacBookAir10,1": "MacBook Air（M1, 2020）",
+        "MacBookPro17,1": "MacBook Pro 13 英寸（M1, 2020）",
+        "MacBookPro18,1": "MacBook Pro 16 英寸（2021）",
+        "MacBookPro18,2": "MacBook Pro 16 英寸（2021）",
+        "MacBookPro18,3": "MacBook Pro 14 英寸（2021）",
+        "MacBookPro18,4": "MacBook Pro 14 英寸（2021）",
+        "Macmini9,1": "Mac mini（M1, 2020）",
+        "iMac21,1": "iMac 24 英寸（M1, 2021）",
+        "iMac21,2": "iMac 24 英寸（M1, 2021）",
+        "Mac13,1": "Mac Studio（2022）",
+        "Mac13,2": "Mac Studio（2022）",
+        "Mac14,2": "MacBook Air（M2, 2022）",
+        "Mac14,7": "MacBook Pro 13 英寸（M2, 2022）",
+        "Mac14,3": "Mac mini（M2, 2023）",
+        "Mac14,12": "Mac mini（M2 Pro, 2023）",
+        "Mac14,5": "MacBook Pro 14 英寸（2023）",
+        "Mac14,6": "MacBook Pro 16 英寸（2023）",
+        "Mac14,9": "MacBook Pro 14 英寸（2023）",
+        "Mac14,10": "MacBook Pro 16 英寸（2023）",
+        "Mac14,13": "Mac Studio（2023）",
+        "Mac14,14": "Mac Studio（2023）",
+        "Mac14,15": "MacBook Air 15 英寸（M2, 2023）",
+        "Mac15,3": "MacBook Pro 14 英寸（M3, 2023）",
+        "Mac15,4": "iMac 24 英寸（M3, 2023）",
+        "Mac15,5": "iMac 24 英寸（M3, 2023）",
+        "Mac15,6": "MacBook Pro 14 英寸（M3 Pro, 2023）",
+        "Mac15,7": "MacBook Pro 16 英寸（M3 Pro, 2023）",
+        "Mac15,8": "MacBook Pro 14 英寸（M3 Max, 2023）",
+        "Mac15,9": "MacBook Pro 16 英寸（M3 Max, 2023）",
+        "Mac15,10": "MacBook Pro 16 英寸（M3 Max, 2023）",
+        "Mac15,12": "MacBook Air 13 英寸（M3, 2024）",
+        "Mac15,13": "MacBook Air 15 英寸（M3, 2024）",
+        "Mac16,1": "MacBook Pro 14 英寸（M4, 2024）",
+        "Mac16,12": "MacBook Air 13 英寸（M4, 2025）",
+        "Mac16,13": "MacBook Air 15 英寸（M4, 2025）",
+    ]
+
+    /// 把设备标识符转成友好型号名；未收录时原样返回标识符
+    ///
+    /// - Parameter identifier: 设备标识符（如 `iPhone15,4` / `MacBookPro18,1`）
+    /// - Returns: 友好型号名（如 `iPhone 15` / `MacBook Pro 16 英寸（2021）`）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   SystemInfoKit.deviceModelName(for: "iPhone15,4")   // "iPhone 15"
+    ///   ```
+    public static func deviceModelName(for identifier: String) -> String {
+        deviceModelTable[identifier] ?? identifier
+    }
+
+    /// 当前设备的友好型号名（形如 `iPhone 15 Pro` / `MacBook Pro 14 英寸（2021）`）
+    ///
+    /// 即 `deviceModelName(for: deviceIdentifier)`；标识符未收录时返回原始标识符，
+    /// 可自行向 `deviceModelTable` 增补新机型。
+    public static var deviceModelName: String {
+        deviceModelName(for: deviceIdentifier)
     }
 
     // MARK: - 硬件信息
@@ -374,6 +487,54 @@ public enum SystemInfoKit {
         return []
         #endif
     }
+
+    /// 当前是否处于深色模式
+    ///
+    /// macOS：优先读 App 的 `effectiveAppearance`，非 AppKit 上下文（命令行工具）回退读
+    /// 系统偏好 `AppleInterfaceStyle`；iOS：读当前 `UITraitCollection`。
+    ///
+    /// - Note: iOS 上必须在主线程读取；后台线程读到的可能是 `.unspecified`（按浅色处理）。
+    public static var isDarkMode: Bool {
+        #if canImport(UIKit)
+        return UITraitCollection.current.userInterfaceStyle == .dark
+        #elseif canImport(AppKit)
+        if let appearance = NSApp?.effectiveAppearance {
+            return appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        }
+        return UserDefaults.standard.string(forKey: "AppleInterfaceStyle") == "Dark"
+        #else
+        return false
+        #endif
+    }
+
+    /// 屏幕亮度（`0.0` ~ `1.0`）
+    ///
+    /// iOS 读 `UIScreen.main.brightness`（只反映当前屏幕的设置值）；macOS 经 IOKit
+    /// `IODisplayConnect` 读取内建屏亮度。取不到时返回 `nil`（如无内建屏的外接显示器主机、
+    /// 或不支持该接口的平台）。
+    public static var screenBrightness: Double? {
+        #if canImport(UIKit)
+        return Double(UIScreen.main.brightness)
+        #elseif os(macOS)
+        return displayBrightness()
+        #else
+        return nil
+        #endif
+    }
+
+    #if os(macOS)
+    /// 经 IOKit 读取内建显示器亮度（`0.0` ~ `1.0`）
+    private static func displayBrightness() -> Double? {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault,
+                                                  IOServiceMatching("IODisplayConnect"))
+        guard service != 0 else { return nil }
+        defer { IOObjectRelease(service) }
+        var brightness: Float = 0
+        let result = IODisplayGetFloatParameter(service, 0, kIODisplayBrightnessKey as CFString, &brightness)
+        guard result == kIOReturnSuccess else { return nil }
+        return Double(brightness)
+    }
+    #endif
 
     // MARK: - 运行时长与模拟器
 
@@ -969,6 +1130,70 @@ public enum SystemInfoKit {
                                     isUp: f.up,
                                     isLoopback: f.loopback)
         }
+    }
+
+    // MARK: - 信息快照
+
+    /// 系统信息快照：把常用检测项一次性汇总成一个字典
+    ///
+    /// 键为英文属性名（与各属性名一一对应），值全部为字符串（人类可读），
+    /// 因此可以直接交给 `JSONSerialization` 序列化后上报 / 落盘：
+    ///
+    /// ```swift
+    /// let data = try JSONSerialization.data(withJSONObject: SystemInfoKit.snapshot(),
+    ///                                       options: [.prettyPrinted, .sortedKeys])
+    /// ```
+    ///
+    /// - Note: 只含「即时可取」的项，不含需要采样或阻塞的 CPU 使用率 / 网络流量 / 磁盘读写速率，
+    ///   可安全高频调用（如每次崩溃上报时附一份）。
+    /// - Returns: 信息快照字典（值均为字符串）
+    public static func snapshot() -> [String: String] {
+        var dict: [String: String] = [
+            "systemName": systemName,
+            "systemVersion": systemVersion,
+            "deviceIdentifier": deviceIdentifier,
+            "deviceModelName": deviceModelName,
+            "deviceName": deviceName,
+            "deviceType": deviceType,
+            "cpuArchitecture": cpuArchitecture,
+            "processorCount": "\(processorCount)",
+            "memoryTotal": memoryTotal,
+            "diskTotal": diskTotal,
+            "diskFree": diskFree,
+            "diskUsage": String(format: "%.1f%%", diskUsagePercent * 100),
+            "thermalState": thermalStateName,
+            "isLowPowerModeEnabled": "\(isLowPowerModeEnabled)",
+            "screenSize": screenSize,
+            "screenScale": "\(screenScale)",
+            "displayCount": "\(displayCount)",
+            "isDarkMode": "\(isDarkMode)",
+            "languageCode": languageCode,
+            "regionCode": regionCode,
+            "timeZoneIdentifier": timeZoneIdentifier,
+            "appName": appName,
+            "appVersion": appVersion,
+            "appBuildNumber": appBuildNumber,
+            "isSimulator": "\(isSimulator)",
+            "systemUptime": systemUptimeString,
+            "bootTime": bootTimeString,
+            "kernelVersion": kernelVersion,
+            "hostName": hostName,
+            "userName": userName,
+            "isDebuggerAttached": "\(isDebuggerAttached)"
+        ]
+        if let processor = processorName {
+            dict["processorName"] = processor
+        }
+        if let brightness = screenBrightness {
+            dict["screenBrightness"] = String(format: "%.0f%%", brightness * 100)
+        }
+        if let level = batteryLevel {
+            dict["batteryLevel"] = String(format: "%.0f%%", Double(level) * 100)
+        }
+        if let charging = isCharging {
+            dict["isCharging"] = "\(charging)"
+        }
+        return dict
     }
 
     // MARK: - 内部工具

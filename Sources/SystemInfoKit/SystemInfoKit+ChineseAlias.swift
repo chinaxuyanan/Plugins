@@ -21,6 +21,17 @@ public extension SystemInfoKit {
     static var 设备名称: String { deviceName }
     /// 设备类型（等同 `deviceType`）
     static var 设备类型: String { deviceType }
+    /// 当前设备友好型号名（等同 `deviceModelName`）
+    static var 设备型号名称: String { deviceModelName }
+    /// 标识符 → 友好型号名对照表（等同 `deviceModelTable`，可自行增补新机型）
+    static var 设备型号对照表: [String: String] {
+        get { deviceModelTable }
+        set { deviceModelTable = newValue }
+    }
+    /// 把设备标识符转成友好型号名（等同 `deviceModelName(for:)`）
+    static func 设备型号名称(标识符: String) -> String {
+        deviceModelName(for: 标识符)
+    }
 
     /// 物理内存总量字节（等同 `memoryTotalBytes`）
     static var 内存总字节数: UInt64 { memoryTotalBytes }
@@ -90,6 +101,10 @@ public extension SystemInfoKit {
     static var 显示器分辨率: [String] { displayResolutions }
     /// 各显示器缩放因子（等同 `displayScales`）
     static var 显示器缩放: [CGFloat] { displayScales }
+    /// 当前是否深色模式（等同 `isDarkMode`）
+    static var 深色模式: Bool { isDarkMode }
+    /// 屏幕亮度（等同 `screenBrightness`，`0.0`~`1.0`，取不到为 `nil`）
+    static var 屏幕亮度: Double? { screenBrightness }
 
     /// 系统运行秒数（等同 `systemUptime`）
     static var 系统运行秒数: TimeInterval { systemUptime }
@@ -212,4 +227,11 @@ public extension SystemInfoKit {
     static var 当前用户名: String { userName }
     /// 是否被调试器附加（等同 `isDebuggerAttached`）
     static var 是否被调试: Bool { isDebuggerAttached }
+
+    // MARK: 信息快照
+
+    /// 系统信息快照（等同 `snapshot()`，值均为字符串，可直接 JSON 序列化）
+    static func 信息快照() -> [String: String] {
+        snapshot()
+    }
 }

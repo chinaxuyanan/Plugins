@@ -1,4 +1,5 @@
 import XCTest
+import Foundation
 @testable import SystemInfoKit
 
 /// SystemInfoKit 冒烟测试：所有检测项都应能正常取值、不崩溃、返回合理类型。
@@ -288,5 +289,64 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(SystemInfoKit.主机名, SystemInfoKit.hostName)
         XCTAssertEqual(SystemInfoKit.当前用户名, SystemInfoKit.userName)
         XCTAssertEqual(SystemInfoKit.是否被调试, SystemInfoKit.isDebuggerAttached)
+    }
+
+    // MARK: - 设备型号名 / 深色模式 / 亮度 / 快照
+
+    /// 对照表是纯函数，可以做精确断言（不依赖运行环境）
+    func testDeviceModelNameLookup() {
+        XCTAssertEqual(SystemInfoKit.deviceModelName(for: "iPhone15,4"), "iPhone 15")
+        XCTAssertEqual(SystemInfoKit.deviceModelName(for: "iPhone16,2"), "iPhone 15 Pro Max")
+        XCTAssertEqual(SystemInfoKit.deviceModelName(for: "MacBookPro18,3"), "MacBook Pro 14 英寸（2021）")
+        XCTAssertEqual(SystemInfoKit.deviceModelName(for: "iPad14,2"), "iPad mini（第六代）")
+
+        // 未收录的标识符原样返回，便于自行增补
+        XCTAssertEqual(SystemInfoKit.deviceModelName(for: "iPhone99,9"), "iPhone99,9")
+        XCTAssertEqual(SystemInfoKit.设备型号名称(标识符: "iPhone15,4"), "iPhone 15")
+
+        // 可自行增补新机型
+        let original = SystemInfoKit.deviceModelTable
+        defer { SystemInfoKit.设备型号对照表 = original }
+        SystemInfoKit.deviceModelTable["iPhone99,9"] = "未来机型"
+        XCTAssertEqual(SystemInfoKit.deviceModelName(for: "iPhone99,9"), "未来机型")
+    }
+
+    func testDeviceModelNameIsNonEmpty() {
+        XCTAssertFalse(SystemInfoKit.deviceModelName.isEmpty)
+        XCTAssertFalse(SystemInfoKit.设备型号名称.isEmpty)
+    }
+
+    func testDarkModeAndBrightness() {
+        _ = SystemInfoKit.isDarkMode          // 随系统设置变化，只保证可取值
+        XCTAssertEqual(SystemInfoKit.深色模式, SystemInfoKit.isDarkMode)
+
+        if let brightness = SystemInfoKit.screenBrightness {
+            // 亮度是实时值，只做范围断言
+            XCTAssertGreaterThanOrEqual(brightness, 0)
+            XCTAssertLessThanOrEqual(brightness, 1)
+            XCTAssertNotNil(SystemInfoKit.屏幕亮度)
+        }
+    }
+
+    func testSnapshot() {
+        let snapshot = SystemInfoKit.信息快照()
+        XCTAssertFalse(snapshot.isEmpty)
+
+        // 值全为字符串，可直接 JSON 序列化
+        for (key, value) in snapshot {
+            XCTAssertFalse(key.isEmpty)
+            XCTAssertFalse(value.isEmpty, "\(key) 的值不应为空字符串")
+        }
+        XCTAssertTrue(JSONSerialization.isValidJSONObject(snapshot))
+
+        // 关键项齐备，且与对应属性一致
+        XCTAssertEqual(snapshot["systemName"], SystemInfoKit.systemName)
+        XCTAssertEqual(snapshot["deviceIdentifier"], SystemInfoKit.deviceIdentifier)
+        XCTAssertEqual(snapshot["deviceModelName"], SystemInfoKit.deviceModelName)
+        XCTAssertTrue(snapshot["isDarkMode"] == "true" || snapshot["isDarkMode"] == "false")
+        XCTAssertEqual(snapshot["cpuArchitecture"], SystemInfoKit.cpuArchitecture)
+        XCTAssertEqual(snapshot["kernelVersion"], SystemInfoKit.kernelVersion)
+        XCTAssertNotNil(snapshot["diskUsage"])
+        XCTAssertTrue(snapshot["diskUsage"]?.hasSuffix("%") ?? false)
     }
 }
