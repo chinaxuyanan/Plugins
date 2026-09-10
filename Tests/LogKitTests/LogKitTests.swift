@@ -19,6 +19,7 @@ final class LogKitTests: XCTestCase {
         LogKit.ignoredCategories = []
         LogKit.maxFileSize = 0
         LogKit.maxLogFiles = 0
+        LogKit.maxLogAgeDays = 0
         LogKit.traceId = nil
         LogKit.resetCounts()
         LogKit.resetThrottle()
@@ -26,6 +27,9 @@ final class LogKitTests: XCTestCase {
         LogKit.redactSensitiveData = true
         LogKit.samplingRate = 0.1
         LogKit.onLog = nil
+        LogKit.removeAllSinks()
+        LogKit.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        LogKit.timeZone = .current
     }
 
     override func tearDown() {
@@ -719,5 +723,144 @@ final class LogKitTests: XCTestCase {
         XCTAssertNil(object["line"])
         XCTAssertNil(object["traceId"])
         XCTAssertNil(object["fields"])
+    }
+
+    // MARK: - 自定义输出去向 / CSV 导出 / 时区 / 按天数清理
+
+    func testAddSinkReceivesEntries() {
+        var received: [LogEntry] = []
+        let id = LogKit.addSink { received.append($0) }
+        XCTAssertEqual(LogKit.sinkCount, 1)
+
+        LogKit.info("送到自定义去向", category: "账号", fields: ["状态码": 200])
+
+        XCTAssertEqual(received.count, 1)
+        XCTAssertEqual(received.first?.message, "送到自定义去向")
+        XCTAssertEqual(received.first?.category, "账号")
+        XCTAssertEqual(received.first?.fields["状态码"] as? Int, 200)
+
+        XCTAssertTrue(LogKit.removeSink(id))
+        XCTAssertEqual(LogKit.sinkCount, 0)
+        XCTAssertFalse(LogKit.removeSink(id), "重复移除应返回 false")
+
+        LogKit.info("再发一条")
+        XCTAssertEqual(received.count, 1, "移除后不应再收到日志")
+    }
+
+    func testSinkOnlyGetsFilteredLogsAndChineseAlias() {
+        var count = 0
+        _ = LogKit.添加输出 { _ in count += 1 }
+        XCTAssertEqual(LogKit.输出数量, 1)
+
+        LogKit.minimumLevel = .warning
+        LogKit.调试("被过滤，不该送达")
+        XCTAssertEqual(count, 0)
+
+        LogKit.警告("会送达")
+        XCTAssertEqual(count, 1)
+
+        LogKit.清空输出()
+        XCTAssertEqual(LogKit.输出数量, 0)
+    }
+
+    func testCSVStringColumnsAndEscaping() {
+        let entries = [
+            LogEntry(timestamp: "2026-09-10 10:00:00.000", level: .info, category: "账号",
+                     message: "登录成功", file: "Login.swift", line: 42,
+                     fields: ["订单号": "A100"], traceId: "req-1"),
+            LogEntry(timestamp: "2026-09-10 10:00:01.000", level: .error, category: "通用",
+                     message: "他说\"你好\", 然后走了", file: nil, line: nil,
+                     fields: ["金额": 99], traceId: nil),
+        ]
+
+        let rows = LogKit.CSV字符串(条目: entries).components(separatedBy: "\n")
+        XCTAssertEqual(rows.count, 3, "表头 + 2 行数据")
+
+        // 表头 = 固定列 + 全部条目 fields 键的并集（按字典序追加）
+        let extra = ["订单号", "金额"].sorted().joined(separator: ",")
+        XCTAssertEqual(rows[0], "time,level,levelValue,category,message,file,line,traceId,\(extra)")
+
+        // 第一行：缺「金额」→ 该列留空
+        XCTAssertEqual(rows[1],
+                       "2026-09-10 10:00:00.000,信息,\(LogLevel.info.rawValue),账号,登录成功,Login.swift,42,req-1,A100,")
+
+        // 第二行：缺 file/line/traceId/订单号 → 留空；消息里的引号翻倍转义
+        // 列序 time,level,levelValue,category,message,file,line,traceId,订单号,金额
+        XCTAssertEqual(rows[2],
+                       "2026-09-10 10:00:01.000,错误,\(LogLevel.error.rawValue),通用,\"他说\"\"你好\"\", 然后走了\",,,,,99")
+
+        // 不含表头时只有 2 行
+        XCTAssertEqual(LogKit.csvString(from: entries, includeHeader: false).components(separatedBy: "\n").count, 2)
+        // 空数组只产生表头
+        XCTAssertEqual(LogKit.csvString(from: []).components(separatedBy: "\n").count, 1)
+    }
+
+    func testExportCSVWritesFileWithBOM() throws {
+        let entry = LogEntry(timestamp: "2026-09-10 10:00:00.000", level: .warning, category: "通用",
+                             message: "导出测试", file: "F.swift", line: 1,
+                             fields: ["耗时": "12.3"], traceId: nil)
+        let url = try LogKit.导出CSV([entry], 文件名: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(url.pathExtension, "csv")
+        let data = try Data(contentsOf: url)
+        XCTAssertTrue(data.starts(with: [0xEF, 0xBB, 0xBF]), "CSV 应以 UTF-8 BOM 开头，Excel 打开中文才不乱码")
+
+        let text = String(data: data, encoding: .utf8) ?? ""
+        XCTAssertTrue(text.contains("time,level,levelValue,category,message,file,line,traceId,耗时"))
+        XCTAssertTrue(text.contains("导出测试"))
+    }
+
+    func testTimeZoneAffectsTimestamp() {
+        // 用 "Z" 格式取时区偏移：结果不依赖「当前几点」，不存在跨整点的偶发失败
+        LogKit.dateFormat = "Z"
+        var captured: LogEntry?
+        let id = LogKit.addSink { captured = $0 }
+        defer { LogKit.removeSink(id) }
+
+        LogKit.timeZone = TimeZone(secondsFromGMT: 0)!
+        LogKit.info("时区测试")
+        XCTAssertEqual(captured?.timestamp, "+0000")
+
+        LogKit.时区 = TimeZone(secondsFromGMT: 9 * 3600)!
+        LogKit.info("时区测试")
+        XCTAssertEqual(captured?.timestamp, "+0900")
+    }
+
+    func testMaxLogAgeDaysRemovesExpiredFiles() {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("LogKitAge-\(UUID().uuidString)", isDirectory: true)
+        try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        let oldURL = dir.appendingPathComponent("LogKit-2000-01-01.log")
+        let recentURL = dir.appendingPathComponent("LogKit-2001-01-01.log")
+        _ = fm.createFile(atPath: oldURL.path, contents: Data("旧日志\n".utf8))
+        _ = fm.createFile(atPath: recentURL.path, contents: Data("新日志\n".utf8))
+        try? fm.setAttributes([.modificationDate: Date().addingTimeInterval(-30 * 86_400)],
+                              ofItemAtPath: oldURL.path)
+        try? fm.setAttributes([.modificationDate: Date().addingTimeInterval(-86_400)],
+                              ofItemAtPath: recentURL.path)
+
+        let previousDir = LogKit.logDirectory
+        let previousAge = LogKit.maxLogAgeDays
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.maxLogAgeDays = previousAge
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.maxLogAgeDays = 7
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.信息("写一条日志触发清理")
+
+        XCTAssertFalse(fm.fileExists(atPath: oldURL.path), "修改时间超过 7 天的日志应被删除")
+        XCTAssertTrue(fm.fileExists(atPath: recentURL.path), "7 天内的日志应保留")
+        XCTAssertTrue(fm.fileExists(atPath: LogKit.logFileURL.path), "当前日志文件不应被删")
     }
 }

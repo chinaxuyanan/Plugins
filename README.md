@@ -34,6 +34,10 @@
 - **输出预判**：`isEnabled(level:category:)` / `是否输出(级别:分类:)` 提前判断某条日志是否会被输出，避免无谓的消息构造
 - **作用域追踪**：`withTrace` / `追踪执行`（含 `withTraceAsync` / `异步追踪执行`）临时设置 `traceId`，执行完自动恢复，串联一次请求的全部日志
 - **单条序列化**：`LogEntry.jsonObject` / `jsonString`（中文别名 `JSON字典` / `JSON字符串`）把任意日志条目转成结构化字典 / JSON 字符串，便于自定义上报
+- **自定义输出去向**：`addSink` / `添加输出` 在控制台 / 文件之外再加第三方接收者（上报服务端、自建日志面板等），可注册多个、按 `removeSink` / `清空输出` 移除，线程安全
+- **按天数清理**：`maxLogAgeDays` / `日志保留天数` 自动删除超过 N 天的日志文件，可与 `maxLogFiles` 叠加使用
+- **CSV 导出**：`exportCSV` / `导出CSV` 把日志条目导出成 CSV（`fields` 自动展开成独立列，带 UTF-8 BOM，Excel 打开中文不乱码），`csvString(from:)` / `CSV字符串(条目:)` 只取文本
+- **时区配置**：`timeZone` / `时区` 统一时间戳与日志文件名的时区（如都按 UTC 记录）
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -45,7 +49,7 @@
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.10.0")
+    .package(url: "https://github.com/<你的账号>/LogKit", from: "0.11.0")
 ]
 ```
 
@@ -108,9 +112,11 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `fileOutput` | `false` | 是否写入日志文件 |
 | `logDirectory` | Application Support/LogKit | 日志文件目录 |
 | `dateFormat` | `yyyy-MM-dd HH:mm:ss.SSS` | 时间戳格式 |
+| `timeZone` | `.current` | 时间戳与日志文件名日期所用的时区（如设为 `.gmt` 统一按 UTC 记录）|
 | `showLocation` | `true` | 是否显示「文件:行」位置 |
 | `maxFileSize` | `0`（不限制） | 单文件大小上限（字节），超出自动归档 |
 | `maxLogFiles` | `0`（不清理） | 最多保留的日志文件数，超出删最旧 |
+| `maxLogAgeDays` | `0`（不清理） | 日志文件最长保留天数，超出删最旧（按修改时间，可与其他清理项叠加）|
 | `enabledCategories` | `nil`（全部） | 分类白名单，只输出名单内分类 |
 | `ignoredCategories` | `[]`（空） | 分类黑名单，跳过名单内分类 |
 | `outputFormat` | `.text` | 输出格式：`.text` 单行文本 / `.json` 结构化 JSON |
@@ -153,6 +159,9 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.级别计数(级别)` / `LogKit.日志总数()` / `LogKit.重置计数()` | `LogKit.totalCount(by:)` / `LogKit.totalCount()` / `LogKit.resetCounts()` |
 | `LogKit.是否输出(级别:分类:)` | `LogKit.isEnabled(level:category:)` |
 | `LogKit.追踪执行(追踪ID) { ... }` / `LogKit.异步追踪执行(追踪ID) { ... }` | `LogKit.withTrace(_:_:)` / `LogKit.withTraceAsync(_:_:)` |
+| `LogKit.添加输出 { ... }` / `LogKit.移除输出(标识)` / `LogKit.清空输出()` / `LogKit.输出数量` | `LogKit.addSink(_:)` / `LogKit.removeSink(_:)` / `LogKit.removeAllSinks()` / `LogKit.sinkCount` |
+| `LogKit.日志保留天数` / `LogKit.时区` | `LogKit.maxLogAgeDays` / `LogKit.timeZone` |
+| `LogKit.CSV字符串(条目:含表头:)` / `LogKit.导出CSV(条目:文件名:)` | `LogKit.csvString(from:includeHeader:)` / `LogKit.exportCSV(_:fileName:)` |
 | `LogEntry.JSON字典` / `LogEntry.JSON字符串` | `LogEntry.jsonObject` / `LogEntry.jsonString` |
 | `作用域日志器` | `ScopedLogger`（`.调试/.信息/.警告/.错误/.严重/.计时/.子日志器`）|
 | `性能计数器` | `PerformanceCounter`（`.计时/.异步计时/.汇总/.输出报告/.重置` 及 `调用次数/总耗时/平均耗时/最大耗时/最小耗时`）|
@@ -243,7 +252,62 @@ do {
 LogKit.安装崩溃处理()   // 崩溃日志写入 LogKit.崩溃日志路径
 ```
 
+**自定义输出去向 `addSink`**：在控制台 / 文件之外再挂第三方接收者（上报服务端、自建日志面板等）。
+sink 收到的是完整 `LogEntry`，且同样经过级别 / 分类过滤，只有真正输出的日志才会派发：
+
+```swift
+// 登记一个把警告及以上日志上报到服务端的去向，返回登记标识
+let 上报 = LogKit.添加输出 { 条目 in
+    guard 条目.level >= .warning else { return }
+    上报服务端(条目.jsonObject)
+}
+
+LogKit.输出数量          // 当前登记的去向数量
+LogKit.移除输出(上报)    // 按标识移除；也可用 LogKit.清空输出() 一次清空
+```
+
+> 派发时先复制去向快照再回调，回调里可以安全地 `添加输出` / `移除输出`，不会死锁。
+> 只有 `onLog != nil` 或存在去向时才会组装 `LogEntry`，无接收方时不产生额外开销。
+
+**CSV 导出 `exportCSV`**：把日志条目导出成 CSV 交给表格软件 / 数据分析。`fields` 的键会
+自动展开成独立列（列集合取所有条目的并集并按键排序），并写入 UTF-8 BOM，Excel 打开中文不乱码：
+
+```swift
+// 用 onLog / addSink 收集条目
+var 收集: [LogEntry] = []
+let 去向 = LogKit.添加输出 { 收集.append($0) }
+
+LogKit.信息("用户登录成功", 分类: "账号", fields: ["接口": "/api/user", "状态码": 200])
+LogKit.警告("网络请求超时", 分类: "网络")
+
+let 文本 = LogKit.CSV字符串(条目: 收集)          // 只取文本，含表头
+let 文件 = try LogKit.导出CSV(收集)              // 写入临时目录，返回文件 URL
+// iOS：UIActivityViewController(activityItems: [文件], ...)
+// macOS：NSSharingServicePicker(items: [文件])
+LogKit.移除输出(去向)
+```
+
+CSV 列顺序为 `time, level, levelValue, category, message, file, line, traceId`，其后是各
+`fields` 键（按字典序）。字段值里的逗号、引号、换行会自动用双引号包裹转义。
+
+**时区配置 `timeZone`**：统一时间戳与日志文件名日期的时区，便于跨时区排查或统一按 UTC 归档：
+
+```swift
+LogKit.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS Z"
+LogKit.时区 = TimeZone(identifier: "UTC")!   // 之后所有时间戳与文件名日期均按 UTC
+```
+
+**按天数清理 `maxLogAgeDays`**：自动删除超过 N 天的日志文件，可与按数量清理 `maxLogFiles` 叠加：
+
+```swift
+LogKit.日志保留天数 = 7      // 只保留最近 7 天的日志文件
+LogKit.maxLogFiles = 30      // 同时最多保留 30 个文件
+LogKit.轮转日志()            // 触发一次检查；当前正在写入的文件始终不会被删除
+```
+
 ## 更新日志
+
+- **0.11.0**：新增自定义输出去向（`addSink` / `removeSink` / `removeAllSinks` / `sinkCount` / `添加输出` / `移除输出` / `清空输出` / `输出数量`，在控制台 / 文件之外挂第三方接收者，`NSLock` 保护、先复制快照再回调避免重入死锁，仅在有接收方时才组装 `LogEntry`）、按天数清理（`maxLogAgeDays` / `日志保留天数`，按修改时间删除过期日志文件，与 `maxLogFiles` 叠加，当前文件不删）、CSV 导出（`exportCSV` / `csvString(from:includeHeader:)` / `导出CSV` / `CSV字符串(条目:含表头:)`，`fields` 自动展开成独立列、键排序、双引号转义、UTF-8 BOM 防中文乱码）、时区配置（`timeZone` / `时区`，统一时间戳与日志文件名日期），均含中文别名并补单元测试。
 
 - **0.10.0**：新增输出预判（`isEnabled(level:category:)` / `是否输出(级别:分类:)`，提前判断日志是否会被输出，避免无谓的消息构造）、作用域追踪（`withTrace` / `withTraceAsync` / `追踪执行` / `异步追踪执行`，临时设置 `traceId` 并在执行完自动恢复，抛错时也恢复）、单条序列化（`LogEntry.jsonObject` / `jsonString` / `JSON字典` / `JSON字符串`，把任意日志条目转成结构化字典 / JSON 字符串，`jsonString` 采用 `.sortedKeys` 键序稳定可复现），均含中文别名并补单元测试。
 

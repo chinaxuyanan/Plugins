@@ -11,6 +11,7 @@ import Darwin
 /// - 支持 `measure` 耗时测量、附加结构化字段 `fields`、自定义格式闭包 `customFormatter`；
 /// - 支持 `ScopedLogger` 作用域日志器（分模块分类）、`PerformanceCounter` 性能计数器（累计耗时）、`OSLogger` 系统日志桥接（os.Logger）；
 /// - 支持追踪 ID `traceId`（全局 / 作用域日志器两级，串联一次请求的全部日志）、按构建环境自适应默认级别（DEBUG `.debug` / RELEASE `.warning`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`）；
+/// - 支持自定义输出去向 `addSink`（控制台 / 文件之外的第三方接收者，可移除）、按天数清理 `maxLogAgeDays`、CSV 导出 `exportCSV`、时区配置 `timeZone`；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -32,7 +33,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.10.0"
+    public static let version = "0.11.0"
 
     // MARK: - 配置
 
@@ -105,6 +106,17 @@ public enum LogKit {
     /// 时间戳格式（默认 `yyyy-MM-dd HH:mm:ss.SSS`）
     public static var dateFormat: String = "yyyy-MM-dd HH:mm:ss.SSS"
 
+    /// 时间戳使用的时区（默认 `.current` 跟随系统）
+    ///
+    /// 影响日志行里的时间戳，以及日志文件名里的日期（`LogKit-yyyy-MM-dd.log`）。
+    /// 需要统一多端日志时间（比如都按 UTC 记录）时设置：
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.timeZone = TimeZone(identifier: "UTC")!   // 时间戳按 UTC 记录
+    ///   ```
+    public static var timeZone: TimeZone = .current
+
     /// 单个日志文件大小上限（字节）
     ///
     /// 当前日志文件达到该大小时，会自动归档（重命名为带时间戳的文件）并开启新文件。
@@ -116,6 +128,14 @@ public enum LogKit {
     /// 日志目录里 `LogKit-*.log` 文件超过该数量时，自动删除最旧的。
     /// 设为 `0` 表示不清理（默认 `0`）。
     public static var maxLogFiles: Int = 0
+
+    /// 日志文件最长保留天数
+    ///
+    /// 日志目录里修改时间超过该天数的 `LogKit-*.log` 文件会被自动删除（当前正在写的文件除外）。
+    /// 设为 `0` 表示不按天数清理（默认 `0`）。
+    ///
+    /// - Note: 与 `maxLogFiles` 可同时生效：先按天数清掉过期文件，再按数量只留最新的若干个。
+    public static var maxLogAgeDays: Int = 0
 
     /// 分类白名单：只输出这些分类的日志
     ///
@@ -294,6 +314,74 @@ public enum LogKit {
     /// 实时刷新日志界面等场景。回调在调用日志方法的线程同步执行，请避免在其中做重活。
     /// 设为 `nil` 可取消回调。
     public static var onLog: ((LogEntry) -> Void)?
+
+    // MARK: - 自定义输出去向（Sink）
+
+    /// 注册一个自定义输出去向
+    ///
+    /// 在控制台 / 文件之外，把每条「通过过滤、真正输出」的日志额外送到这里——比如上报到服务端、
+    /// 写进自建日志面板、转发给第三方 SDK。可注册多个，按注册顺序依次调用。
+    ///
+    /// - Parameter sink: 收到 `LogEntry` 的回调（可多次注册；`onLog` 先于 sink 执行）
+    /// - Returns: 该去向的标识，用于 `removeSink` 移除
+    ///
+    /// - Note: 回调在调用日志方法的线程同步执行，请避免在其中做重活；
+    ///   回调里再调用 LogKit 写日志不会死锁（内部先复制列表、放锁后再回调）。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let id = LogKit.addSink { entry in
+    ///       guard entry.level >= .error else { return }
+    ///       uploadToServer(entry.jsonObject)
+    ///   }
+    ///   LogKit.removeSink(id)   // 不再需要时移除
+    ///   ```
+    @discardableResult
+    public static func addSink(_ sink: @escaping (LogEntry) -> Void) -> UUID {
+        let id = UUID()
+        sinkLock.lock()
+        sinks[id] = sink
+        sinkLock.unlock()
+        return id
+    }
+
+    /// 移除一个自定义输出去向
+    ///
+    /// - Parameter id: `addSink` 返回的标识
+    /// - Returns: `true` 表示移除了该去向；`false` 表示该标识不存在（已移除过）
+    @discardableResult
+    public static func removeSink(_ id: UUID) -> Bool {
+        sinkLock.lock()
+        defer { sinkLock.unlock() }
+        return sinks.removeValue(forKey: id) != nil
+    }
+
+    /// 移除全部自定义输出去向
+    public static func removeAllSinks() {
+        sinkLock.lock()
+        defer { sinkLock.unlock() }
+        sinks.removeAll()
+    }
+
+    /// 当前已注册的自定义输出去向数量
+    public static var sinkCount: Int {
+        sinkLock.lock()
+        defer { sinkLock.unlock() }
+        return sinks.count
+    }
+
+    private static let sinkLock = NSLock()
+    private static var sinks: [UUID: (LogEntry) -> Void] = [:]
+
+    /// 内部：把日志条目分发给全部自定义输出去向（先复制、放锁后再调用，避免回调里写日志造成死锁）
+    private static func dispatchToSinks(_ entry: LogEntry) {
+        sinkLock.lock()
+        let current = Array(sinks.values)
+        sinkLock.unlock()
+        for sink in current {
+            sink(entry)
+        }
+    }
 
     // MARK: - 采样输出
 
@@ -619,11 +707,101 @@ public enum LogKit {
         return dest
     }
 
+    // MARK: - CSV 导出
+
+    /// CSV 固定列（字段名与 JSON 输出一致，方便两种格式互通）
+    static let csvFixedColumns = ["time", "level", "levelValue", "category", "message", "file", "line", "traceId"]
+
+    /// 把日志条目转成 CSV 文本
+    ///
+    /// 列为「固定列 + 全部条目 `fields` 键的并集」（并集按字典序追加在末尾，即字段展开：
+    /// 每条日志自己的扩展字段都有独立的一列）。含逗号 / 引号 / 换行的值会按 CSV 规范
+    /// 用双引号包裹并转义，可直接被 Excel / Numbers 打开。
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组（可从 `onLog` 回调或 `addSink` 收集）
+    ///   - includeHeader: 是否输出表头行，默认 `true`
+    /// - Returns: CSV 文本；空数组时只返回表头
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   var collected: [LogEntry] = []
+    ///   LogKit.onLog = { collected.append($0) }
+    ///   LogKit.info("下单成功", fields: ["订单号": "A100", "金额": 99])
+    ///   print(LogKit.csvString(from: collected))
+    ///   ```
+    public static func csvString(from entries: [LogEntry], includeHeader: Bool = true) -> String {
+        var fieldKeys: Set<String> = []
+        for entry in entries {
+            fieldKeys.formUnion(entry.fields.keys)
+        }
+        let extraColumns = fieldKeys.sorted()
+        let columns = csvFixedColumns + extraColumns
+
+        var rows: [String] = []
+        if includeHeader {
+            rows.append(columns.map(csvField).joined(separator: ","))
+        }
+        for entry in entries {
+            var values: [String] = [
+                entry.timestamp,
+                entry.level.chineseName,
+                String(entry.level.rawValue),
+                entry.category,
+                entry.message,
+                entry.file ?? "",
+                entry.line.map(String.init) ?? "",
+                entry.traceId ?? ""
+            ]
+            for key in extraColumns {
+                values.append(entry.fields[key].map { String(describing: $0) } ?? "")
+            }
+            rows.append(values.map(csvField).joined(separator: ","))
+        }
+        return rows.joined(separator: "\n")
+    }
+
+    /// 把日志条目导出为 CSV 文件，返回可供系统分享面板使用的文件 URL
+    ///
+    /// 内容与 `csvString(from:includeHeader:)` 一致，并在开头写入 UTF-8 BOM，
+    /// 保证 Excel 打开中文不乱码。文件写入临时目录，可直接交给
+    /// `UIActivityViewController`（iOS）或 `NSSharingServicePicker`（macOS）分享。
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组
+    ///   - fileName: 目标文件名（不含扩展名）；默认 `LogKit-时间戳-短UUID`
+    /// - Returns: 导出的 CSV 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let url = try LogKit.exportCSV(collected)
+    ///   ```
+    public static func exportCSV(_ entries: [LogEntry], fileName: String? = nil) throws -> URL {
+        flush()
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("LogKitExport", isDirectory: true)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        // 时间戳只到毫秒，同一毫秒内多次导出会撞名，加短 UUID 保证唯一
+        let name = fileName ?? "LogKit-\(archiveStamp())-\(UUID().uuidString.prefix(8))"
+        let dest = dir.appendingPathComponent("\(name).csv")
+        // 前置 UTF-8 BOM：Excel 靠它识别编码，否则中文会乱码
+        try ("\u{FEFF}" + csvString(from: entries) + "\n").write(to: dest, atomically: true, encoding: .utf8)
+        return dest
+    }
+
+    /// 内部：按 CSV 规范转义单个字段（含逗号 / 引号 / 换行时用双引号包裹，内部引号翻倍）
+    private static func csvField(_ value: String) -> String {
+        let needsQuote = value.contains(",") || value.contains("\"")
+            || value.contains("\n") || value.contains("\r")
+        guard needsQuote else { return value }
+        return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
+    }
+
     /// 崩溃日志文件路径（安装崩溃兜底后才会写入）
     public static var crashLogFileURL: URL {
         logDirectory.appendingPathComponent("LogKit-crash.log")
     }
-
     /// 安装崩溃兜底：捕获未捕获异常与常见致命信号，写入崩溃日志文件
     ///
     /// 调用一次即可（重复调用会被忽略）。安装后：
@@ -766,15 +944,19 @@ public enum LogKit {
         incrementCount(level: level)
         let safeFields = redactedFields(fields)
         let messageValue = message()
-        if let hook = onLog {
-            hook(LogEntry(timestamp: timestamp(),
-                          level: level,
-                          category: category,
-                          message: String(describing: messageValue),
-                          file: showLocation ? fileName(file) : nil,
-                          line: showLocation ? line : nil,
-                          fields: safeFields,
-                          traceId: effectiveTraceId))
+        // 只有确有接收方（回调 / 自定义去向）时才组装 LogEntry，避免每次都多一次字符串化
+        let hasSinks = sinkCount > 0
+        if onLog != nil || hasSinks {
+            let entry = LogEntry(timestamp: timestamp(),
+                                 level: level,
+                                 category: category,
+                                 message: String(describing: messageValue),
+                                 file: showLocation ? fileName(file) : nil,
+                                 line: showLocation ? line : nil,
+                                 fields: safeFields,
+                                 traceId: effectiveTraceId)
+            onLog?(entry)
+            if hasSinks { dispatchToSinks(entry) }
         }
         let text = formatLine(level: level, message: messageValue, traceId: effectiveTraceId,
                               category: category, file: file, line: line, fields: safeFields)
@@ -888,6 +1070,7 @@ public enum LogKit {
         lock.lock()
         defer { lock.unlock() }
         formatter.dateFormat = dateFormat
+        formatter.timeZone = timeZone
         return formatter.string(from: Date())
     }
 
@@ -898,6 +1081,7 @@ public enum LogKit {
     private static func dayStamp() -> String {
         let f = DateFormatter()
         f.dateFormat = "yyyy-MM-dd"
+        f.timeZone = timeZone
         return f.string(from: Date())
     }
 
@@ -964,22 +1148,40 @@ public enum LogKit {
         return f
     }()
 
-    /// 清理超出 `maxLogFiles` 的最旧日志文件
+    /// 清理过期 / 超量的日志文件
+    ///
+    /// 先按 `maxLogAgeDays` 删掉修改时间过旧的文件（当前正在写的文件除外），
+    /// 再按 `maxLogFiles` 只保留最新的若干个。两个开关都为 `0`（默认）时不做任何事。
     private static func cleanupOldFiles() {
-        guard maxLogFiles > 0 else { return }
+        guard maxLogFiles > 0 || maxLogAgeDays > 0 else { return }
         let fm = FileManager.default
         guard let files = try? fm.contentsOfDirectory(at: logDirectory,
                                                       includingPropertiesForKeys: [.contentModificationDateKey],
                                                       options: []) else { return }
-        let logs = files.filter { $0.pathExtension == "log" && $0.lastPathComponent.hasPrefix("LogKit-") }
-        guard logs.count > maxLogFiles else { return }
-        let sorted = logs.sorted { (a: URL, b: URL) -> Bool in
-            let ta = (try? a.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
-            let tb = (try? b.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate ?? .distantPast
-            return ta < tb
+        let current = logFileURL.lastPathComponent
+        let logs: [(url: URL, date: Date)] = files
+            .filter { $0.pathExtension == "log" && $0.lastPathComponent.hasPrefix("LogKit-") }
+            .map { url in
+                let date = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+                    ?? .distantPast
+                return (url, date)
+            }
+
+        // 1) 按天数清理
+        var remaining = logs
+        if maxLogAgeDays > 0 {
+            let cutoff = Date().addingTimeInterval(-Double(maxLogAgeDays) * 86_400)
+            for item in logs where item.url.lastPathComponent != current && item.date < cutoff {
+                try? fm.removeItem(at: item.url)
+            }
+            remaining = logs.filter { $0.url.lastPathComponent == current || $0.date >= cutoff }
         }
-        for url in sorted.prefix(logs.count - maxLogFiles) {
-            try? fm.removeItem(at: url)
+
+        // 2) 按数量清理
+        guard maxLogFiles > 0, remaining.count > maxLogFiles else { return }
+        let sorted = remaining.sorted { $0.date < $1.date }
+        for item in sorted.prefix(remaining.count - maxLogFiles) {
+            try? fm.removeItem(at: item.url)
         }
     }
 }
@@ -1009,6 +1211,7 @@ private var logKitCrashFilePath: String = ""
 private func logKitTimestampNow() -> String {
     let formatter = DateFormatter()
     formatter.dateFormat = LogKit.dateFormat
+    formatter.timeZone = LogKit.timeZone
     return formatter.string(from: Date())
 }
 

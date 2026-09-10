@@ -314,6 +314,58 @@ public extension LogKit {
     static func 异步追踪执行<T>(_ 追踪ID: String, _ 操作: () async throws -> T) async rethrows -> T {
         try await withTraceAsync(追踪ID, 操作)
     }
+
+    /// 自定义输出去向（等同 `addSink`）
+    /// - Parameter 输出: 收到 `LogEntry` 的回调（可多次添加，按添加顺序调用）
+    /// - Returns: 该去向的标识，用于 `移除输出`
+    @discardableResult
+    static func 添加输出(_ 输出: @escaping (LogEntry) -> Void) -> UUID {
+        addSink(输出)
+    }
+
+    /// 移除自定义输出去向（等同 `removeSink`）
+    /// - Parameter 标识: `添加输出` 返回的标识
+    /// - Returns: `true` 表示成功移除该去向
+    @discardableResult
+    static func 移除输出(_ 标识: UUID) -> Bool {
+        removeSink(标识)
+    }
+
+    /// 移除全部自定义输出去向（等同 `removeAllSinks`）
+    static func 清空输出() {
+        removeAllSinks()
+    }
+
+    /// 当前自定义输出去向数量（等同 `sinkCount`）
+    static var 输出数量: Int { sinkCount }
+
+    /// 日志文件最长保留天数（等同 `maxLogAgeDays`）
+    static var 日志保留天数: Int {
+        get { maxLogAgeDays }
+        set { maxLogAgeDays = newValue }
+    }
+
+    /// 时间戳使用的时区（等同 `timeZone`）
+    static var 时区: TimeZone {
+        get { timeZone }
+        set { timeZone = newValue }
+    }
+
+    /// 日志条目转 CSV 文本（等同 `csvString(from:includeHeader:)`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 含表头: 是否输出表头行，默认 `true`
+    static func CSV字符串(条目: [LogEntry], 含表头: Bool = true) -> String {
+        csvString(from: 条目, includeHeader: 含表头)
+    }
+
+    /// 导出 CSV 文件（等同 `exportCSV`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出CSV(_ 条目: [LogEntry], 文件名: String? = nil) throws -> URL {
+        try exportCSV(条目, fileName: 文件名)
+    }
 }
 
 // MARK: - LogEntry 中文命名别名
