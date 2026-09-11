@@ -46,6 +46,27 @@ public extension SystemInfoKit {
     /// 当前进程 CPU 架构（等同 `cpuArchitecture`）
     static var CPU架构: String { cpuArchitecture }
 
+    /// 显卡信息（等同 `gpuInfo`，系统默认 Metal 设备，取不到为 `nil`）
+    static var 显卡信息: GPUInfo? { gpuInfo }
+    /// 显卡名称（等同 `gpuName`，取不到为 `nil`）
+    static var 显卡名称: String? { gpuName }
+    /// 显卡信息文本（等同 `gpuInfoText`，取不到返回「不支持」）
+    static var 显卡信息文本: String { gpuInfoText }
+    /// USB 外设列表（等同 `usbDevices`，仅 macOS）
+    static var USB外设列表: [USBDevice] { usbDevices }
+    /// USB 外设数量（等同 `usbDeviceCount`）
+    static var USB外设数量: Int { usbDeviceCount }
+    /// USB 外设列表文本（等同 `usbDevicesText`）
+    static var USB外设文本: String { usbDevicesText }
+    /// 风扇转速列表（等同 `fanSpeeds`，仅 macOS，无风扇机型为空数组）
+    static var 风扇转速列表: [FanSpeed] { fanSpeeds }
+    /// 风扇转速文本（等同 `fanSpeedsText`）
+    static var 风扇转速文本: String { fanSpeedsText }
+    /// 整机温度（等同 `machineTemperature`，摄氏度取最高读数，仅 macOS）
+    static var 整机温度: Double? { machineTemperature }
+    /// 整机温度文本（等同 `machineTemperatureText`，形如 `46.5 ℃`）
+    static var 整机温度文本: String { machineTemperatureText }
+
     /// 磁盘总容量字节（等同 `diskTotalBytes`）
     static var 磁盘总字节数: UInt64 { diskTotalBytes }
     /// 磁盘剩余容量字节（等同 `diskFreeBytes`）
@@ -98,6 +119,16 @@ public extension SystemInfoKit {
     static var 电源适配器: PowerAdapter? { powerAdapter }
     /// 电源适配器明细文本（等同 `powerAdapterText`）
     static var 电源适配器文本: String { powerAdapterText }
+    /// 电池剩余使用时间（等同 `batteryTimeRemaining`，秒；仅 macOS 且取不到为 `nil`）
+    static var 电池剩余时间: TimeInterval? { batteryTimeRemaining }
+    /// 电池剩余使用时间文本（等同 `batteryTimeRemainingText`）
+    static var 电池剩余时间文本: String { batteryTimeRemainingText }
+    /// 电池充满剩余时间（等同 `batteryTimeToFullCharge`，秒；仅 macOS 且取不到为 `nil`）
+    static var 充满剩余时间: TimeInterval? { batteryTimeToFullCharge }
+    /// 电池充满剩余时间文本（等同 `batteryTimeToFullChargeText`）
+    static var 充满剩余时间文本: String { batteryTimeToFullChargeText }
+    /// 把秒数转成中文时长文本（等同 `batteryTimeText(_:)`）
+    static func 电池时长文本(_ seconds: TimeInterval?) -> String { batteryTimeText(seconds) }
     /// 设备热状态（等同 `thermalState`）
     static var 热状态: ProcessInfo.ThermalState { thermalState }
     /// 热状态中文名（等同 `thermalStateName`）

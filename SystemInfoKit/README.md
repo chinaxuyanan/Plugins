@@ -10,8 +10,9 @@
 - **系统信息**：系统名称 / 版本号 / 完整版本
 - **设备信息**：标识符 / 名称 / 类型 / 友好型号名（`deviceModelName`，内置标识符→机型对照表，可自行增补）
 - **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
+- **硬件扩展**：显卡信息 `gpuInfo`（`GPUInfo` / `显卡信息`：名称 / 建议最大工作内存 / 是否统一内存 / 单线程组最大线程数，取系统默认 Metal 设备）；USB 外设列表 `usbDevices` / `USB外设列表` + `usbDeviceCount` / `USB外设数量` + `usbDevicesText` / `USB外设文本`（`USBDevice` / `USB设备`：产品名 / 厂商名 / 厂商 ID / 产品 ID / 序列号，仅 macOS）；风扇转速 `fanSpeeds` / `风扇转速列表` + `fanSpeedsText` / `风扇转速文本`（`FanSpeed` / `风扇转速`，读 SMC `FnAc` 键，仅 macOS，无风扇机型为空）；整机温度 `machineTemperature` / `整机温度` + `machineTemperatureText` / `整机温度文本`（读 SMC 多枚温度键取最高读数，仅 macOS）
 - **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
-- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）/ 细分状态 `batteryState` + `batteryStateName`（充电中 / 已充满 / 未接电源 / 未知）/ 电池温度 `batteryTemperature` + `batteryTemperatureText`（仅 macOS，读 IOKit `AppleSmartBattery` 的 `Temperature`）/ 电源适配器明细 `powerAdapter` + `powerAdapterText`（`PowerAdapter` / `电源适配器`：功率 / 协商电压 / 协商电流，仅 macOS，未接电源时为 `nil`）/ 供电来源 `powerSourceName`（交流电源 / 电池）
+- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）/ 细分状态 `batteryState` + `batteryStateName`（充电中 / 已充满 / 未接电源 / 未知）/ 电池温度 `batteryTemperature` + `batteryTemperatureText`（仅 macOS，读 IOKit `AppleSmartBattery` 的 `Temperature`）/ 电源适配器明细 `powerAdapter` + `powerAdapterText`（`PowerAdapter` / `电源适配器`：功率 / 协商电压 / 协商电流，仅 macOS，未接电源时为 `nil`）/ 供电来源 `powerSourceName`（交流电源 / 电池）/ 电池剩余时间 `batteryTimeRemaining` / `电池剩余时间` + `batteryTimeRemainingText` 与充满剩余时间 `batteryTimeToFullCharge` / `充满剩余时间` + `batteryTimeToFullChargeText`（读 IOKit 电源源的 `Time to Empty` / `Time to Full Charge`，仅 macOS，未知为 `nil`）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放 / 是否深色模式 / 屏幕亮度（macOS）
 - **刷新率与无障碍**：屏幕最大刷新率 `maximumFramesPerSecond` / 减弱动态效果 `isReduceMotionEnabled` / 降低透明度 `isReduceTransparencyEnabled` / 粗体文本 `isBoldTextEnabled`（仅 iOS）/ 无障碍设置摘要 `accessibilitySummary`
@@ -48,7 +49,7 @@ dependencies: [
 
 然后在目标中 `import SystemInfoKit`。
 
-> **为什么不是 `.package(url: "...", from: "1.4.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "1.5.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -83,6 +84,10 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `activeProcessorCount` | 处理器可用核心数 | `Int` |
 | `processorName` | 处理器型号 | 仅 macOS |
 | `cpuArchitecture` | CPU 架构 | `arm64` / `x86_64` |
+| `gpuInfo` / `gpuName` / `gpuInfoText` | 显卡信息（对象 / 名称 / 文本） | `GPUInfo?`，取系统默认 Metal 设备，取不到为 `nil` / 「不支持」|
+| `usbDevices` / `usbDeviceCount` / `usbDevicesText` | USB 外设（列表 / 数量 / 文本） | `[USBDevice]`，仅 macOS，iOS 为空；含集线器与内建键盘 |
+| `fanSpeeds` / `fanSpeedsText` | 风扇转速（列表 / 文本） | `[FanSpeed]`，读 SMC `FnAc`，仅 macOS，无风扇机型为空 |
+| `machineTemperature` / `machineTemperatureText` | 整机温度（度 / 文本） | `Double?` / `String`，读 SMC 多枚温度键取最高，仅 macOS，读不到为「不支持」|
 | `diskTotalBytes` / `diskFreeBytes` | 磁盘总 / 剩余（字节） | `UInt64` |
 | `diskTotal` / `diskFree` | 磁盘总 / 剩余 | 人类可读 |
 | `diskUsedBytes` / `diskUsed` | 磁盘已用（字节 / 可读） | `UInt64` / 人类可读 |
@@ -101,6 +106,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `batteryTemperature` / `batteryTemperatureText` | 电池温度（度 / 文本） | `Double?` / `String`，仅 macOS，读 IOKit `AppleSmartBattery`，读不到为「不支持」|
 | `powerSourceName` | 供电来源中文名 | `交流电源` / `电池` / `不支持`（台式机）|
 | `powerAdapter` / `powerAdapterText` | 电源适配器明细（对象 / 文本） | `PowerAdapter?`，仅 macOS，**未接电源时为 `nil`** |
+| `batteryTimeRemaining` / `batteryTimeRemainingText` | 电池剩余时间（秒 / 文本） | `TimeInterval?`，读 IOKit 电源源 `Time to Empty`，仅 macOS，未知为 `nil` / 「不支持」|
+| `batteryTimeToFullCharge` / `batteryTimeToFullChargeText` | 电池充满剩余时间（秒 / 文本） | `TimeInterval?`，读 IOKit 电源源 `Time to Full Charge`，仅 macOS，未知为 `nil` / 「不支持」|
+| `batteryTimeText(_:)` | 秒数转中文时长文本 | 形如 `1 小时 20 分` / `35 分`，`nil` 或负数返回「不支持」|
 | `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |
 | `thermalStateName` | 热状态中文名 | 正常 / 尚可 / 严重 / 危急 |
 | `isLowPowerModeEnabled` | 低功耗模式 | 仅 iOS |
@@ -174,6 +182,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `MemoryBreakdown` | 内存明细 | 总容量 / 空闲 / 活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读，含各分项可读文本与中文摘要 |
 | `InstalledApplication` | 已安装应用 | 名称 / 标识符 / 版本 / 路径，仅 macOS |
 | `PowerAdapter` | 电源适配器 | 功率 / 协商电压 / 协商电流 / 标识，仅 macOS |
+| `GPUInfo` | 显卡信息 | 名称 / 建议最大工作内存 / 是否统一内存 / 单线程组最大线程数 |
+| `USBDevice` | USB 外设 | 产品名 / 厂商名 / 厂商 ID / 产品 ID / 序列号 / 厂商产品 ID 文本，仅 macOS |
+| `FanSpeed` | 风扇转速 | 序号 / 转速（RPM）|
 
 ## 中文命名别名
 
@@ -183,6 +194,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `设备标识符` / `设备名称` / `设备类型` | `deviceIdentifier` / `deviceName` / `deviceType` |
 | `设备型号名称` / `设备型号名称(标识符:)` / `设备型号对照表` | `deviceModelName` / `deviceModelName(for:)` / `deviceModelTable` |
 | `内存总量` / `处理器核心数` / `处理器型号` / `CPU架构` | `memoryTotal` / `processorCount` / `processorName` / `cpuArchitecture` |
+| `显卡信息` / `显卡名称` / `显卡信息文本` | `gpuInfo` / `gpuName` / `gpuInfoText` |
+| `USB外设列表` / `USB外设数量` / `USB外设文本` | `usbDevices` / `usbDeviceCount` / `usbDevicesText` |
+| `风扇转速列表` / `风扇转速文本` / `整机温度` / `整机温度文本` | `fanSpeeds` / `fanSpeedsText` / `machineTemperature` / `machineTemperatureText` |
 | `磁盘总容量` / `磁盘剩余容量` / `磁盘已用` / `磁盘使用率` | `diskTotal` / `diskFree` / `diskUsed` / `diskUsagePercent` |
 | `可用容量` / `机会容量` / `卷名` / `文件系统名称` | `availableCapacity` / `opportunisticCapacity` / `volumeName` / `fileSystemName` |
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
@@ -190,6 +204,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `电池状态` / `电池状态名` | `batteryState` / `batteryStateName`（`.充电中/.已充满/.未接电源/.未知`）|
 | `电池温度` / `电池温度文本` / `供电来源` | `batteryTemperature` / `batteryTemperatureText` / `powerSourceName` |
 | `电源适配器` / `电源适配器文本` | `powerAdapter` / `powerAdapterText` |
+| `电池剩余时间` / `电池剩余时间文本` / `充满剩余时间` / `充满剩余时间文本` | `batteryTimeRemaining` / `batteryTimeRemainingText` / `batteryTimeToFullCharge` / `batteryTimeToFullChargeText` |
+| `电池时长文本(_:)` | `batteryTimeText(_:)` |
 | `屏幕分辨率` / `屏幕缩放` / `显示器数量` / `显示器分辨率` / `显示器缩放` | `screenSize` / `screenScale` / `displayCount` / `displayResolutions` / `displayScales` |
 | `深色模式` / `屏幕亮度` | `isDarkMode` / `screenBrightness` |
 | `系统运行时长` / `系统启动时间` / `是否模拟器` | `systemUptimeString` / `bootTime` / `isSimulator` |
@@ -211,6 +227,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `网络接口列表` / `主网卡物理地址` | `networkInterfaces` / `primaryMACAddress` |
 | `运行进程` / `网络接口` / `进程占用` / `电池状态` / `进程排序依据` | `RunningProcess` / `NetworkInterface` / `ProcessUsage` / `BatteryState` / `ProcessSortKey`（类型别名）|
 | `内存明细` / `已安装应用` / `电源适配器` | `MemoryBreakdown` / `InstalledApplication` / `PowerAdapter`（类型别名）|
+| `显卡信息` / `USB设备` / `风扇转速` | `GPUInfo` / `USBDevice` / `FanSpeed`（类型别名）|
 | `内核版本` / `主机名` / `当前用户名` / `是否被调试` | `kernelVersion` / `hostName` / `userName` / `isDebuggerAttached` |
 | `最大刷新率` / `减弱动态效果` / `降低透明度` / `粗体文本` / `无障碍摘要` | `maximumFramesPerSecond` / `isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled` / `accessibilitySummary` |
 | `存储卷列表` / `存储卷数量` / `可移除存储卷列表` | `mountedVolumes` / `mountedVolumeCount` / `removableVolumes` |
@@ -223,6 +240,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 ## 更新日志
 
 - **版本号规则变更（自 1.4.0 起）**：版本号改为「满十进位式」——次版本满 10 就进位到主版本。按此规则，`0.13.0` 的下一版写作 `1.4.0`（而不是 `0.14.0`）。此前已发布的 `0.x` tag 原样保留，上面的旧条目也保持原编号。
+
+- **1.5.0**：新增显卡信息（`gpuInfo` / `显卡信息`，用 `MTLCreateSystemDefaultDevice()` 取系统默认 Metal 设备的名称 / `recommendedMaxWorkingSetSize` / `hasUnifiedMemory` / `maxThreadsPerThreadgroup.width`，含 `GPUInfo` / `显卡信息` 结构体与 `gpuName` / `gpuInfoText`；`#if canImport(Metal)` 守护，取不到为 `nil`；多显卡机型只给出系统默认设备这一块）、USB 外设列表（`usbDevices` / `USB外设列表` 与 `usbDeviceCount` / `usbDevicesText`，枚举 IOKit 注册表的 `IOUSBHostDevice`（读不到回退 `IOUSBDevice`）节点，读产品名 / 厂商名 / 厂商 ID / 产品 ID / 序列号，含 `USBDevice` / `USB设备` 结构体与 `idText` / `标识文本` 派生字段；集线器与内建键盘触控板也会列入，iOS 恒为空数组）、风扇转速与整机温度（`fanSpeeds` / `风扇转速列表` 与 `fanSpeedsText` / `风扇转速文本`，直读 SMC 的 `FNum` / `FnAc` 键，含 `FanSpeed` / `风扇转速` 结构体；`machineTemperature` / `整机温度` 与 `machineTemperatureText` / `整机温度文本` 依次尝试 `TC0P` / `TG0P` / `TB0T` / Apple Silicon 的 `Tp0x` 等常见温度键，取落在 0~120 ℃ 内的最高读数；用 `IOConnectCallStructMethod` + `READ_KEYINFO` / `READ_BYTES` 两段式读取，按 `sp78` / `fpe2` / `flt ` / `ui8 ` / `ui16` 解码，一切读不到的情况优雅降级为 `nil` / 空数组；均仅 macOS）、电池剩余时间（`batteryTimeRemaining` / `电池剩余时间` 与 `batteryTimeRemainingText`、`batteryTimeToFullCharge` / `充满剩余时间` 与 `batteryTimeToFullChargeText`，读 IOKit 电源源的 `Time to Empty` / `Time to Full Charge`（分钟，`-1` 视为未知），配纯函数 `batteryTimeText(_:)` / `电池时长文本(_:)` 转中文时长文本；仅 macOS），均含中文别名并补纯逻辑单元测试。
 
 - **1.4.0**：新增内存明细（`memoryBreakdown` / `内存明细`，用 `host_statistics64` 的 `vm_statistics64` 把内存拆成活跃 / 非活跃 / 联动（wired）/ 压缩 / 可丢弃 / 预读，含 `MemoryBreakdown` / `内存明细` 结构体与各分项人类可读文本、中文多行摘要；可用内存 = 空闲 + 非活跃 + 可丢弃 + 预读，与 `availableMemoryBytes` 同口径）、每核 CPU 使用率（`perCoreCPUUsage` / `每核CPU使用率` 与 `perCoreCPUUsageText` / `每核CPU使用率文本`，`PROCESSOR_CPU_LOAD_INFO` 逐核采样 100ms 求差值，下标即核序号）、已安装应用列表（`installedApplications` / `已安装应用列表` 与 `installedApplicationCount` / `已安装应用数量`，扫 `/Applications` 与 `/System/Applications` 顶层的 `.app`，含 `InstalledApplication` / `已安装应用` 结构体：名称 / 标识符 / 版本 / 路径，按名称升序，仅 macOS）、电池温度与电源明细（`batteryTemperature` / `电池温度` 与 `batteryTemperatureText`，读 IOKit `AppleSmartBattery` 的 `Temperature`；`powerSourceName` / `供电来源`；`powerAdapter` / `电源适配器` 与 `powerAdapterText`，读 `IOPSCopyExternalPowerAdapterDetails()` 得到功率 / 协商电压 / 协商电流，含 `PowerAdapter` / `电源适配器` 结构体，未接电源为 `nil`；均仅 macOS），并把 `memoryStats()` 改为委托 `memoryBreakdownStats()`，让 `memoryUsedBytes` / `memoryUsagePercent` 与 `memoryBreakdown` 不可能出现口径分叉。
 

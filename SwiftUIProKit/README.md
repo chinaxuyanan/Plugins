@@ -8,9 +8,9 @@
 ## 特性
 
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
-- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印，见名知意
+- **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印、底部抽屉，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
-- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`、展开收起文本 `ExpandableText`、关键词高亮文本 `HighlightedText`、打字机文本 `TypingText`、热力图日历 `HeatmapCalendar`、瀑布流 `MasonryGrid`、日历选择器 `CalendarPicker`、标签输入 `TagInput`、饼图 `PieChart`，一行代码完成常见交互
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`、展开收起文本 `ExpandableText`、关键词高亮文本 `HighlightedText`、打字机文本 `TypingText`、热力图日历 `HeatmapCalendar`、瀑布流 `MasonryGrid`、日历选择器 `CalendarPicker`、标签输入 `TagInput`、饼图 `PieChart`、正式图表 `LineChart` / `BarChart`、底部抽屉 `BottomSheet`、浮动标签输入框 `FloatingLabelField`、图片对比滑块 `BeforeAfterSlider`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -26,7 +26,7 @@ dependencies: [
 
 然后在目标中 `import SwiftUIProKit`。
 
-> **为什么不是 `.package(url: "...", from: "1.7.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "1.8.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -141,6 +141,10 @@ VStack {
 | `高亮文本` | `HighlightedText`（多关键词着色 / 加粗 / 加底色）|
 | `打字机文本` | `TypingText`（逐字显现 + 光标闪烁 + 可选循环）|
 | `热力图日历` | `HeatmapCalendar`（一周一列方格，按日强度上色）|
+| `折线图` / `柱状图` / `图表数据系列` / `图表坐标轴` | `LineChart` / `BarChart` / `ChartSeries` / `ChartAxis`（带坐标轴的正式图表）|
+| `底部抽屉` | `bottomSheet`（贴底弹出，可拖动多档位）|
+| `浮动标签输入框` | `FloatingLabelField`（聚焦 / 有内容时标签上浮）|
+| `图片对比滑块` | `BeforeAfterSlider`（拖动分割线比较前后两张图）|
 
 ## 属性速查表
 
@@ -484,6 +488,31 @@ VStack {
 | `if(_:transform:)` | 条件为真时执行变换（链式辅助）|
 | `ifLet(_:transform:)` | 可选值存在时执行变换 |
 
+### 正式图表
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `LineChart(series:height:lineWidth:showsArea:showsDots:showsGrid:tickCount:xLabels:...)` | 折线图（带 Y 轴刻度 / 网格 / X 轴标签 / 多系列图例）|
+| `LineChart(values:labels:color:...)` | 折线图（单条数值序列便捷写法）|
+| `BarChart(series:labels:height:spacing:cornerRadius:showsGrid:tickCount:...)` | 柱状图（基线为 0，多系列组内并排，可高亮每组的最大值）|
+| `BarChart(values:labels:color:...)` | 柱状图（单条数值序列便捷写法，默认高亮最大值）|
+| `BarChart.barWidth(groupWidth:spacing:barCount:)` | 单根柱子的宽度（纯逻辑）|
+| `ChartAxis.paddedRange(_:paddingRatio:)` | 数据范围加留白（纯逻辑）|
+| `ChartAxis.ticks(in:count:)` | 等分刻度值（纯逻辑）|
+| `ChartAxis.ratios(_:in:)` | 数值映射到 0~1 并夹紧（纯逻辑）|
+| `ChartAxis.labelIndexes(count:maxLabels:)` | X 轴标签抽稀下标（纯逻辑）|
+| `ChartAxis.label(_:suffix:)` | 刻度文字（整数不带小数，纯逻辑）|
+| `图表坐标轴.留白范围(_:留白比例:)` / `刻度(in:段数:)` / `比例(_:范围:)` / `标签下标(总数:最多:)` / `刻度文字(_:单位:)` | 上面对应方法的中文别名 |
+
+### 底部抽屉
+
+| 方法 | 中文含义 |
+| --- | --- |
+| `bottomSheet(isPresented:detents:initialDetent:showsHandle:cornerRadius:dismissOnTapOutside:content:)` | 贴底弹出、可拖动多档位、点击外部关闭的面板 |
+| `BottomSheet.normalizedDetents(_:)` | 归一化档位数组（纯逻辑）|
+| `BottomSheet.height(containerHeight:detent:)` | 某档对应的面板高度（纯逻辑）|
+| `BottomSheet.nearestIndex(currentDetent:detents:velocity:)` | 松手后吸附到哪一档（纯逻辑）|
+
 ### 复合组件
 
 | 组件 | 中文含义 |
@@ -514,6 +543,11 @@ VStack {
 | `CalendarPicker(selection:...)` / `CalendarPicker(range:...)` | 日历选择器（可点的月份网格：单选某天或选一段区间，自带上月 / 下月切换、今天描边、可选范围限制）|
 | `TagInput(tags:placeholder:maxTags:allowsDuplicates:tagColor:onAdd:onRemove:onReject:)`（iOS 16 / macOS 13+）| 标签输入（回车或输入逗号成标签块，用 `FlowLayout` 自动换行，可限数量 / 查重，逐个可删）|
 | `PieChart(slices:size:isDonut:innerRatio:showsLegend:centerText:legendFont:)` / `PieChart(values:labels:colors:...)` | 饼图 / 环形占比图（多段构成比例 + 图例，负值按 0、总和为 0 不画，只有一段时画整圆）|
+| `LineChart(series:height:lineWidth:showsArea:showsDots:showsGrid:tickCount:xLabels:...)` / `LineChart(values:labels:color:...)` | 折线图（带 Y 轴刻度 / 横向网格 / X 轴标签 / 多系列图例，正式图表）|
+| `BarChart(series:labels:height:spacing:cornerRadius:...)` / `BarChart(values:labels:color:...)` | 柱状图（基线为 0，多系列组内并排，可高亮每组最大值）|
+| `BottomSheet`（`.bottomSheet(isPresented:detents:initialDetent:...)`）| 底部抽屉（贴底弹出，可拖动多档位、点击外部关闭，兼容 iOS 15 / macOS 12）|
+| `FloatingLabelField(label:text:isSecure:height:cornerRadius:tint:helperText:errorText:autoFocus:)` | 浮动标签输入框（聚焦 / 有内容时标签缩小上浮；可带说明文字与红色错误态，密码输入自动切 `SecureField`）|
+| `BeforeAfterSlider(beforeImage:afterImage:...)` / `BeforeAfterSlider(before:after:ratio:...)` | 图片对比滑块（两张图叠放，拖动分割线 / 点击即切换分割位置，可绑定比例）|
 
 > 中文构造器（如 `跑马灯(文字:速度:方向:)`、`加载按钮(标题:加载中:动作:)`、`可折叠面板(标题:展开:内容:)`）的**首个参数一律带中文标签**，与英文 `init` 的无标签首参区分开，避免 Swift 报 `ambiguous use of 'init'`。英文写法仍可省略首参标签（`MarqueeText("公告")`、`LoadingButton("提交") { }`）。
 
@@ -529,6 +563,7 @@ VStack {
 
 ## 更新日志
 
+- **1.8.0**：新增四个复合组件——正式图表（折线图 `LineChart` / `折线图` 与柱状图 `BarChart` / `柱状图`，与无坐标轴的迷你图表互补：带 Y 轴刻度文字、横向网格线、可选 X 轴标签与多系列图例；柱状图基线固定在 `0`、有负值时向下画，多系列时组内并排、可高亮每组最大值。把范围留白 / 刻度 / 比例映射 / 标签抽稀这些纯逻辑抽到 `ChartAxis` / `图表坐标轴`，系列模型是 `ChartSeries` / `图表数据系列`，`BarChart.barWidth(groupWidth:spacing:barCount:)` / `柱宽(组宽:柱间距:柱数:)` 也是纯逻辑，均可单测）、底部抽屉 `BottomSheet` / `底部抽屉`（`.bottomSheet(isPresented:detents:initialDetent:showsHandle:cornerRadius:dismissOnTapOutside:content:)`：贴底弹出、可拖动在多个档位间展开、向下拖到最小档以下或点击外部即关闭。为兼容 iOS 15 / macOS 12，没有用系统 iOS 16.4 才有的 `presentationDetents`，而是自己用 `DragGesture` + 高度吸附实现；`normalizedDetents(_:)` / `height(containerHeight:detent:)` / `nearestIndex(currentDetent:detents:velocity:)` 是纯逻辑）、浮动标签输入框 `FloatingLabelField` / `浮动标签输入框`（空且未聚焦时标签居中当占位，聚焦或已有内容就缩小滑到左上角；可带说明文字，传 `errorText` 变红色错误态并让边框变色、加粗，`isSecure` 自动换成 `SecureField`，`shouldFloat(text:isFocused:)` / `是否上浮(文本:聚焦中:)` 是纯逻辑）、图片对比滑块 `BeforeAfterSlider` / `图片对比滑块`（两张内容叠放，上层按比例从左侧裁切，拖动中间圆形把手或直接点某处改分割位置；内容先等比填充再裁切，可直接传两张 `Image`，`ratio` 可绑定外部；`clampRatio(_:)` / `ratio(x:width:)` 是纯逻辑）。均含中文别名与文档注释并补测试。
 - **1.7.0**：新增四个复合组件——瀑布流 `MasonryGrid` / `瀑布流`（基于 `Layout` 协议的不等高多列，每次把子视图放进「当前最矮的列」、并列时取最左，因此同样输入总是同样摆法；列表宽度不确定时用「最宽子视图 × 列数」兜底，不会塌成 0 高；`shortestColumnIndex(in:)` / `最矮列(高度:)` 是可直接复用的纯逻辑。iOS 16 / macOS 13+）、日历选择器 `CalendarPicker` / `日历选择器`（可点的月份网格，支持「选某天」与「选一段区间」两种模式，自带上月 / 下月切换、今天描边、可选范围限制 `minimumDate` / `maximumDate`；星期表头跟着 `calendar.firstWeekday` 走，周一起头还是周日起头都行；`monthGrid(for:calendar:)` / `isSameDay(_:_:calendar:)` / `weekdaySymbols(calendar:)` / `month(byAdding:to:calendar:)` 均为纯逻辑）、标签输入 `TagInput` / `标签输入`（输入后回车或输入逗号即变成标签块，用 `FlowLayout` 自动换行；支持全角 / 半角逗号与顿号三种分隔符、数量上限、查重，被拒的标签走 `onReject` 回调；`parse(_:)` / `applied(_:to:maxTags:allowsDuplicates:)` 是纯逻辑。iOS 16 / macOS 13+）、饼图 / 环形占比图 `PieChart` / `饼图`（多段构成比例 + 图例，负值按 0、总和为 0 时整块不画，只有一段时走椭圆分支画成整圆而不是空；环形可加中心文字；`ratios(_:)` / `angleRanges(_:)` / `占比(_:)` / `角度区间(_:)` 返回「12 点方向为 0°、顺时针增大」的表盘角度，是纯逻辑）。均含中文别名与文档注释并补测试。
 - **版本号规则变更（自 1.7.0 起）**：改用「满十进位式」——次版本满 10 就进位到主版本。旧编号 `0.16.0` 在新记法里对应 `1.6.0`，所以本版是 `1.7.0` 而非 `0.17.0`；`1.9.x` 的下一个版本将是 `2.0.0`。更早的条目一律保留发布时的原编号，不改写。
 - **0.16.0**：新增四个复合组件——展开收起文本 `ExpandableText` / `展开文本`（长文本默认只显示 `lineLimit` 行，用「并排藏两段不可见文本、分别量高度」的办法判断是否真被截断，没超出就不显示按钮；展开 / 收起按钮文字、箭头图标、行距、颜色都可调）、关键词高亮文本 `HighlightedText` / `高亮文本`（`AttributedString` 实现，多个关键词一次全部命中、同一关键词出现多次也全部着色，默认不区分大小写，可选底色与加粗；`ranges(of:in:caseSensitive:)` / `命中区间` 是可直接复用的纯逻辑）、打字机文本 `TypingText` / `打字机文本`（逐字显现 + 末尾光标闪烁 + 可选循环重播，速度 / 光标样式 / 循环停顿可调，打完一轮回调 `onFinish`）、热力图日历 `HeatmapCalendar` / `热力图日历`（GitHub 贡献图样式，一周一列、每列 7 格、周日在最上，按「日期 → 数值」相对区间最大值分成若干档上色，数值为 0 或缺数据画空格；可选月份标签与点击回调；`levels(values:levelCount:calendar:)` / `weekColumns(from:to:calendar:)` 是纯逻辑，可直接复用与测试）。均含中文别名与文档注释并补测试。

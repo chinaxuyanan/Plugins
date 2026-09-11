@@ -583,4 +583,192 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = 饼图.占比([1, 3])
         _ = 饼图.角度区间([1, 3])
     }
+
+    // MARK: - 正式图表
+
+    func testChartAxisPaddedRange() {
+        // 空 / 全非有限数 → 兜底 0...1
+        XCTAssertEqual(ChartAxis.paddedRange([]), 0...1)
+        XCTAssertEqual(ChartAxis.paddedRange([.nan, .infinity]), 0...1)
+        // 上下各留 5% 的跨度
+        let range = ChartAxis.paddedRange([1, 2, 3])
+        XCTAssertEqual(range.lowerBound, 0.9, accuracy: 1e-9)
+        XCTAssertEqual(range.upperBound, 3.1, accuracy: 1e-9)
+        // 全部相同 → 围绕该值上下撑开（绝对值也参与，避免全 0 撑不开）
+        XCTAssertEqual(ChartAxis.paddedRange([5]), 4.5...5.5)
+        XCTAssertEqual(ChartAxis.paddedRange([0, 0]), (-0.5)...0.5)
+        // 多条系列摊平后一起算
+        let multi = ChartAxis.paddedRange([ChartSeries(label: "甲", values: [0]),
+                                           ChartSeries(label: "乙", values: [10])])
+        XCTAssertEqual(multi.lowerBound, -0.5, accuracy: 1e-9)
+        XCTAssertEqual(multi.upperBound, 10.5, accuracy: 1e-9)
+        // 中文别名与英文等价
+        XCTAssertEqual(图表坐标轴.paddedRange([1, 2, 3]), range)
+    }
+
+    func testChartAxisTicks() {
+        XCTAssertEqual(ChartAxis.ticks(in: 0...4, count: 4), [0, 1, 2, 3, 4])
+        XCTAssertEqual(ChartAxis.ticks(in: 0...4, count: 0), [0, 4])   // count < 1 按 1 处理
+        XCTAssertEqual(ChartAxis.ticks(in: 3...3, count: 4), [3])      // 跨度为 0 只返回一个
+        let five = ChartAxis.ticks(in: 0...1, count: 4)
+        XCTAssertEqual(five.count, 5)
+        XCTAssertEqual(five.first, 0)
+        XCTAssertEqual(five.last, 1)
+    }
+
+    func testChartAxisRatios() {
+        XCTAssertEqual(ChartAxis.ratios([0, 10], in: 0...10), [0, 1])
+        // 超出范围会被夹到 0 / 1
+        XCTAssertEqual(ChartAxis.ratios([-5, 15], in: 0...10), [0, 1])
+        XCTAssertEqual(ChartAxis.ratios([50], in: 0...10), [1])
+        // 跨度为 0 → 全落在中线
+        XCTAssertEqual(ChartAxis.ratios([1, 2, 3], in: 5...5), [0.5, 0.5, 0.5])
+    }
+
+    func testChartAxisLabelIndexes() {
+        XCTAssertEqual(ChartAxis.labelIndexes(count: 0, maxLabels: 5), [])
+        XCTAssertEqual(ChartAxis.labelIndexes(count: 3, maxLabels: 0), [])
+        // 上限不小于个数 → 全显示
+        XCTAssertEqual(ChartAxis.labelIndexes(count: 4, maxLabels: 10), [0, 1, 2, 3])
+        // 只留一个 → 取第一个
+        XCTAssertEqual(ChartAxis.labelIndexes(count: 10, maxLabels: 1), [0])
+        // 抽稀带上首尾
+        XCTAssertEqual(ChartAxis.labelIndexes(count: 10, maxLabels: 3), [0, 5, 9])
+        // 结果严格递增（不会因为四舍五入挤出重复下标）
+        let indexes = ChartAxis.labelIndexes(count: 13, maxLabels: 5)
+        XCTAssertEqual(indexes, indexes.sorted())
+        XCTAssertEqual(Set(indexes).count, indexes.count)
+    }
+
+    func testChartAxisLabel() {
+        XCTAssertEqual(ChartAxis.label(3), "3")
+        XCTAssertEqual(ChartAxis.label(3.5), "3.5")
+        XCTAssertEqual(ChartAxis.label(3, suffix: "%"), "3%")
+        XCTAssertEqual(ChartAxis.label(-2.5, suffix: "次"), "-2.5次")
+        XCTAssertEqual(ChartAxis.label(.nan), "—")
+        // 中文别名与英文等价
+        XCTAssertEqual(图表坐标轴.留白范围([1, 2, 3]), ChartAxis.paddedRange([1, 2, 3]))
+        XCTAssertEqual(图表坐标轴.刻度(in: 0...4, 段数: 4), [0, 1, 2, 3, 4])
+        XCTAssertEqual(图表坐标轴.比例([0, 10], 范围: 0...10), [0, 1])
+        XCTAssertEqual(图表坐标轴.标签下标(总数: 10, 最多: 3), [0, 5, 9])
+        XCTAssertEqual(图表坐标轴.刻度文字(3, 单位: "%"), "3%")
+    }
+
+    func testChartConstructs() {
+        _ = LineChart(values: [1, 2, 3], labels: ["一", "二", "三"])
+        _ = LineChart(series: [.init(label: "甲", values: [1, 2], color: .red)],
+                      height: 160, lineWidth: 3, showsArea: false, showsDots: false,
+                      showsGrid: false, tickCount: 5, xLabels: ["a", "b"],
+                      maxXLabels: 2, showsYLabels: false, showsLegend: false, ySuffix: "次")
+        _ = BarChart(values: [1, 2, 3], labels: ["一", "二", "三"])
+        _ = BarChart(series: [.init(label: "甲", values: [1, 2])],
+                     labels: ["a", "b"], height: 150, spacing: 8, cornerRadius: 4,
+                     showsGrid: false, tickCount: 3, maxXLabels: 2,
+                     showsYLabels: false, showsLegend: false, highlightsMax: true, ySuffix: "%")
+        // 中文 init：`系列:` / `数值:` 凭标签区分，不会歧义
+        _ = 折线图(数值: [1, 2], 横轴标签: ["一", "二"], 高度: 120, 纵轴单位: "次")
+        _ = 折线图(系列: [图表数据系列(名称: "甲", 数值: [1, 2], 颜色: .blue)], 显示图例: false)
+        _ = 柱状图(数值: [1, 2], 高亮最大值: false)
+        _ = 柱状图(系列: [图表数据系列(名称: "甲", 数值: [1, 2])], 柱间距: 4)
+        XCTAssertEqual(图表数据系列(名称: "甲", 数值: [1, 2]).名称, "甲")
+        XCTAssertEqual(图表数据系列(名称: "甲", 数值: [1, 2]).数值, [1, 2])
+    }
+
+    func testBarChartBarWidth() {
+        // 一组 100 宽、间距 5、2 根柱 → (100 - 3*5) / 2 = 42.5
+        XCTAssertEqual(BarChart.barWidth(groupWidth: 100, spacing: 5, barCount: 2), 42.5, accuracy: 1e-9)
+        // 宽度不够也至少 1
+        XCTAssertEqual(BarChart.barWidth(groupWidth: 4, spacing: 5, barCount: 2), 1)
+        // 没有柱子 → 0
+        XCTAssertEqual(BarChart.barWidth(groupWidth: 100, spacing: 5, barCount: 0), 0)
+        XCTAssertEqual(柱状图.柱宽(组宽: 100, 柱间距: 5, 柱数: 2), 42.5, accuracy: 1e-9)
+    }
+
+    // MARK: - 底部抽屉
+
+    func testBottomSheetNormalizedDetents() {
+        // 空 / 全非法 → 兜底两档
+        XCTAssertEqual(BottomSheet.normalizedDetents([]), [0.4, 0.7])
+        XCTAssertEqual(BottomSheet.normalizedDetents([0, -1, 2]), [0.4, 0.7])
+        // 升序 + 去重
+        XCTAssertEqual(BottomSheet.normalizedDetents([0.7, 0.4, 0.4]), [0.4, 0.7])
+        XCTAssertEqual(BottomSheet.normalizedDetents([0.5, 0.5]), [0.5])
+        XCTAssertEqual(底部抽屉.归一化档位([0.7, 0.4]), [0.4, 0.7])
+    }
+
+    func testBottomSheetHeightAndClamp() {
+        XCTAssertEqual(BottomSheet.height(containerHeight: 100, detent: 0.4), 40, accuracy: 1e-9)
+        XCTAssertEqual(BottomSheet.height(containerHeight: 100, detent: 1.5), 100, accuracy: 1e-9)
+        XCTAssertEqual(BottomSheet.height(containerHeight: 0, detent: 0.4), 0)
+        XCTAssertEqual(底部抽屉.面板高度(容器高: 100, 档位: 0.4), 40, accuracy: 1e-9)
+        XCTAssertEqual(BottomSheet.clamp(5, count: 3), 2)
+        XCTAssertEqual(BottomSheet.clamp(-1, count: 3), 0)
+        XCTAssertEqual(BottomSheet.clamp(0, count: 0), 0)
+    }
+
+    func testBottomSheetNearestIndex() {
+        let detents: [CGFloat] = [0.4, 0.7]
+        XCTAssertEqual(BottomSheet.nearestIndex(currentDetent: 0.42, detents: detents), 0)
+        XCTAssertEqual(BottomSheet.nearestIndex(currentDetent: 0.65, detents: detents), 1)
+        // 向上甩 → 往更大档走；向下甩 → 往更小档走
+        XCTAssertEqual(BottomSheet.nearestIndex(currentDetent: 0.42, detents: detents, velocity: -0.5), 1)
+        XCTAssertEqual(BottomSheet.nearestIndex(currentDetent: 0.65, detents: detents, velocity: 0.5), 0)
+        // 已经在最大档，再向上甩也不会越界
+        XCTAssertEqual(BottomSheet.nearestIndex(currentDetent: 0.7, detents: detents, velocity: -0.9), 1)
+        // 只有一档 → 恒为 0
+        XCTAssertEqual(BottomSheet.nearestIndex(currentDetent: 0.5, detents: [0.5]), 0)
+        XCTAssertEqual(底部抽屉.吸附档位(当前档位: 0.65, 档位组: detents), 1)
+    }
+
+    // MARK: - 浮动标签输入框
+
+    func testFloatingLabelShouldFloat() {
+        XCTAssertFalse(FloatingLabelField.shouldFloat(text: "", isFocused: false))
+        XCTAssertTrue(FloatingLabelField.shouldFloat(text: "x", isFocused: false))
+        XCTAssertTrue(FloatingLabelField.shouldFloat(text: "", isFocused: true))
+        XCTAssertTrue(浮动标签输入框.是否上浮(文本: "", 聚焦中: true))
+    }
+
+    func testFloatingLabelConstructs() {
+        _ = FloatingLabelField(label: "手机号", text: .constant(""))
+        _ = FloatingLabelField(label: "密码", text: .constant(""), isSecure: true,
+                               height: 60, cornerRadius: 12, tint: .blue,
+                               helperText: "至少 6 位", errorText: "太短了", autoFocus: true)
+        // 中文 init 首参「标签:」无默认值
+        _ = 浮动标签输入框(标签: "邮箱", 文本: .constant(""))
+        _ = 浮动标签输入框(标签: "密码", 文本: .constant(""), 密码输入: true,
+                         错误文字: "不能为空", 自动聚焦: true)
+    }
+
+    // MARK: - 图片对比滑块
+
+    func testBeforeAfterSliderLogic() {
+        XCTAssertEqual(BeforeAfterSlider<Color, Color>.clampRatio(-0.5), 0)
+        XCTAssertEqual(BeforeAfterSlider<Color, Color>.clampRatio(1.5), 1)
+        XCTAssertEqual(BeforeAfterSlider<Color, Color>.clampRatio(0.3), 0.3, accuracy: 1e-9)
+        XCTAssertEqual(BeforeAfterSlider<Color, Color>.ratio(x: 50, width: 100), 0.5, accuracy: 1e-9)
+        XCTAssertEqual(BeforeAfterSlider<Color, Color>.ratio(x: 200, width: 100), 1, accuracy: 1e-9)
+        // 宽度为 0 → 退回中线
+        XCTAssertEqual(BeforeAfterSlider<Color, Color>.ratio(x: 10, width: 0), 0.5, accuracy: 1e-9)
+        XCTAssertEqual(图片对比滑块<Color, Color>.限定比例(-1), 0)
+        XCTAssertEqual(图片对比滑块<Color, Color>.计算比例(横坐标: 25, 宽度: 100), 0.25, accuracy: 1e-9)
+    }
+
+    func testBeforeAfterSliderConstructs() {
+        _ = BeforeAfterSlider(before: { Color.red }, after: { Color.blue })
+        _ = BeforeAfterSlider(before: { Text("前") }, after: { Text("后") },
+                              ratio: .constant(0.3), initialRatio: 0.2, handleSize: 40,
+                              cornerRadius: 16, showsLabels: false,
+                              beforeLabel: "原图", afterLabel: "修后")
+        _ = BeforeAfterSlider(beforeImage: Image(systemName: "photo"),
+                              afterImage: Image(systemName: "photo.fill"))
+        _ = BeforeAfterSlider(beforeImage: Image(systemName: "photo"),
+                              afterImage: Image(systemName: "photo.fill"),
+                              initialRatio: 0.3, showsLabels: false)
+        // 中文 init：自定义视图与图片各一套
+        _ = 图片对比滑块(前: { Color.red }, 后: { Color.blue })
+        _ = 图片对比滑块(前图: Image(systemName: "photo"),
+                     后图: Image(systemName: "photo.fill"),
+                     初始比例: 0.4, 前标签: "原图", 后标签: "修后")
+    }
 }

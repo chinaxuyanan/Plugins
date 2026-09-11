@@ -44,9 +44,9 @@ git push origin --tags
 `git push origin --tags` 会把 50 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
 
 ```
-SwiftUIProKit-1.7.0
-LogKit-1.4.0
-SystemInfoKit-1.4.0
+SwiftUIProKit-1.8.0
+LogKit-1.5.0
+SystemInfoKit-1.5.0
 ```
 
 > 注意：这些 tag 只是**版本标记**，不是给 SwiftPM 用的。因为三个包在同一个仓库的子目录里，

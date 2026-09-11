@@ -1072,3 +1072,34 @@ public extension View {
         watermark(文字, color: 颜色, font: 字体, spacing: 间距, angle: 角度)
     }
 }
+
+// MARK: 底部抽屉
+
+public extension View {
+
+    /// 底部抽屉（等同 `bottomSheet`）
+    /// - Parameters:
+    ///   - 是否显示: 控制是否显示的绑定值
+    ///   - 停靠档位: 档位数组（占容器高度的比例），默认 `[0.4, 0.7]`
+    ///   - 初始档位: 初始档位下标，默认 `0`
+    ///   - 显示把手: 是否显示顶部拖拽把手，默认 `true`
+    ///   - 圆角: 面板圆角，默认 `16`
+    ///   - 点外部关闭: 点击面板外是否关闭，默认 `true`
+    ///   - 内容: 面板内容
+    @ViewBuilder
+    func 底部抽屉<Content: View>(是否显示: Binding<Bool>,
+                             停靠档位: [CGFloat] = [0.4, 0.7],
+                             初始档位: Int = 0,
+                             显示把手: Bool = true,
+                             圆角: CGFloat = 16,
+                             点外部关闭: Bool = true,
+                             @ViewBuilder 内容: @escaping () -> Content) -> some View {
+        bottomSheet(isPresented: 是否显示,
+                    detents: 停靠档位,
+                    initialDetent: 初始档位,
+                    showsHandle: 显示把手,
+                    cornerRadius: 圆角,
+                    dismissOnTapOutside: 点外部关闭,
+                    content: 内容)
+    }
+}

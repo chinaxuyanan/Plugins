@@ -1,7 +1,7 @@
 import SwiftUI
 import SystemInfoKit
 
-/// SystemInfoKit 系统分区：网络流量 / 磁盘读写 / 内存明细 / 每核 CPU / 电池电源 / 已安装应用
+/// SystemInfoKit 系统分区：网络流量 / 磁盘读写 / 内存明细 / 每核 CPU / 电池电源 / 已安装应用 / 显卡 / USB / 风扇与温度 / 电池剩余时间
 struct SystemInfoKitPanel: View {
 
     @State private var network: NetworkTraffic?
@@ -10,6 +10,8 @@ struct SystemInfoKitPanel: View {
     @State private var topProcesses: [ProcessUsage] = []
     @State private var sortByMemory = true
     @State private var perCore: [Double] = []
+    @State private var fans: [FanSpeed] = []
+    @State private var temperature: Double?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -169,6 +171,64 @@ struct SystemInfoKitPanel: View {
                     Text("（只列前 8 个）")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+            }
+
+            Card("显卡信息 gpuInfo（系统默认 Metal 设备）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    if let 显卡 = SystemInfoKit.gpuInfo {
+                        row("名称", 显卡.name)
+                        row("最大工作内存", 显卡.maxWorkingMemory)
+                        row("统一内存", 显卡.hasUnifiedMemory ? "是" : "否")
+                        row("单线程组上限", "\(显卡.maxThreadsPerThreadgroup)")
+                    } else {
+                        Text("取不到 Metal 设备（模拟器 / 无独显环境）").foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Card("USB 外设列表 usbDevices（仅 macOS · IOKit）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    row("设备数量", "\(SystemInfoKit.usbDeviceCount)")
+                    ForEach(Array(SystemInfoKit.usbDevices.prefix(8).enumerated()), id: \.offset) { _, 设备 in
+                        row(设备.name, 设备.idText ?? "—")
+                    }
+                    if SystemInfoKit.usbDevices.isEmpty {
+                        Text("未读到 USB 设备").foregroundStyle(.secondary)
+                    } else {
+                        Text("（只列前 8 个，含集线器与内建键盘）")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Card("风扇转速与整机温度（SMC · 仅 macOS）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button("读取风扇与温度（遍历 SMC）") {
+                        fans = SystemInfoKit.fanSpeeds
+                        temperature = SystemInfoKit.machineTemperature
+                        status = fans.isEmpty ? "读不到风扇（无风扇机型或读取失败）" : "已读到 \(fans.count) 台风扇"
+                    }
+                    if fans.isEmpty {
+                        row("风扇", "无风扇或读取不到")
+                    } else {
+                        ForEach(fans, id: \.index) { fan in
+                            row("风扇 \(fan.index)", "\(fan.rpm) RPM")
+                        }
+                    }
+                    row("整机温度", temperature.map { String(format: "%.1f ℃", $0) } ?? "不支持")
+                    Text("整机温度取多枚 SMC 传感器里的最高读数（读取需点击按钮）")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Card("电池剩余时间 batteryTimeRemaining（仅 macOS）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    row("剩余使用时间", SystemInfoKit.batteryTimeRemainingText)
+                    row("充满剩余时间", SystemInfoKit.batteryTimeToFullChargeText)
+                    row("细分状态", SystemInfoKit.batteryStateName)
                 }
             }
 

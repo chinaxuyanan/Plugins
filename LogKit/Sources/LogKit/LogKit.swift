@@ -35,7 +35,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "1.4.0"
+    public static let version = "1.5.0"
 
     // MARK: - 配置
 
@@ -1432,6 +1432,120 @@ public enum LogKit {
                            fileName: fileName)
     }
 
+    // MARK: - 导出 HTML 报告
+
+    /// 把统计摘要写成 HTML 报告文本
+    ///
+    /// 输出一张自包含的网页（样式内联，不引用任何外部资源，打开即看），
+    /// 内容是「总览 / 各级别条数 / 分类排行」三张表，适合直接发给别人或在浏览器里看。
+    /// 文本里的 `&`、`<`、`>`、引号都会被转义，不会把页面撑坏。
+    ///
+    /// - Parameters:
+    ///   - summary: 要导出的摘要
+    ///   - listedCategories: 分类排行最多列出几项，默认 `5`；传 `0` 表示不列出这张表
+    /// - Returns: HTML 文本
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let html = LogKit.htmlString(LogKit.summary(of: LogKit.recentEntries))
+    ///   ```
+    public static func htmlString(_ summary: LogSummary, listedCategories: Int = 5) -> String {
+        var lines: [String] = []
+        lines.append("<!DOCTYPE html>")
+        lines.append("<html lang=\"zh-CN\">")
+        lines.append("<head>")
+        lines.append("<meta charset=\"utf-8\">")
+        lines.append("<title>LogKit 日志摘要</title>")
+        lines.append("<style>")
+        lines.append("body{font-family:-apple-system,\"PingFang SC\",\"Helvetica Neue\",Arial,sans-serif;margin:32px;color:#1c1c1e;}")
+        lines.append("h1{font-size:22px;}")
+        lines.append("h2{font-size:16px;margin-top:28px;}")
+        lines.append(".meta{color:#8e8e93;font-size:12px;}")
+        lines.append("table{border-collapse:collapse;margin-top:8px;}")
+        lines.append("th,td{border:1px solid #d1d1d6;padding:6px 12px;font-size:13px;text-align:left;}")
+        lines.append("th{background:#f2f2f7;}")
+        lines.append("</style>")
+        lines.append("</head>")
+        lines.append("<body>")
+        lines.append("<h1>LogKit 日志摘要</h1>")
+        lines.append("<p class=\"meta\">生成时间：\(escapedHTML(timestamp()))</p>")
+
+        lines.append("<h2>总览</h2>")
+        var overview: [[String]] = [
+            ["总条数", "\(summary.total)"],
+            ["错误条数", "\(summary.errorCount)"],
+            ["错误率", String(format: "%.1f%%", summary.errorRate * 100)]
+        ]
+        if let duration = summary.duration {
+            overview.append(["时间跨度", String(format: "%.2f 秒", duration)])
+        }
+        if let earliest = summary.earliest {
+            overview.append(["最早一条", dateText(earliest)])
+        }
+        if let latest = summary.latest {
+            overview.append(["最晚一条", dateText(latest)])
+        }
+        lines.append(htmlTable(headers: ["项目", "数值"], rows: overview))
+
+        lines.append("<h2>各级别条数</h2>")
+        lines.append(htmlTable(
+            headers: ["级别", "条数"],
+            rows: LogLevel.allCases.map { [$0.chineseName, "\(summary.count(of: $0))"] }))
+
+        if listedCategories > 0, !summary.topCategories.isEmpty {
+            lines.append("<h2>分类排行</h2>")
+            lines.append(htmlTable(
+                headers: ["分类", "条数"],
+                rows: summary.topCategories.prefix(listedCategories).map { [$0.category, "\($0.count)"] }))
+        }
+
+        lines.append("</body>")
+        lines.append("</html>")
+        return lines.joined(separator: "\n")
+    }
+
+    /// 把统计摘要导出为 HTML 报告文件（`.html`）
+    ///
+    /// 文件写在系统临时目录的 `LogKitExport` 子目录下，文件名默认带时间戳，不会互相覆盖。
+    ///
+    /// - Parameters:
+    ///   - summary: 要导出的摘要
+    ///   - listedCategories: 分类排行最多列出几项，默认 `5`
+    ///   - fileName: 目标文件名（不含扩展名）
+    /// - Returns: 导出的 `.html` 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let url = try LogKit.exportHTML(LogKit.summary(of: LogKit.recentEntries))
+    ///   ```
+    public static func exportHTML(_ summary: LogSummary,
+                                  listedCategories: Int = 5,
+                                  fileName: String? = nil) throws -> URL {
+        let html = htmlString(summary, listedCategories: listedCategories)
+        let dest = try makeExportURL(ext: "html", fileName: fileName ?? "LogKit-摘要-\(archiveStamp())")
+        try html.write(to: dest, atomically: true, encoding: .utf8)
+        return dest
+    }
+
+    /// 汇总一批日志条目，并直接导出为 HTML 报告文件
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组
+    ///   - topCategories: 分类排行最多统计几项，默认 `5`
+    ///   - listedCategories: 报告里分类排行最多列出几项，默认 `5`
+    ///   - fileName: 目标文件名（不含扩展名）
+    /// - Returns: 导出的 `.html` 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    public static func exportHTML(of entries: [LogEntry],
+                                  topCategories: Int = 5,
+                                  listedCategories: Int = 5,
+                                  fileName: String? = nil) throws -> URL {
+        try exportHTML(summary(of: entries, topCategories: topCategories),
+                       listedCategories: listedCategories,
+                       fileName: fileName)
+    }
+
     // MARK: - 按 traceId 聚合
 
     /// 把日志按 `traceId` 分组，还原一次请求 / 一条链路的完整日志
@@ -1460,6 +1574,40 @@ public enum LogKit {
             groups[key, default: []].append(entry)
         }
         return groups.mapValues { stableSortedByDate($0) }
+    }
+
+    // MARK: - 按消息聚合
+
+    /// 把日志按消息内容聚合，找出「刷屏」的消息
+    ///
+    /// 与按 `traceId` 聚合不同，这里关心的是**同一句话出现了多少次**：
+    /// 返回结果按「条数从多到少」排序（条数相同时按消息字典序，结果稳定可复现），
+    /// 每组里带着全部原始条目、出现过的分类和最高级别，方便排查日志刷屏或异常重复上报。
+    ///
+    /// - Parameters:
+    ///   - entries: 待聚合的日志条目
+    ///   - trimWhitespace: 是否先去掉消息首尾空白再比，默认 `true`
+    ///   - ignoringCase: 是否忽略大小写，默认 `false`
+    ///   - top: 最多返回几组，`0` 表示不限，默认 `0`
+    /// - Returns: 聚合后的分组（`MessageGroup` 数组）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.maxRecentEntries = 500
+    ///   // …运行一段时间…
+    ///
+    ///   for group in LogKit.groupByMessage(LogKit.recentEntries, top: 10) {
+    ///       print(group.text)   // 形如「12 次 · 错误 · 网络请求失败」
+    ///   }
+    ///   ```
+    public static func groupByMessage(_ entries: [LogEntry],
+                                      trimWhitespace: Bool = true,
+                                      ignoringCase: Bool = false,
+                                      top: Int = 0) -> [MessageGroup] {
+        MessageGroup.groups(from: entries,
+                            trimWhitespace: trimWhitespace,
+                            ignoringCase: ignoringCase,
+                            top: top)
     }
 
     // MARK: - 合并日志文件
@@ -1493,6 +1641,144 @@ public enum LogKit {
         return stableSortedByDate(merged)
     }
 
+    // MARK: - 差异导出
+
+    /// 取某时刻之后（含该时刻）的日志
+    ///
+    /// 纯过滤，不碰磁盘；配合 `mergeLogFiles()` 或 `recentEntries` 做「上次导出之后的增量」。
+    ///
+    /// - Parameters:
+    ///   - date: 起始时刻（含）
+    ///   - entries: 候选日志条目
+    /// - Returns: 时间不早于 `date` 的条目（保持原顺序）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let lastExport = Date()
+    ///   // …运行一段时间…
+    ///   let newOnes = LogKit.entries(since: lastExport, in: LogKit.mergeLogFiles())
+    ///   ```
+    public static func entries(since date: Date, in entries: [LogEntry]) -> [LogEntry] {
+        entries.filter { $0.date >= date }
+    }
+
+    /// 把某时刻之后的日志导出成 CSV 文件（增量 / 差异导出）
+    ///
+    /// 先 `flush()` 并把当前日志与归档合并，再筛出时间不早于 `since` 的条目，
+    /// 用与 `csvString(from:)` 相同的规则写成 CSV（列与 JSON 输出互通，Excel / Numbers 可直接打开）。
+    /// 该时段没有日志时，导出的是只有表头的空表。
+    ///
+    /// - Parameters:
+    ///   - since: 起始时刻（含）
+    ///   - includeArchived: 是否连归档文件一起读，默认 `true`
+    ///   - fileName: 目标文件名（不含扩展名）；默认 `LogKit-增量-时间戳`
+    /// - Returns: 导出的 `.csv` 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let url = try LogKit.exportSince(lastCheckpoint)
+    ///   ```
+    public static func exportSince(_ since: Date,
+                                   includeArchived: Bool = true,
+                                   fileName: String? = nil) throws -> URL {
+        let all = mergeLogFiles(includeArchived: includeArchived)
+        let recent = entries(since: since, in: all)
+        let text = csvString(from: recent)
+        let dest = try makeExportURL(ext: "csv", fileName: fileName ?? "LogKit-增量-\(archiveStamp())")
+        try text.write(to: dest, atomically: true, encoding: .utf8)
+        return dest
+    }
+
+    /// 把某条日志之后的日志导出成 CSV 文件
+    ///
+    /// 等价于用 `entry.date` 调用 `exportSince(_:includeArchived:fileName:)`，
+    /// 适合「以上次看到的最后一条为界，导出之后的全部日志」。
+    ///
+    /// - Parameters:
+    ///   - entry: 作为分界的日志条目（其时刻含在范围内）
+    ///   - includeArchived: 是否连归档文件一起读，默认 `true`
+    ///   - fileName: 目标文件名（不含扩展名）
+    /// - Returns: 导出的 `.csv` 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    public static func exportSince(after entry: LogEntry,
+                                   includeArchived: Bool = true,
+                                   fileName: String? = nil) throws -> URL {
+        try exportSince(entry.date, includeArchived: includeArchived, fileName: fileName)
+    }
+
+    // MARK: - 日志体积统计与清理
+
+    /// 当前日志目录的体积统计
+    ///
+    /// 逐个量「当前日志 + 归档日志 + 崩溃日志」的大小，汇总成 `LogStorage`。
+    /// 当前日志排在最前，其余按修改时间从新到旧。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   print(LogKit.logStorage.text)
+    ///   print(LogKit.logStorage.totalSizeText)   // 形如「1.5 MB」
+    ///   ```
+    public static var logStorage: LogStorage {
+        flush()
+        let fm = FileManager.default
+        let current = logFileURL.lastPathComponent
+        var urls: [URL] = []
+        if fm.fileExists(atPath: logFileURL.path) { urls.append(logFileURL) }
+        urls.append(contentsOf: archivedLogFiles)
+        if fm.fileExists(atPath: crashLogFileURL.path) { urls.append(crashLogFileURL) }
+
+        var seen = Set<String>()
+        var items: [LogStorage.Item] = []
+        for url in urls {
+            let name = url.lastPathComponent
+            guard !seen.contains(name) else { continue }
+            seen.insert(name)
+            let bytes = (try? fm.attributesOfItem(atPath: url.path))
+                .flatMap { ($0[.size] as? NSNumber)?.intValue } ?? 0
+            let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]))?
+                .contentModificationDate
+            items.append(LogStorage.Item(url: url,
+                                         bytes: bytes,
+                                         modified: modified,
+                                         isCurrent: name == current))
+        }
+        let sorted = items.sorted { lhs, rhs in
+            if lhs.isCurrent != rhs.isCurrent { return lhs.isCurrent }
+            let lt = lhs.modified ?? .distantPast
+            let rt = rhs.modified ?? .distantPast
+            if lt != rt { return lt > rt }
+            return lhs.name < rhs.name
+        }
+        return LogStorage(items: sorted)
+    }
+
+    /// 删除全部归档日志文件（保留当前日志与崩溃日志）
+    ///
+    /// 与 `clearLog()`（清空当前日志）配合即可清干净日志目录。
+    ///
+    /// - Returns: 实际删除的文件个数
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let removed = LogKit.clearArchivedLogs()
+    ///   LogKit.clearLog()
+    ///   print("清理了 \(removed) 个归档文件")
+    ///   ```
+    @discardableResult
+    public static func clearArchivedLogs() -> Int {
+        var removed = 0
+        for url in archivedLogFiles {
+            do {
+                try FileManager.default.removeItem(at: url)
+                removed += 1
+            } catch {
+                // 单个文件删不掉就跳过，不因为一个失败中断整轮清理
+            }
+        }
+        return removed
+    }
+
     // MARK: - 内部：导出与合并用的公共小工具
 
     /// 内部：把一张二维表拼成 Markdown 表格；表头、分隔行、数据行加起来是一个完整的表
@@ -1509,6 +1795,30 @@ public enum LogKit {
     /// 内部：转义 Markdown 表格单元格里的竖线（不转义会把表格截断成多列）
     private static func escapedCell(_ text: String) -> String {
         text.replacingOccurrences(of: "|", with: "\\|")
+    }
+
+    /// 内部：把一张二维表拼成 HTML 表格
+    private static func htmlTable(headers: [String], rows: [[String]]) -> String {
+        var lines: [String] = []
+        lines.append("<table>")
+        lines.append("<thead><tr>" + headers.map { "<th>\(escapedHTML($0))</th>" }.joined() + "</tr></thead>")
+        lines.append("<tbody>")
+        for row in rows {
+            lines.append("<tr>" + row.map { "<td>\(escapedHTML($0))</td>" }.joined() + "</tr>")
+        }
+        lines.append("</tbody>")
+        lines.append("</table>")
+        return lines.joined(separator: "\n")
+    }
+
+    /// 内部：转义 HTML 文本里的特殊字符（必须先换 `&`，否则会把后面生成的实体再转义一遍）
+    private static func escapedHTML(_ text: String) -> String {
+        var result = text.replacingOccurrences(of: "&", with: "&amp;")
+        result = result.replacingOccurrences(of: "<", with: "&lt;")
+        result = result.replacingOccurrences(of: ">", with: "&gt;")
+        result = result.replacingOccurrences(of: "\"", with: "&quot;")
+        result = result.replacingOccurrences(of: "'", with: "&#39;")
+        return result
     }
 
     /// 内部：把日期按当前 `dateFormat` / `timeZone` 格式化成字符串

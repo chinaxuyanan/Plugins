@@ -1,7 +1,7 @@
 import SwiftUI
 import SwiftUIProKit
 
-/// SwiftUIProKit 组件分区：轮播图 / 倒计时 / 引导页 / 文本增强 / 热力图 / 瀑布流 / 日历 / 标签 / 饼图
+/// SwiftUIProKit 组件分区：轮播图 / 倒计时 / 引导页 / 文本增强 / 热力图 / 瀑布流 / 日历 / 标签 / 饼图 / 图表 / 底部抽屉 / 浮动标签输入 / 图片对比
 struct SwiftUIProKitPanel: View {
 
     @State private var countdownPaused = false
@@ -10,6 +10,10 @@ struct SwiftUIProKitPanel: View {
     @State private var selectedDate = Date()
     @State private var selectedRange: ClosedRange<Date>?
     @State private var tags: [String] = ["SwiftUI", "中文"]
+    @State private var showBottomSheet = false
+    @State private var email = ""
+    @State private var password = ""
+    @State private var sliderRatio: CGFloat = 0.5
 
     var body: some View {
         VStack(spacing: 20) {
@@ -158,6 +162,83 @@ struct SwiftUIProKitPanel: View {
                     ], size: 140)
                 }
             }
+
+            Card("折线图 LineChart（Y 轴刻度 · 网格线 · X 轴标签 · 渐变面积）") {
+                LineChart(
+                    series: [
+                        ChartSeries(label: "本周", values: [12, 18, 9, 22, 17, 25, 20], color: .blue),
+                    ],
+                    height: 170,
+                    xLabels: ["一", "二", "三", "四", "五", "六", "日"],
+                    ySuffix: "℃"
+                )
+            }
+
+            Card("柱状图 BarChart（多系列并排 · 高亮每组最大值 · 负值向下画）") {
+                BarChart(
+                    series: [
+                        ChartSeries(label: "iOS", values: [40, 32, 28, 36], color: .blue),
+                        ChartSeries(label: "Android", values: [35, 38, 30, 22], color: .green),
+                    ],
+                    labels: ["Q1", "Q2", "Q3", "Q4"],
+                    height: 170,
+                    highlightsMax: true
+                )
+            }
+
+            Card("浮动标签输入框 FloatingLabelField（聚焦 / 有内容时标签上浮；错误态变红）") {
+                VStack(alignment: .leading, spacing: 16) {
+                    FloatingLabelField(label: "邮箱", text: $email, helperText: "我们不会公开你的邮箱")
+                    FloatingLabelField(label: "密码", text: $password, isSecure: true)
+                    FloatingLabelField(label: "用户名", text: .constant("已填内容"), errorText: "该用户名已被占用")
+                }
+                .frame(maxWidth: 320)
+            }
+
+            Card("图片对比滑块 BeforeAfterSlider（拖动把手 / 点击改分割位置）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    BeforeAfterSlider(
+                        before: {
+                            LinearGradient(colors: [.gray, .black], startPoint: .top, endPoint: .bottom)
+                                .overlay(Image(systemName: "photo").font(.largeTitle).foregroundStyle(.white.opacity(0.7)))
+                        },
+                        after: {
+                            LinearGradient(colors: [.orange, .pink], startPoint: .top, endPoint: .bottom)
+                                .overlay(Image(systemName: "wand.and.stars").font(.largeTitle).foregroundStyle(.white))
+                        },
+                        ratio: $sliderRatio,
+                        beforeLabel: "原图",
+                        afterLabel: "滤镜"
+                    )
+                    .frame(height: 150)
+                    Text("分割比例：\(Int((sliderRatio * 100).rounded()))%")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Card("底部抽屉 BottomSheet（贴底弹出 · 多档位拖动 · 点外部关闭）") {
+                Button("打开底部抽屉") {
+                    showBottomSheet = true
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .bottomSheet(isPresented: $showBottomSheet, detents: [0.35, 0.7]) {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("底部抽屉").font(.title3.bold())
+                Text("往上拖可展开到更高档位，往下拖到最小档以下、或点击面板外部即关闭。")
+                    .foregroundStyle(.secondary)
+                ForEach(["最近使用", "收藏夹", "已下载", "回收站"], id: \.self) { item in
+                    HStack {
+                        Image(systemName: "folder")
+                        Text(item)
+                        Spacer()
+                    }
+                }
+                Spacer()
+            }
+            .padding(20)
         }
         .sheet(isPresented: $showOnboarding) {
             OnboardingView(

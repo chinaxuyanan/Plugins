@@ -539,6 +539,94 @@ public extension LogKit {
     static func 合并日志(包含归档: Bool = true) -> [LogEntry] {
         mergeLogFiles(includeArchived: 包含归档)
     }
+
+    // MARK: 第十一轮：HTML 报告 / 按消息聚合 / 差异导出 / 体积统计
+
+    /// 摘要转 HTML 报告文本（等同 `htmlString(_:listedCategories:)`）
+    /// - Parameters:
+    ///   - 摘要: 要导出的摘要
+    ///   - 列出分类数: 分类排行最多列出几项，默认 `5`；传 `0` 表示不列出
+    static func HTML报告(_ 摘要: LogSummary, 列出分类数: Int = 5) -> String {
+        htmlString(摘要, listedCategories: 列出分类数)
+    }
+
+    /// 导出 HTML 报告文件（等同 `exportHTML(_:listedCategories:fileName:)`）
+    /// - Parameters:
+    ///   - 摘要: 要导出的摘要
+    ///   - 列出分类数: 分类排行最多列出几项，默认 `5`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出HTML(_ 摘要: LogSummary,
+                        列出分类数: Int = 5,
+                        文件名: String? = nil) throws -> URL {
+        try exportHTML(摘要, listedCategories: 列出分类数, fileName: 文件名)
+    }
+
+    /// 汇总并导出 HTML 报告（等同 `exportHTML(of:topCategories:listedCategories:fileName:)`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 分类排行数量: 分类排行最多统计几项，默认 `5`
+    ///   - 列出分类数: 报告里分类排行最多列出几项，默认 `5`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出HTML(条目: [LogEntry],
+                        分类排行数量: Int = 5,
+                        列出分类数: Int = 5,
+                        文件名: String? = nil) throws -> URL {
+        try exportHTML(of: 条目,
+                       topCategories: 分类排行数量,
+                       listedCategories: 列出分类数,
+                       fileName: 文件名)
+    }
+
+    /// 把日志按消息内容聚合（等同 `groupByMessage(_:trimWhitespace:ignoringCase:top:)`）
+    /// - Parameters:
+    ///   - 条目: 待聚合的日志条目
+    ///   - 去空白: 是否先去掉消息首尾空白再比，默认 `true`
+    ///   - 忽略大小写: 是否忽略大小写，默认 `false`
+    ///   - 最多组数: 最多返回几组，`0` 表示不限，默认 `0`
+    static func 按消息聚合(_ 条目: [LogEntry],
+                         去空白: Bool = true,
+                         忽略大小写: Bool = false,
+                         最多组数: Int = 0) -> [MessageGroup] {
+        groupByMessage(条目, trimWhitespace: 去空白, ignoringCase: 忽略大小写, top: 最多组数)
+    }
+
+    /// 取某时刻之后（含该时刻）的日志（等同 `entries(since:in:)`）
+    /// - Parameters:
+    ///   - 起始: 起始时刻（含）
+    ///   - 条目: 候选日志条目
+    static func 增量日志(起始: Date, 条目: [LogEntry]) -> [LogEntry] {
+        entries(since: 起始, in: 条目)
+    }
+
+    /// 把某时刻之后的日志导出成 CSV（等同 `exportSince(_:includeArchived:fileName:)`）
+    /// - Parameters:
+    ///   - 起始: 起始时刻（含）
+    ///   - 包含归档: 是否连归档文件一起读，默认 `true`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出增量(_ 起始: Date,
+                        包含归档: Bool = true,
+                        文件名: String? = nil) throws -> URL {
+        try exportSince(起始, includeArchived: 包含归档, fileName: 文件名)
+    }
+
+    /// 把某条日志之后的日志导出成 CSV（等同 `exportSince(after:includeArchived:fileName:)`）
+    /// - Parameters:
+    ///   - 上次: 作为分界的日志条目（其时刻含在范围内）
+    ///   - 包含归档: 是否连归档文件一起读，默认 `true`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出增量(上次: LogEntry,
+                        包含归档: Bool = true,
+                        文件名: String? = nil) throws -> URL {
+        try exportSince(after: 上次, includeArchived: 包含归档, fileName: 文件名)
+    }
+
+    /// 当前日志目录的体积统计（等同 `logStorage`）
+    static var 日志体积: LogStorage { logStorage }
+
+    /// 删除全部归档日志文件（等同 `clearArchivedLogs`）
+    /// - Returns: 实际删除的文件个数
+    @discardableResult
+    static func 清理归档日志() -> Int { clearArchivedLogs() }
 }
 
 // MARK: - LogEntry 中文命名别名

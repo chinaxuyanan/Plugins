@@ -73,8 +73,12 @@ import SwiftUI
 /// - `CalendarPicker.swift`   日历选择器（单选 / 选区间 + 月份切换）
 /// - `TagInput.swift`         标签输入（回车成标签块，iOS 16 / macOS 13+）
 /// - `PieChart.swift`         饼图 / 环形占比图（多段构成比例 + 图例）
+/// - `Chart.swift`            正式图表（带坐标轴的折线图 / 柱状图）
+/// - `BottomSheet.swift`      底部抽屉（可拖动多档位 + 点击外部关闭）
+/// - `FloatingLabelField.swift` 浮动标签输入框（聚焦 / 有内容时标签上浮）
+/// - `BeforeAfterSlider.swift` 图片对比滑块（拖动分割线比较前后）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "1.7.0"
+    public static let version = "1.8.0"
 }

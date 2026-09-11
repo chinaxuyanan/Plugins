@@ -8,6 +8,9 @@ import UIKit
 #if canImport(AppKit)
 import AppKit
 #endif
+#if canImport(Metal)
+import Metal
+#endif
 #if os(macOS)
 import IOKit
 import IOKit.ps
@@ -25,6 +28,7 @@ import CFNetwork
 /// - 支持屏幕最大刷新率 `maximumFramesPerSecond`、无障碍设置（`isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled`）、已挂载存储卷列表 `mountedVolumes`（`MountedVolume`）、签名信息（`bundleIdentifier` / `teamIdentifier` / `isTestFlight`）、代理检测（`isUsingProxy` / `proxyDescription`）；
 /// - 支持电池细分状态 `batteryState`（充电中 / 已充满 / 未接电源 / 未知）、网络接口物理地址 `networkInterfaces[].macAddress`、进程占用排行 `topProcesses(by:limit:)`（按内存或 CPU）；
 /// - 支持内存明细 `memoryBreakdown`（`MemoryBreakdown`：活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读）、每核 CPU 占用 `perCoreCPUUsage`、已安装应用列表 `installedApplications`（`InstalledApplication`，仅 macOS）、电池温度 `batteryTemperature` 与电源适配器明细 `powerAdapter`（`PowerAdapter`）；
+/// - 支持显卡信息 `gpuInfo`（`GPUInfo`：名称 / 最大工作内存 / 统一内存 / 单线程组最大线程数）、USB 外设列表 `usbDevices`（`USBDevice`，仅 macOS）、风扇转速 `fanSpeeds`（`FanSpeed`）与整机温度 `machineTemperature`（仅 macOS）、电池剩余时间 `batteryTimeRemaining` / 充满剩余时间 `batteryTimeToFullCharge`；
 /// - 每个属性都带中文文档注释 + 中文命名别名，见名即用。
 ///
 /// 快速开始：
@@ -38,7 +42,7 @@ import CFNetwork
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "1.4.0"
+    public static let version = "1.5.0"
 
     // MARK: - 系统信息
 
@@ -298,6 +302,78 @@ public enum SystemInfoKit {
         return Double(diskUsedBytes) / Double(total)
     }
 
+    // MARK: - 显卡（GPU）
+
+    /// 显卡信息（系统默认 Metal 设备）
+    ///
+    /// 用 `MTLCreateSystemDefaultDevice()` 取系统默认 GPU 的名称 / 建议最大工作集内存 /
+    /// 是否统一内存 / 单线程组最大线程数。取不到（如模拟器、无 Metal 设备）返回 `nil`。
+    /// 多显卡机型只给出系统默认设备这一块。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if let 显卡 = SystemInfoKit.gpuInfo {
+    ///       print(显卡.text)      // Apple M1 Pro · 统一内存 · 5461 MB
+    ///   }
+    ///   ```
+    public static var gpuInfo: GPUInfo? {
+        #if canImport(Metal)
+        guard let device = MTLCreateSystemDefaultDevice() else { return nil }
+        return GPUInfo(name: device.name,
+                       maxWorkingMemoryBytes: UInt64(device.recommendedMaxWorkingSetSize),
+                       hasUnifiedMemory: device.hasUnifiedMemory,
+                       maxThreadsPerThreadgroup: device.maxThreadsPerThreadgroup.width)
+        #else
+        return nil
+        #endif
+    }
+
+    /// 显卡名称（形如 `Apple M1 Pro`；取不到返回 `nil`）
+    public static var gpuName: String? {
+        gpuInfo?.name
+    }
+
+    /// 显卡信息文本（形如 `Apple M1 Pro · 统一内存 · 5461 MB`；取不到返回「不支持」）
+    public static var gpuInfoText: String {
+        gpuInfo?.text ?? "不支持"
+    }
+
+    // MARK: - USB 外设
+
+    /// 已连接的 USB 外设列表（macOS；iOS 恒为空数组）
+    ///
+    /// 枚举 IOKit 注册表里的 USB 设备节点（新系统用 `IOUSBHostDevice`，读不到再回退 `IOUSBDevice`），
+    /// 读取产品名 / 厂商名 / 厂商 ID / 产品 ID / 序列号，读不到的字段为 `nil`。
+    /// **集线器、内建键盘 / 触控板等也会出现在列表里**，要区分可自行按名称或 ID 过滤。
+    ///
+    /// - Note: 本属性会遍历 IOKit 注册表，开销比一般属性大，建议按需调用，不要放进高频刷新循环。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   for 设备 in SystemInfoKit.usbDevices {
+    ///       print(设备.text)      // 键盘 · Apple Inc. (05AC:0250)
+    ///   }
+    ///   ```
+    public static var usbDevices: [USBDevice] {
+        #if os(macOS)
+        return rawUSBDevices()
+        #else
+        return []
+        #endif
+    }
+
+    /// 已连接的 USB 外设数量（等同于 `usbDevices.count`）
+    public static var usbDeviceCount: Int {
+        usbDevices.count
+    }
+
+    /// USB 外设列表的单行文本（每台设备以 ` · ` 连接；无设备返回「无 USB 外设」）
+    public static var usbDevicesText: String {
+        let devices = usbDevices
+        guard !devices.isEmpty else { return "无 USB 外设" }
+        return devices.map(\.text).joined(separator: " · ")
+    }
+
     // MARK: - 存储详情
 
     /// 重要用途可用容量（字节）
@@ -520,6 +596,67 @@ public enum SystemInfoKit {
     /// 电源适配器明细文本（形如 `适配器 96W · 20.0V · 4.80A`；未接电源或非 macOS 返回「不支持」）
     public static var powerAdapterText: String {
         powerAdapter?.text ?? "不支持"
+    }
+
+    /// 电池剩余可用时间（秒；充电中 / 读取不到 / 非 macOS 返回 `nil`）
+    ///
+    /// macOS 读 IOKit 电源描述的 `Time to Empty`（分钟，`kIOPSTimeToEmptyKey`）。系统在估算中
+    /// 或正在充电时会给 `-1`，这里把非正数一律当作「未知」返回 `nil`。iOS 未开放该数据，恒为 `nil`。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   print(SystemInfoKit.batteryTimeRemainingText)   // 1 小时 23 分
+    ///   ```
+    public static var batteryTimeRemaining: TimeInterval? {
+        #if os(macOS)
+        guard let desc = macBatteryDescription() else { return nil }
+        return batterySeconds(fromMinutes: desc[kIOPSTimeToEmptyKey as String] as? Int)
+        #else
+        return nil
+        #endif
+    }
+
+    /// 电池充满还需时间（秒；未在充电 / 读取不到 / 非 macOS 返回 `nil`）
+    ///
+    /// macOS 读 IOKit 电源描述的 `Time to Full Charge`（分钟，`kIOPSTimeToFullChargeKey`）。
+    /// 未接电源时该值同样给 `-1`（未知）→ 返回 `nil`。iOS 恒为 `nil`。
+    public static var batteryTimeToFullCharge: TimeInterval? {
+        #if os(macOS)
+        guard let desc = macBatteryDescription() else { return nil }
+        return batterySeconds(fromMinutes: desc[kIOPSTimeToFullChargeKey as String] as? Int)
+        #else
+        return nil
+        #endif
+    }
+
+    /// 电池剩余时间文本（形如 `1 小时 23 分`；读取不到返回「不支持」）
+    public static var batteryTimeRemainingText: String {
+        batteryTimeText(batteryTimeRemaining)
+    }
+
+    /// 电池充满还需时间文本（形如 `45 分`；读取不到返回「不支持」）
+    public static var batteryTimeToFullChargeText: String {
+        batteryTimeText(batteryTimeToFullCharge)
+    }
+
+    /// 把秒数格式化成中文时长文本（纯逻辑，便于测试）
+    ///
+    /// `nil` 或负数 → 「不支持」；不足 1 小时只给分钟（形如 `45 分`）；
+    /// 满 1 小时给「X 小时 Y 分」（分钟不足两位也照写，如 `1 小时 5 分`）。
+    ///
+    /// - Parameter seconds: 秒数（`nil` 表示未知）
+    public static func batteryTimeText(_ seconds: TimeInterval?) -> String {
+        guard let seconds, seconds >= 0 else { return "不支持" }
+        let totalMinutes = Int(seconds / 60)
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        return hours > 0 ? "\(hours) 小时 \(minutes) 分" : "\(minutes) 分"
+    }
+
+    /// 内部：把 IOKit 的分钟读数转成秒（`-1` 等非正数表示未知 → `nil`）
+    static func batterySeconds(fromMinutes minutes: Int?) -> TimeInterval? {
+        guard let minutes, minutes > 0 else { return nil }
+        return TimeInterval(minutes) * 60
     }
 
     // MARK: - 热状态与电源
@@ -1786,6 +1923,73 @@ public enum SystemInfoKit {
             .volumeNameKey,
             .volumeLocalizedFormatDescriptionKey
         ])
+    }
+
+    /// 枚举 IOKit 注册表里的 USB 外设（macOS）
+    ///
+    /// 新系统的设备类名是 `IOUSBHostDevice`，老系统是 `IOUSBDevice`：先试新的，
+    /// 读不到再用老的，避免同一台设备被两个类名各枚举一遍。
+    private static func rawUSBDevices() -> [USBDevice] {
+        #if os(macOS)
+        for className in ["IOUSBHostDevice", "IOUSBDevice"] {
+            let devices = usbDevices(matchingClass: className)
+            if !devices.isEmpty { return devices }
+        }
+        return []
+        #else
+        return []
+        #endif
+    }
+
+    /// 枚举指定 IOKit 类名的 USB 外设节点（macOS）
+    private static func usbDevices(matchingClass className: String) -> [USBDevice] {
+        #if os(macOS)
+        guard let matching = IOServiceMatching(className) else { return [] }
+        var iterator: io_iterator_t = 0
+        // IOServiceGetMatchingServices 会消费 matching 字典，调用方不需要再释放
+        guard IOServiceGetMatchingServices(kIOMainPortDefault, matching, &iterator) == KERN_SUCCESS else { return [] }
+        defer { IOObjectRelease(iterator) }
+
+        var devices: [USBDevice] = []
+        var service = IOIteratorNext(iterator)
+        while service != 0 {
+            if let device = usbDevice(from: service) {
+                devices.append(device)
+            }
+            IOObjectRelease(service)
+            service = IOIteratorNext(iterator)
+        }
+        return devices
+        #else
+        return []
+        #endif
+    }
+
+    /// 从单个 IOKit 服务节点读出 USB 外设信息（macOS；没有任何可用字段时返回 `nil`）
+    private static func usbDevice(from service: io_registry_entry_t) -> USBDevice? {
+        #if os(macOS)
+        var rawProperties: Unmanaged<CFMutableDictionary>?
+        guard IORegistryEntryCreateCFProperties(service, &rawProperties, kCFAllocatorDefault, 0) == KERN_SUCCESS,
+              let cfProperties = rawProperties?.takeRetainedValue(),
+              let properties = (cfProperties as NSDictionary) as? [String: Any] else { return nil }
+
+        let rawName = (properties["USB Product Name"] as? String) ?? ""
+        let rawVendor = (properties["USB Vendor Name"] as? String) ?? ""
+        let rawSerial = (properties["USB Serial Number"] as? String) ?? ""
+        let vendorID = (properties["idVendor"] as? NSNumber)?.intValue
+        let productID = (properties["idProduct"] as? NSNumber)?.intValue
+
+        // 三个文本字段全空、又没有任何 ID 的节点（如集线器的空端口）直接跳过
+        guard !rawName.isEmpty || !rawVendor.isEmpty || vendorID != nil || productID != nil else { return nil }
+
+        return USBDevice(name: rawName.isEmpty ? "未知设备" : rawName,
+                         vendorName: rawVendor.isEmpty ? nil : rawVendor,
+                         vendorID: vendorID,
+                         productID: productID,
+                         serialNumber: rawSerial.isEmpty ? nil : rawSerial)
+        #else
+        return nil
+        #endif
     }
 
     /// 枚举网络接口，返回活跃接口的名称与 IPv4 地址（Wi-Fi 优先）

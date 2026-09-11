@@ -1700,4 +1700,266 @@ final class LogKitTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: summaryURL) }
         XCTAssertEqual(summaryURL.pathExtension, "md")
     }
+
+    // MARK: - 按消息聚合 MessageGroup（第十一轮）
+
+    func testMessageGroupGroupsCountsAndLevels() {
+        let early = Date(timeIntervalSince1970: 1_000)
+        let late = Date(timeIntervalSince1970: 2_000)
+        let entries = [
+            makeEntry("网络请求失败", level: .warning, category: "网络", date: late),
+            makeEntry("网络请求失败", level: .error, category: "账号", date: early),
+            makeEntry("网络请求失败", level: .info, category: "网络", date: early),
+            makeEntry("登录成功", category: "账号", date: early),
+        ]
+
+        let groups = LogKit.groupByMessage(entries)
+
+        // 次数多的排前面
+        XCTAssertEqual(groups.first?.message, "网络请求失败")
+        XCTAssertEqual(groups.first?.count, 3)
+        XCTAssertEqual(groups.first?.level, .error)                       // 组内最高级别
+        XCTAssertEqual(groups.first?.categories, ["网络", "账号"].sorted())
+        XCTAssertEqual(groups.first?.levelText, "错误")
+        XCTAssertEqual(groups.first?.text, "3 次 · 错误 · 网络请求失败")
+        // 组内按时间从早到晚（两条 1_000 保持传入顺序，末尾是 2_000）
+        XCTAssertEqual(groups.first?.entries.map(\.date), [early, early, late])
+
+        XCTAssertEqual(groups.last?.message, "登录成功")
+        XCTAssertEqual(groups.last?.count, 1)
+
+        let group = MessageGroup(message: "网络请求失败", entries: entries)
+        XCTAssertEqual(group.earliest, early)
+        XCTAssertEqual(group.latest, late)
+    }
+
+    func testMessageGroupTrimIgnoreCaseAndTop() {
+        let entries = [
+            makeEntry("  Timeout  "),
+            makeEntry("timeout", level: .warning),
+            makeEntry("其他"),
+        ]
+
+        // 默认去空白 + 区分大小写 → 三个不同键，各成一组
+        XCTAssertEqual(LogKit.groupByMessage(entries).count, 3)
+
+        // 忽略大小写 → 「  Timeout  」与「timeout」合并成一组（键为首次出现去掉空白后的原始大小写）
+        let ignoringCase = LogKit.groupByMessage(entries, ignoringCase: true)
+        guard let merged = ignoringCase.first(where: { $0.count == 2 }) else {
+            return XCTFail("忽略大小写后应有一组含 2 条")
+        }
+        XCTAssertEqual(merged.message, "Timeout")
+
+        // 不去空白 → 两种 Timeout 写法仍分开（去掉空白后才相同）
+        XCTAssertEqual(LogKit.groupByMessage(entries, trimWhitespace: false, ignoringCase: true).count, 3)
+
+        // top 只取前 N 组
+        XCTAssertEqual(LogKit.groupByMessage(entries, top: 1).count, 1)
+        XCTAssertEqual(LogKit.groupByMessage(entries, top: 0).count, 3, "top 为 0 表示不限")
+    }
+
+    func testMessageGroupChineseAliases() {
+        let entries = [
+            makeEntry("出错", level: .error, category: "网络"),
+            makeEntry("出错", level: .info, category: "账号"),
+        ]
+        let groups = LogKit.按消息聚合(entries)
+        XCTAssertEqual(groups.count, 1)
+
+        let group = groups[0]
+        XCTAssertEqual(group.消息, "出错")
+        XCTAssertEqual(group.次数, 2)
+        XCTAssertEqual(group.级别, .error)
+        XCTAssertEqual(group.级别名, "错误")
+        XCTAssertEqual(group.分类, ["网络", "账号"])
+        XCTAssertEqual(group.组内日志.count, 2)
+        XCTAssertEqual(group.摘要文本, "2 次 · 错误 · 出错")
+
+        let built = 消息聚合组(消息: "出错", 日志: entries)
+        XCTAssertEqual(built.次数, 2)
+        XCTAssertEqual(MessageGroup.聚合成组(entries, 最多组数: 1).count, 1)
+    }
+
+    // MARK: - 日志体积统计 LogStorage（第十一轮）
+
+    func testLogStorageHumanSizeBoundaries() {
+        XCTAssertEqual(LogStorage.humanSize(0), "0 B")
+        XCTAssertEqual(LogStorage.humanSize(-5), "0 B")            // 负数按 0 处理
+        XCTAssertEqual(LogStorage.humanSize(1023), "1023 B")
+        XCTAssertEqual(LogStorage.humanSize(1024), "1.0 KB")
+        XCTAssertEqual(LogStorage.humanSize(1536), "1.5 KB")
+        XCTAssertEqual(LogStorage.humanSize(1048576), "1.0 MB")
+        XCTAssertEqual(LogStorage.humanSize(1073741824), "1.0 GB")
+        XCTAssertEqual(LogStorage.人性化大小(1024), "1.0 KB")
+    }
+
+    func testLogStorageTotalsAndText() {
+        let dir = URL(fileURLWithPath: "/tmp/LogKitTest-\(UUID().uuidString)")
+        let current = LogStorage.Item(路径: dir.appendingPathComponent("LogKit.log"),
+                                      字节: 1024, 修改时间: Date(), 是否当前: true)
+        let archived = 日志文件项(路径: dir.appendingPathComponent("LogKit-2000-01-01.log"),
+                                字节: 512, 修改时间: Date(), 是否当前: false)
+
+        let storage = 日志体积(文件: [current, archived])
+        XCTAssertEqual(storage.fileCount, 2)
+        XCTAssertEqual(storage.文件数, 2)
+        XCTAssertEqual(storage.totalBytes, 1536)
+        XCTAssertEqual(storage.总字节, 1536)
+        XCTAssertEqual(storage.totalSizeText, "1.5 KB")
+        XCTAssertTrue(storage.text.contains("日志共 2 个文件"))
+        XCTAssertTrue(storage.清单文本.contains("（当前）"))
+        XCTAssertEqual(current.name, "LogKit.log")
+        XCTAssertEqual(current.sizeText, "1.0 KB")
+        XCTAssertEqual(current.文件名, "LogKit.log")
+        XCTAssertEqual(current.大小文本, "1.0 KB")
+    }
+
+    func testLogStorageAndClearArchivedLogs() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        defer { LogKit.logDirectory = previousDir }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.info("当前日志")
+        LogKit.flush()
+
+        // 手工造两个归档文件
+        let archivedA = dir.appendingPathComponent("LogKit-2000-01-01-010000111.log")
+        let archivedB = dir.appendingPathComponent("LogKit-2000-01-02-010000222.log")
+        try Data("[2000-01-01 01:00:00.000] [信息] [通用] 归档 A @ Old.swift:1\n".utf8).write(to: archivedA)
+        try Data("[2000-01-02 01:00:00.000] [信息] [通用] 归档 B @ Old.swift:2\n".utf8).write(to: archivedB)
+
+        let storage = LogKit.日志体积
+        XCTAssertEqual(storage.fileCount, 3)                            // 当前 + 两个归档
+        XCTAssertTrue(storage.items.first?.isCurrent ?? false, "当前文件应排在最前")
+        XCTAssertTrue(storage.totalBytes > 0)
+        XCTAssertTrue(storage.text.contains("（当前）"))
+
+        let removed = LogKit.清理归档日志()
+        XCTAssertEqual(removed, 2)
+        XCTAssertFalse(fm.fileExists(atPath: archivedA.path))
+        XCTAssertFalse(fm.fileExists(atPath: archivedB.path))
+        XCTAssertTrue(fm.fileExists(atPath: LogKit.logFileURL.path), "当前日志不受影响")
+    }
+
+    // MARK: - HTML 报告（第十一轮）
+
+    func testHTMLStringContainsTablesAndEscapes() {
+        let entries = [
+            makeExportEntry("登录成功", category: "账号"),
+            makeExportEntry("超时", level: .error, category: "网络"),
+            makeExportEntry("又超时", level: .error, category: "网络"),
+        ]
+        let summary = LogKit.summary(of: entries)
+        let html = LogKit.HTML报告(summary)
+
+        XCTAssertTrue(html.hasPrefix("<!DOCTYPE html>"))
+        XCTAssertTrue(html.contains("<html lang=\"zh-CN\">"))
+        XCTAssertTrue(html.contains("<h2>总览</h2>"))
+        XCTAssertTrue(html.contains("<h2>各级别条数</h2>"))
+        XCTAssertTrue(html.contains("<h2>分类排行</h2>"))
+        XCTAssertTrue(html.contains("<td>3</td>"))          // 总条数
+        XCTAssertTrue(html.contains("66.7%"))               // 错误率
+        XCTAssertTrue(html.contains("<td>网络</td>"))
+
+        // 英文名等价（抹掉每次生成都变的「生成时间：」那行再比）
+        XCTAssertEqual(不带HTML生成时间(LogKit.htmlString(summary)),
+                       不带HTML生成时间(html))
+    }
+
+    /// 抹掉 HTML 里含「生成时间：」的那一行（每次生成都取当前时间，不能直接拿来比相等）
+    private func 不带HTML生成时间(_ html: String) -> String {
+        html
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .filter { !$0.contains("生成时间：") }
+            .joined(separator: "\n")
+    }
+
+    func testHTMLStringEscapesSpecialCharacters() {
+        let entries = [makeExportEntry("含 <b> 与 & 符号", category: "a<b&c")]
+        let html = LogKit.htmlString(LogKit.summary(of: entries))
+
+        XCTAssertTrue(html.contains("a&lt;b&amp;c"))
+        XCTAssertFalse(html.contains("<td>a<b&c</td>"))
+        // & 先换、其余后换，不会把已生成的实体再转义一遍（不会出现 &amp;lt;）
+        XCTAssertFalse(html.contains("&amp;lt;"))
+    }
+
+    func testHTMLStringOmitsCategoryTableWhenListedIsZero() {
+        let html = LogKit.htmlString(LogKit.summary(of: [makeExportEntry("x")]), listedCategories: 0)
+        XCTAssertFalse(html.contains("<h2>分类排行</h2>"))
+        XCTAssertTrue(html.contains("<h2>总览</h2>"))
+    }
+
+    func testExportHTMLWritesFile() throws {
+        let entries = [makeExportEntry("导出网页", category: "账号")]
+
+        let url = try LogKit.导出HTML(条目: entries, 文件名: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(url.pathExtension, "html")
+        let text = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(text.contains("<!DOCTYPE html>"))
+        XCTAssertTrue(text.contains("<td>账号</td>"))
+
+        // 直接吃摘要对象的重载
+        let summaryURL = try LogKit.exportHTML(LogKit.summary(of: entries),
+                                               fileName: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: summaryURL) }
+        XCTAssertEqual(summaryURL.pathExtension, "html")
+    }
+
+    // MARK: - 差异导出（第十一轮）
+
+    func testEntriesSinceFiltersByDate() {
+        let base = Date(timeIntervalSince1970: 1_000_000)
+        let entries = [
+            makeEntry("旧", date: base.addingTimeInterval(-10)),
+            makeEntry("边界", date: base),
+            makeEntry("新", date: base.addingTimeInterval(10)),
+        ]
+
+        // 含边界时刻
+        XCTAssertEqual(LogKit.entries(since: base, in: entries).map(\.message), ["边界", "新"])
+        XCTAssertEqual(LogKit.增量日志(起始: base, 条目: entries).map(\.message), ["边界", "新"])
+    }
+
+    func testExportSinceWritesCSVOfRecentEntries() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        defer { LogKit.logDirectory = previousDir }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+
+        let checkpoint = Date()
+        Thread.sleep(forTimeInterval: 0.05)      // 让下面这条的时间戳晚于检查点
+        LogKit.info("检查点之后的日志", category: "账号")
+        LogKit.flush()
+
+        let url = try LogKit.exportSince(checkpoint, fileName: "LogKitTest-\(UUID().uuidString)")
+        defer { try? fm.removeItem(at: url) }
+        XCTAssertEqual(url.pathExtension, "csv")
+        let text = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(text.contains("检查点之后的日志"))
+
+        // 显然在未来的检查点 → 该时段没有日志，只剩表头
+        let future = try LogKit.exportSince(Date().addingTimeInterval(3600),
+                                            fileName: "LogKitTest-\(UUID().uuidString)")
+        defer { try? fm.removeItem(at: future) }
+        let empty = try String(contentsOf: future, encoding: .utf8)
+        XCTAssertFalse(empty.contains("检查点之后的日志"))
+        XCTAssertTrue(empty.contains("message"), "表头应保留 CSV 列名")
+    }
 }

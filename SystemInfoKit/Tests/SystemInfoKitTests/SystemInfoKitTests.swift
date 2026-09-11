@@ -823,4 +823,157 @@ final class SystemInfoKitTests: XCTestCase {
 
         let _: 已安装应用.Type = InstalledApplication.self
     }
+
+    // MARK: 第十一轮：显卡 / USB / 风扇 / 温度 / 电池剩余时间
+
+    func testBatteryTimeTextFormatting() {
+        // 未知 / 负数一律「不支持」
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(nil), "不支持")
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(-1), "不支持")
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(-3600), "不支持")
+        // 不满一小时只给分钟
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(0), "0 分")
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(1800), "30 分")
+        // 满一小时给「小时 + 分钟」
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(3600), "1 小时 0 分")
+        XCTAssertEqual(SystemInfoKit.batteryTimeText(5000), "1 小时 23 分")
+        // 中文别名等价
+        XCTAssertEqual(SystemInfoKit.电池时长文本(5000), "1 小时 23 分")
+    }
+
+    func testBatterySecondsFromMinutes() {
+        XCTAssertNil(SystemInfoKit.batterySeconds(fromMinutes: nil))
+        XCTAssertNil(SystemInfoKit.batterySeconds(fromMinutes: -1))
+        XCTAssertNil(SystemInfoKit.batterySeconds(fromMinutes: 0))
+        XCTAssertEqual(SystemInfoKit.batterySeconds(fromMinutes: 1), 60)
+        XCTAssertEqual(SystemInfoKit.batterySeconds(fromMinutes: 90), 5400)
+    }
+
+    func testFanSpeedStructAndAliases() {
+        let 风扇 = FanSpeed(index: 0, rpm: 2400)
+        XCTAssertEqual(风扇.index, 0)
+        XCTAssertEqual(风扇.rpm, 2400)
+        XCTAssertEqual(风扇.text, "风扇 0：2400 RPM")
+
+        // 中文构造与属性
+        let 中文风扇 = 风扇转速(序号: 1, 转速: 1800)
+        XCTAssertEqual(中文风扇.序号, 1)
+        XCTAssertEqual(中文风扇.转速, 1800)
+        XCTAssertEqual(中文风扇.text, "风扇 1：1800 RPM")
+
+        let _: 风扇转速.Type = FanSpeed.self
+    }
+
+    func testUSBDeviceStructAndAliases() {
+        // 全字段：产品名 · 厂商名 · (厂商:产品)
+        let 键盘 = USBDevice(name: "键盘", vendorName: "Apple Inc.",
+                            vendorID: 0x05AC, productID: 0x0250, serialNumber: "ABC123")
+        XCTAssertEqual(键盘.idText, "05AC:0250")
+        XCTAssertEqual(键盘.text, "键盘 · Apple Inc. (05AC:0250)")
+        XCTAssertEqual(键盘.serialNumber, "ABC123")
+
+        // 只有厂商 ID：标识文本只给厂商部分
+        let 半个 = USBDevice(name: "U 盘", vendorName: nil, vendorID: 0x1234,
+                            productID: nil, serialNumber: nil)
+        XCTAssertEqual(半个.idText, "1234")
+        XCTAssertEqual(半个.text, "U 盘 · (1234)")
+
+        // 没有任何 ID：标识文本为 nil，摘要只有名字
+        let 纯名 = USBDevice(name: "未知设备", vendorName: nil, vendorID: nil,
+                            productID: nil, serialNumber: nil)
+        XCTAssertNil(纯名.idText)
+        XCTAssertEqual(纯名.text, "未知设备")
+
+        // 厂商名与产品名相同：不重复输出厂商名
+        let 同名 = USBDevice(name: "Logitech", vendorName: "Logitech", vendorID: nil,
+                            productID: nil, serialNumber: nil)
+        XCTAssertEqual(同名.text, "Logitech")
+
+        // 中文构造与属性
+        let 中文设备 = USB设备(名称: "鼠标", 厂商: "罗技", 厂商ID: 0x046D, 产品ID: 0xC077, 序列号: nil)
+        XCTAssertEqual(中文设备.名称, "鼠标")
+        XCTAssertEqual(中文设备.厂商, "罗技")
+        XCTAssertEqual(中文设备.厂商ID, 0x046D)
+        XCTAssertEqual(中文设备.产品ID, 0xC077)
+        XCTAssertEqual(中文设备.标识文本, "046D:C077")
+        XCTAssertNil(中文设备.序列号)
+
+        let _: USB设备.Type = USBDevice.self
+    }
+
+    func testGPUInfoStructAndAliases() {
+        // 只有名字（没有工作内存 / 非统一内存）时摘要就是名字
+        let 基础 = GPUInfo(name: "Apple M1", maxWorkingMemoryBytes: 0,
+                          hasUnifiedMemory: false, maxThreadsPerThreadgroup: 0)
+        XCTAssertEqual(基础.text, "Apple M1")
+        XCTAssertEqual(基础.名称, "Apple M1")
+
+        // 统一内存 + 有工作内存：摘要含「统一内存」
+        let 完整 = GPUInfo(name: "Apple M1 Pro", maxWorkingMemoryBytes: 5461 * 1024 * 1024,
+                          hasUnifiedMemory: true, maxThreadsPerThreadgroup: 1024)
+        XCTAssertTrue(完整.text.contains("Apple M1 Pro"))
+        XCTAssertTrue(完整.text.contains("统一内存"))
+        XCTAssertFalse(完整.maxWorkingMemory.isEmpty)
+        XCTAssertEqual(完整.最大线程组, 1024)
+        XCTAssertTrue(完整.统一内存)
+
+        // 中文构造
+        let 中文显卡 = 显卡信息(名称: "Apple M2", 最大工作内存字节: 0, 统一内存: false, 最大线程组: 512)
+        XCTAssertEqual(中文显卡.名称, "Apple M2")
+        XCTAssertEqual(中文显卡.最大线程组, 512)
+
+        let _: 显卡信息.Type = GPUInfo.self
+    }
+
+    func testHardwareExtendedLiveValues() {
+        // 实时值只做「不崩溃 + 类型正确 + 合理范围」的冒烟断言，不断言具体读数
+
+        // 显卡：Metal 可用时应能取到名字，取不到也只要求 `nil`
+        if let 显卡 = SystemInfoKit.gpuInfo {
+            XCTAssertFalse(显卡.name.isEmpty, "显卡名字不应为空")
+            XCTAssertEqual(SystemInfoKit.gpuName, 显卡.name)
+            XCTAssertFalse(SystemInfoKit.gpuInfoText.isEmpty)
+        }
+
+        // 风扇：带风扇机型才有内容；每台风扇序号非负、转速合理
+        for 风扇 in SystemInfoKit.fanSpeeds {
+            XCTAssertGreaterThanOrEqual(风扇.index, 0)
+            XCTAssertGreaterThanOrEqual(风扇.rpm, 0)
+            XCTAssertLessThan(风扇.rpm, 100000, "转速不应离谱")
+        }
+        XCTAssertFalse(SystemInfoKit.fanSpeedsText.isEmpty)
+        XCTAssertEqual(SystemInfoKit.风扇转速列表.count, SystemInfoKit.fanSpeeds.count)
+
+        // 整机温度：读得到必须落在 0~120 ℃
+        if let 温度 = SystemInfoKit.machineTemperature {
+            XCTAssertGreaterThan(温度, 0)
+            XCTAssertLessThan(温度, 120)
+        }
+        XCTAssertFalse(SystemInfoKit.machineTemperatureText.isEmpty)
+
+        // USB：列表可能为空，但每台设备至少要有名字或 ID
+        for 设备 in SystemInfoKit.usbDevices {
+            let hasSomething = !设备.name.isEmpty || 设备.vendorID != nil || 设备.productID != nil
+            XCTAssertTrue(hasSomething, "USB 设备至少要能标识")
+        }
+        XCTAssertEqual(SystemInfoKit.usbDeviceCount, SystemInfoKit.usbDevices.count)
+        XCTAssertFalse(SystemInfoKit.usbDevicesText.isEmpty)
+
+        // 电池剩余时间：秒数为非负或 `nil`；文本永不为空
+        if let 剩余 = SystemInfoKit.batteryTimeRemaining {
+            XCTAssertGreaterThanOrEqual(剩余, 0)
+        }
+        if let 充满 = SystemInfoKit.batteryTimeToFullCharge {
+            XCTAssertGreaterThanOrEqual(充满, 0)
+        }
+        XCTAssertFalse(SystemInfoKit.batteryTimeRemainingText.isEmpty)
+        XCTAssertFalse(SystemInfoKit.batteryTimeToFullChargeText.isEmpty)
+
+        #if !os(macOS)
+        XCTAssertTrue(SystemInfoKit.fanSpeeds.isEmpty, "iOS 无风扇数据")
+        XCTAssertTrue(SystemInfoKit.usbDevices.isEmpty, "iOS 无 USB 外设列表")
+        XCTAssertNil(SystemInfoKit.machineTemperature, "iOS 无整机温度")
+        XCTAssertNil(SystemInfoKit.batteryTimeRemaining, "iOS 无电池剩余时间")
+        #endif
+    }
 }

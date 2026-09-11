@@ -3,7 +3,7 @@ import AppKit
 import Foundation
 import LogKit
 
-/// LogKit 日志分区：路径展示 / 写日志 / 采样 / 导出 / 崩溃兜底
+/// LogKit 日志分区：路径展示 / 写日志 / 采样 / 导出 / 崩溃兜底 / HTML 报告 / 按消息聚合 / 差异导出 / 体积统计
 struct LogKitPanel: View {
 
     @State private var status = "尚未操作"
@@ -126,7 +126,7 @@ struct LogKitPanel: View {
                 }
             }
 
-            Card("链路聚合 / 合并日志 / 格式模板 / Markdown 报告（本轮新增）") {
+            Card("链路聚合 / 合并日志 / 格式模板 / Markdown 报告") {
                 VStack(alignment: .leading, spacing: 10) {
                     Button("写 3 条同链路日志并聚合") {
                         let trace = "req-\(Int(Date().timeIntervalSince1970) % 10000)"
@@ -161,6 +161,49 @@ struct LogKitPanel: View {
                         } catch {
                             status = "Markdown 导出失败：\(error)"
                         }
+                    }
+                    Text(status)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            Card("HTML 报告 / 按消息聚合 / 差异导出 / 体积统计（本轮新增）") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Button("导出 HTML 报告 exportHTML（自包含网页）") {
+                        do {
+                            let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                            let url = try LogKit.exportHTML(of: entries, fileName: "LogKit报告")
+                            status = "HTML 报告已导出：\(url.path)"
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        } catch {
+                            status = "HTML 导出失败：\(error)"
+                        }
+                    }
+                    Button("按消息聚合 groupByMessage（相同消息归一组）") {
+                        let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                        let groups = LogKit.groupByMessage(entries, top: 5)
+                        let top = groups.first.map { $0.text } ?? "（暂无日志）"
+                        status = "共 \(groups.count) 组，最多的一组：\(top)"
+                    }
+                    Button("导出最近 1 小时的日志 exportSince") {
+                        do {
+                            let url = try LogKit.exportSince(Date(timeIntervalSinceNow: -3600),
+                                                             fileName: "LogKit增量")
+                            status = "增量导出成功：\(url.path)"
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        } catch {
+                            status = "增量导出失败：\(error)"
+                        }
+                    }
+                    Button("统计日志体积 logStorage") {
+                        let storage = LogKit.logStorage
+                        status = storage.text.replacingOccurrences(of: "\n", with: "；")
+                    }
+                    Button("清理归档日志 clearArchivedLogs") {
+                        let removed = LogKit.clearArchivedLogs()
+                        status = "已删除 \(removed) 个归档日志文件"
                     }
                     Text(status)
                         .font(.callout)

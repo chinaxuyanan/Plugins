@@ -53,6 +53,10 @@
 - **合并日志文件**：`mergeLogFiles` / `合并日志` 把当前日志与全部归档一起读出，按时间归并成一个完整日志流
 - **格式模板**：`LogTemplate` / `日志模板` 用 `"{级别} | {分类} | {消息}"` 这样的占位符接管行格式，`.formatter` 可直接赋给 `customFormatter`
 - **Markdown 报告**：`markdownString` / `Markdown报告`（导出文件 `exportMarkdown` / `导出Markdown`）把摘要写成 Markdown 表格报告，直接粘进 issue / 文档
+- **HTML 报告**：`htmlString` / `HTML报告`（导出文件 `exportHTML` / `导出HTML`）把摘要写成自包含网页（样式内联、零外部资源），`&` `<` `>` `"` `'` 自动转义，浏览器直接打开
+- **按消息聚合**：`groupByMessage` / `按消息聚合` 把相同消息的日志归成一组（`MessageGroup` / `消息聚合组`），给出次数 / 最高级别 / 涉及分类 / 最早最晚时间，看清「哪句话刷得最多」
+- **差异导出**：`exportSince` / `导出增量` 只导出某时刻（或某条日志）之后的日志，配合 `entries(since:in:)` / `增量日志` 做增量备份 / 增量提报
+- **体积统计与清理**：`logStorage` / `日志体积`（`LogStorage` / `日志体积统计`）逐个量出日志文件大小并汇总，`clearArchivedLogs` / `清理归档日志` 一键删归档（`humanSize` / `人性化大小` 转可读大小）
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -68,7 +72,7 @@ dependencies: [
 
 然后在目标中 `import LogKit`。
 
-> **为什么不是 `.package(url: "...", from: "1.4.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "1.5.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -190,6 +194,11 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.导出压缩包(含归档:文件名:)` | `LogKit.exportArchive(includeArchived:fileName:)` |
 | `LogKit.按链路聚合(条目, 未标记键:)` / `LogKit.合并日志(包含归档:)` | `LogKit.groupByTrace(_:untrackedKey:)` / `LogKit.mergeLogFiles(includeArchived:)` |
 | `LogKit.Markdown报告(摘要, 列出分类数:)` / `LogKit.导出Markdown(摘要:列出分类数:文件名:)` / `LogKit.导出Markdown(条目:分类排行数量:列出分类数:文件名:)` | `LogKit.markdownString(_:listedCategories:)` / `LogKit.exportMarkdown(_:listedCategories:fileName:)` / `LogKit.exportMarkdown(of:topCategories:listedCategories:fileName:)` |
+| `LogKit.HTML报告(摘要, 列出分类数:)` / `LogKit.导出HTML(摘要:列出分类数:文件名:)` / `LogKit.导出HTML(条目:分类排行数量:列出分类数:文件名:)` | `LogKit.htmlString(_:listedCategories:)` / `LogKit.exportHTML(_:listedCategories:fileName:)` / `LogKit.exportHTML(of:topCategories:listedCategories:fileName:)` |
+| `LogKit.按消息聚合(条目, 去空白:忽略大小写:最多组数:)` | `LogKit.groupByMessage(_:trimWhitespace:ignoringCase:top:)` |
+| `LogKit.增量日志(起始:条目:)` / `LogKit.导出增量(起始:包含归档:文件名:)` / `LogKit.导出增量(上次:包含归档:文件名:)` | `LogKit.entries(since:in:)` / `LogKit.exportSince(_:includeArchived:fileName:)` / `LogKit.exportSince(after:includeArchived:fileName:)` |
+| `LogKit.日志体积` / `LogKit.清理归档日志()` | `LogKit.logStorage` / `LogKit.clearArchivedLogs()` |
+| `消息聚合组` / `日志体积统计`（`日志文件项`） | `MessageGroup`（`.消息/.组内日志/.分类/.级别/.次数/.最早时间/.最晚时间/.级别名/.摘要文本` + `聚合成组(_:去空白:忽略大小写:最多组数:)`）/ `LogStorage`（`.文件/.文件数/.总字节/.总大小文本/.清单文本` + `人性化大小(_:)`）|
 | `LogEntry.产生时间` | `LogEntry.date` |
 | `日志模板` | `LogTemplate`（`.模板` / `.渲染(条目)` / `.formatter` + `占位符(模板)` / `未知占位符(模板)`）|
 | `日志过滤条件` / `日志摘要` | `LogFilter`（`.按关键字/.按级别/.按追踪ID/.时间段(从:到:)/.为空/.匹配(_:)/.过滤(_:)`）/ `LogSummary`（`.总计/.各级别条数/.最早时间/.最晚时间/.级别条数/.错误条数/.错误率/.时间跨度/.分类排行/.摘要文本`）|
@@ -499,9 +508,79 @@ let 文件 = try LogKit.导出Markdown(条目, 文件名: "日志报告")   // �
 输出包含「总览 / 各级别条数 / 分类排行」三张表（分类排行默认列 5 项，传 `列出分类数: 0` 可省掉）。
 分类名里的 `|` 会自动转义成 `\|`，不会把表格撑坏。
 
+**HTML 报告 `exportHTML`**：把摘要写成一张自包含网页，样式内联、不引用任何外部资源，双击即看：
+
+```swift
+let 网页 = LogKit.HTML报告(摘要)                          // 只取文本
+let 文件 = try LogKit.导出HTML(条目, 文件名: "日志报告")      // 写成 .html 文件，浏览器直接打开
+// iOS：UIActivityViewController(activityItems: [文件], ...)
+// macOS：NSSharingServicePicker(items: [文件])
+```
+
+内容同样是「总览 / 各级别条数 / 分类排行」三张表（`列出分类数: 0` 可省掉分类表）。
+消息 / 分类里的 `&` `<` `>` `"` `'` 会被转义（先换 `&` 再换其余，避免二次转义），不会把页面撑坏。
+
+**按消息聚合 `groupByMessage`**：同一条消息刷了很多遍时，先归成组，一眼看清「哪句话刷得最多」：
+
+```swift
+LogKit.最近保留条数 = 500
+// …运行一段时间…
+
+for 组 in LogKit.按消息聚合(LogKit.最近日志) {
+    print(组.摘要文本)      // 「12 次 · 错误 · 网络请求失败」
+    print(组.次数)          // 12
+    print(组.级别名)        // 错误（组内最高级别）
+    print(组.分类)          // ["网络", "账号"]（去重、按字典序）
+    print(组.最早时间, 组.最晚时间)
+}
+```
+
+返回结果按「次数从多到少」排序，次数相同按消息字典序，保证同样输入总是同样顺序。
+`去空白: true`（默认）会先去掉消息首尾空白再比，`忽略大小写: true` 可把 `Timeout` 与 `timeout` 并成一组，
+`最多组数` 只取前 N 组。
+
+**差异导出 `exportSince`**：只导出上次检查点之后的日志，适合增量备份 / 增量提报：
+
+```swift
+// 记下上次检查点
+var 检查点 = Date()
+
+// …运行一段时间后…
+let 新增 = try LogKit.导出增量(检查点)              // 只含 检查点 之后（含）的日志，写成 CSV
+检查点 = Date()
+
+// 也可以「以上次看到的最后一条为界」
+let 又一批 = try LogKit.导出增量(上次: 某条日志)
+```
+
+纯筛选用 `LogKit.增量日志(起始: 时刻, 条目: 条目)`，等价于按 `date >= 起始` 过滤；
+`导出增量` 内部会先 `flush()` 并把当前日志与归档合并，该时段没有日志时导出的是只有表头的空表。
+
+**体积统计与清理 `logStorage` / `clearArchivedLogs`**：看看日志占了多大空间，需要时一键清理：
+
+```swift
+let 体积 = LogKit.日志体积
+print(体积.清单文本)
+// 日志共 3 个文件，合计 1.5 MB
+//   LogKit.log（当前） 312.0 KB
+//   LogKit-2026-09-09-120000000.log 1.1 MB
+//   LogKit-crash.log 4.0 KB
+
+体积.文件数            // 3
+体积.总字节            // 1572864
+体积.总大小文本        // 「1.5 MB」
+
+LogKit.清理归档日志()   // 删除全部归档文件（返回删除个数），保留当前日志与崩溃日志
+LogKit.清空日志()       // 再清空当前日志，日志目录即清干净
+```
+
+`humanSize` / `人性化大小` 把字节数转成可读大小（不足 1 KB 按整数 `B`，否则保留一位小数的 `KB` / `MB` / `GB` / `TB`）。
+
 ## 更新日志
 
 - **版本号规则变更（自 1.4.0 起）**：版本号改为「满十进位式」——次版本满 10 就进位到主版本。按此规则，`0.13.0` 的下一版写作 `1.4.0`（而不是 `0.14.0`）。此前已发布的 `0.x` tag 原样保留，上面的旧条目也保持原编号。
+
+- **1.5.0**：新增 HTML 报告（`htmlString` / `HTML报告` 与 `exportHTML` / `导出HTML`，把摘要写成自包含网页，样式内联、零外部资源，`&` `<` `>` `"` `'` 先换 `&` 再转义其余，避免二次转义）、按消息聚合（`groupByMessage` / `按消息聚合` 与 `MessageGroup` / `消息聚合组`，相同消息归为一组，给出次数 / 最高级别 / 涉及分类 / 最早最晚时间，按次数降序、次数相同按消息字典序，支持去空白与忽略大小写）、差异导出（`exportSince(_:includeArchived:fileName:)` / `exportSince(after:includeArchived:fileName:)` / `导出增量` 与纯筛选 `entries(since:in:)` / `增量日志`，只导出某时刻或某条日志之后的条目为 CSV）、体积统计与清理（`logStorage` / `日志体积` 与 `LogStorage` / `日志体积统计`、`日志文件项`，逐个量出日志文件大小并汇总，`clearArchivedLogs` / `清理归档日志` 删除全部归档文件，`humanSize` / `人性化大小` 转可读大小），均含中文别名并补单元测试。
 
 - **1.4.0**：新增按 `traceId` 聚合（`groupByTrace` / `按链路聚合`，按 traceId 分组还原一次请求的完整链路，组内按时间升序、时间相同保持传入顺序，无 traceId 的条目归到可自定义的 `untrackedKey` 桶）、合并日志文件（`mergeLogFiles` / `合并日志`，读取当前日志与全部归档并归并排序，读前先 `flush()`，沿用 `parseLogFile` 的解析规则）、格式模板（`LogTemplate` / `日志模板`，用 `{级别}` / `{时间}` 等占位符接管行格式，`.formatter` 可直接赋给 `customFormatter`，支持中英文占位符名，写错的占位符原样保留并提供 `unknownPlaceholders(in:)` 自查）、Markdown 报告（`markdownString` / `Markdown报告` 与 `exportMarkdown` / `导出Markdown`，输出总览 / 各级别条数 / 分类排行三张表格，单元格里的 `|` 自动转义），均含中文别名。
 
