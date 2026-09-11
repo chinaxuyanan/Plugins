@@ -280,4 +280,122 @@ final class SwiftUIProKitTests: XCTestCase {
         XCTAssertEqual(中文.lineSpacing, 8)
         XCTAssertEqual(流式布局(间距: 6, 行间距: 16).lineSpacing, 16)
     }
+
+    // MARK: - 展开文本 / 关键词高亮 / 打字机 / 热力图（第九轮）
+
+    func testExpandableTextConstructs() {
+        _ = ExpandableText("一段较长的商品简介")
+        _ = ExpandableText("长文", lineLimit: 2, font: .headline, tint: .secondary,
+                           lineSpacing: 4, expandTitle: "查看全部", collapseTitle: "收起内容",
+                           buttonTint: .blue, showsIcon: false)
+        // 中文 init 首参带「文字:」标签——与英文无标签首参区分，避免重载歧义
+        _ = 展开文本(文字: "长文", 行数: 2, 展开文字: "查看全部", 收起文字: "收起内容")
+    }
+
+    func testHighlightedTextRanges() {
+        let text = "SwiftUI 的中文封装库"
+        // 单关键词：命中一次
+        XCTAssertEqual(HighlightedText.ranges(of: ["封装"], in: text).count, 1)
+        // 多关键词：各自命中，结果按起点排序
+        let multi = HighlightedText.ranges(of: ["中文", "SwiftUI"], in: text)
+        XCTAssertEqual(multi.count, 2)
+        XCTAssertEqual(String(text[multi[0]]), "SwiftUI")
+        XCTAssertEqual(String(text[multi[1]]), "中文")
+        // 同一关键词出现多次：全部命中
+        XCTAssertEqual(HighlightedText.ranges(of: ["中"], in: "中中中").count, 3)
+        // 空关键词 / 空文本直接跳过
+        XCTAssertTrue(HighlightedText.ranges(of: [""], in: text).isEmpty)
+        XCTAssertTrue(HighlightedText.ranges(of: ["封装"], in: "").isEmpty)
+        // 未命中返回空
+        XCTAssertTrue(HighlightedText.ranges(of: ["不存在的词"], in: text).isEmpty)
+    }
+
+    func testHighlightedTextCaseSensitivity() {
+        let text = "Hello World"
+        // 默认不区分大小写
+        XCTAssertEqual(HighlightedText.ranges(of: ["hello"], in: text).count, 1)
+        XCTAssertEqual(HighlightedText.ranges(of: ["world"], in: text).count, 1)
+        // 区分大小写时大小写不匹配则不命中
+        XCTAssertTrue(HighlightedText.ranges(of: ["hello"], in: text, caseSensitive: true).isEmpty)
+        XCTAssertEqual(HighlightedText.ranges(of: ["Hello"], in: text, caseSensitive: true).count, 1)
+        // 中文别名等价转发
+        XCTAssertEqual(高亮文本.命中区间(关键词: ["Hello"], 文字: text, 区分大小写: true).count, 1)
+    }
+
+    func testHighlightedTextConstructs() {
+        _ = HighlightedText("SwiftUI 的中文封装库", highlights: ["封装", "中文"])
+        _ = HighlightedText("命中标黄", highlights: ["标黄"], highlightColor: .orange,
+                            highlightBackground: .yellow.opacity(0.3), isBold: false,
+                            font: .footnote, tint: .secondary, caseSensitive: true)
+        _ = 高亮文本(文字: "中文别名", 关键词: ["中文"], 高亮底色: .yellow.opacity(0.3))
+    }
+
+    func testTypingTextConstructs() {
+        _ = TypingText("正在为你生成回答……")
+        _ = TypingText("欢迎回来", speed: 0.08, font: .title, tint: .blue,
+                       cursorColor: .orange, showsCursor: false, loops: true,
+                       loopDelay: 0.5, cursorBlinkInterval: 0.4) { }
+        // 中文 init 首参带「文字:」标签——与英文无标签首参区分，避免重载歧义
+        _ = 打字机文本(文字: "加载中", 速度: 0.1, 循环: true, 结束: { })
+    }
+
+    private func fixedCalendar() -> Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
+        return calendar
+    }
+
+    func testHeatmapCalendarLevels() {
+        let calendar = fixedCalendar()
+        let base = calendar.date(from: DateComponents(year: 2026, month: 1, day: 5))!
+        func day(_ offset: Int) -> Date { calendar.date(byAdding: .day, value: offset, to: base)! }
+
+        // 空输入 / 全零 → 空（没有正数就没有色阶基准）
+        XCTAssertTrue(HeatmapCalendar.levels(values: [:]).isEmpty)
+        XCTAssertTrue(HeatmapCalendar.levels(values: [day(0): 0, day(1): -3]).isEmpty)
+        XCTAssertTrue(HeatmapCalendar.levels(values: [day(0): 5], levelCount: 0).isEmpty)
+
+        // 最大值 8，四档：1/8→1、2/8→1、4/8→2、8/8→4（ceil 收敛）
+        let levels = HeatmapCalendar.levels(values: [day(0): 1, day(1): 2, day(2): 4, day(3): 8],
+                                            levelCount: 4, calendar: calendar)
+        XCTAssertEqual(levels[calendar.startOfDay(for: day(0))], 1)
+        XCTAssertEqual(levels[calendar.startOfDay(for: day(1))], 1)
+        XCTAssertEqual(levels[calendar.startOfDay(for: day(2))], 2)
+        XCTAssertEqual(levels[calendar.startOfDay(for: day(3))], 4)
+        // 零值 / 负值不进结果
+        XCTAssertEqual(levels.count, 4)
+    }
+
+    func testHeatmapCalendarWeekColumns() {
+        let calendar = fixedCalendar()
+        // 2026-01-05 是周一，2026-01-11 是周日
+        let start = calendar.date(from: DateComponents(year: 2026, month: 1, day: 5))!
+        let end = calendar.date(from: DateComponents(year: 2026, month: 1, day: 11))!
+        let columns = HeatmapCalendar.weekColumns(from: start, to: end, calendar: calendar)
+
+        XCTAssertFalse(columns.isEmpty)
+        // 每列恰好 7 格（补齐空格）
+        XCTAssertTrue(columns.allSatisfy { $0.count == 7 })
+        // 有值的格子数等于跨度天数
+        let days = columns.flatMap { $0 }.compactMap { $0 }
+        XCTAssertEqual(days.count, 7)
+        XCTAssertEqual(calendar.startOfDay(for: days.first!), calendar.startOfDay(for: start))
+        XCTAssertEqual(calendar.startOfDay(for: days.last!), calendar.startOfDay(for: end))
+
+        // 起止同一天 → 只有一天，仍补齐成整周
+        let single = HeatmapCalendar.weekColumns(from: start, to: start, calendar: calendar)
+        XCTAssertEqual(single.flatMap { $0 }.compactMap { $0 }.count, 1)
+        XCTAssertTrue(single.allSatisfy { $0.count == 7 })
+    }
+
+    func testHeatmapCalendarConstructs() {
+        _ = HeatmapCalendar(values: [:])
+        _ = HeatmapCalendar(values: [:], cellSize: 14, spacing: 4, cornerRadius: 3,
+                            colors: [.gray, .green, .blue], emptyColor: .gray.opacity(0.2),
+                            showsMonthLabels: false) { _ in }
+        // 中文 init 首参带「数值:」标签——与英文无标签首参区分，避免重载歧义
+        _ = 热力图日历(数值: [:], 方格尺寸: 12, 显示月份: false)
+        _ = 热力图日历.级别(数值: [:], 级别数: 4)
+        _ = 热力图日历.周列(起始: Date(), 结束: Date())
+    }
 }

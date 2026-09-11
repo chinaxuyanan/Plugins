@@ -11,8 +11,8 @@ import Darwin
 /// - 支持 `measure` 耗时测量、附加结构化字段 `fields`、自定义格式闭包 `customFormatter`；
 /// - 支持 `ScopedLogger` 作用域日志器（分模块分类）、`PerformanceCounter` 性能计数器（累计耗时）、`OSLogger` 系统日志桥接（os.Logger）；
 /// - 支持追踪 ID `traceId`（全局 / 作用域日志器两级，串联一次请求的全部日志）、按构建环境自适应默认级别（DEBUG `.debug` / RELEASE `.warning`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`）；
-/// - 支持自定义输出去向 `addSink`（控制台 / 文件之外的第三方接收者，可移除）、按天数清理 `maxLogAgeDays`、CSV 导出 `exportCSV`、时区配置 `timeZone`；
-/// - 支持内存检索（`maxRecentEntries` 保留最近若干条 + `LogFilter` 按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 过滤）、统计摘要 `LogSummary`、压缩归档导出 `exportArchive`（纯 Foundation 打包 zip）、按天自动轮转 `dailyRotation`；
+/// - 支持自定义输出去向 `addSink`（控制台 / 文件之外的第三方接收者，可移除）、按天数清理 `maxLogAgeDays`、CSV 导出 `exportCSV`、JSON 导出 `exportJSON`、时区配置 `timeZone`；
+/// - 支持内存检索（`maxRecentEntries` 保留最近若干条 + `LogFilter` 按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 过滤）、统计摘要 `LogSummary`（可导出成文本文件 `exportSummary`）、压缩归档导出 `exportArchive`（纯 Foundation 打包 zip）、日志反解析 `parseLogFile`（文本行还原成 `LogEntry`）、按天 / 按小时自动轮转 `dailyRotation` / `hourlyRotation`；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -34,7 +34,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.12.0"
+    public static let version = "0.13.0"
 
     // MARK: - 配置
 
@@ -153,6 +153,23 @@ public enum LogKit {
     ///   LogKit.maxLogFiles = 7            // 只留最近 7 个
     ///   ```
     public static var dailyRotation: Bool = false
+
+    /// 是否按小时自动轮转日志文件（默认 `false`）
+    ///
+    /// 打开后，日志文件名精确到小时（`LogKit-yyyy-MM-dd-HH.log`），跨小时第一次写日志时
+    /// 自动开启新文件，并把上一个小时的文件归档（重命名为 `LogKit-旧时间戳-时间戳.log`）。
+    /// 适合日志量大、一天要切成 24 份的场景。
+    ///
+    /// - Note: 与 `dailyRotation` 同时打开时以本项为准（按小时切）。
+    ///   按小时会显著增加文件数量，建议同时把 `maxLogFiles` / `maxLogAgeDays` 设小一点。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   LogKit.fileOutput = true
+    ///   LogKit.hourlyRotation = true   // 每小时一个文件
+    ///   LogKit.maxLogFiles = 48        // 只留最近 48 个小时的
+    ///   ```
+    public static var hourlyRotation: Bool = false
 
     /// 内存中保留的最近日志条数上限（默认 `0`，即不保留）
     ///
@@ -825,6 +842,213 @@ public enum LogKit {
         return "\"" + value.replacingOccurrences(of: "\"", with: "\"\"") + "\""
     }
 
+    // MARK: - JSON 导出
+
+    /// 把日志条目转成 JSON 文本
+    ///
+    /// 输出是一个 JSON 数组，每个元素就是该条日志的 `jsonObject`（键与内置 `.json` 输出一致）。
+    /// 键按字典序（`.sortedKeys`），同一份内容多次序列化结果完全一致。
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组（可从 `onLog` 回调或 `addSink` 收集）
+    ///   - prettyPrinted: 是否带缩进换行（默认 `true`，便于人看；文件体积要求高时传 `false`）
+    /// - Returns: JSON 文本；空数组时为 `[]`
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   var collected: [LogEntry] = []
+    ///   LogKit.onLog = { collected.append($0) }
+    ///   LogKit.info("下单成功", fields: ["订单号": "A100"])
+    ///   print(LogKit.jsonString(from: collected))
+    ///   ```
+    public static func jsonString(from entries: [LogEntry], prettyPrinted: Bool = true) -> String {
+        let array = entries.map { $0.jsonObject }
+        var options: JSONSerialization.WritingOptions = [.sortedKeys]
+        if prettyPrinted { options.insert(.prettyPrinted) }
+        guard let data = try? JSONSerialization.data(withJSONObject: array, options: options),
+              let json = String(data: data, encoding: .utf8) else {
+            return "[]"
+        }
+        return json
+    }
+
+    /// 把日志条目导出为 JSON 文件，返回可供系统分享面板使用的文件 URL
+    ///
+    /// 内容与 `jsonString(from:prettyPrinted:)` 一致。写入临时目录，可直接交给
+    /// `UIActivityViewController`（iOS）或 `NSSharingServicePicker`（macOS）分享。
+    ///
+    /// - Note: 与 CSV 导出不同，这里**不加** UTF-8 BOM——BOM 会让严格的 JSON 解析器报错。
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组
+    ///   - fileName: 目标文件名（不含扩展名）；默认 `LogKit-时间戳-短UUID`
+    ///   - prettyPrinted: 是否带缩进换行，默认 `true`
+    /// - Returns: 导出的 JSON 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let url = try LogKit.exportJSON(collected)
+    ///   ```
+    public static func exportJSON(_ entries: [LogEntry],
+                                  fileName: String? = nil,
+                                  prettyPrinted: Bool = true) throws -> URL {
+        flush()
+        let dest = try makeExportURL(ext: "json", fileName: fileName)
+        try jsonString(from: entries, prettyPrinted: prettyPrinted)
+            .write(to: dest, atomically: true, encoding: .utf8)
+        return dest
+    }
+
+    // MARK: - 日志反解析
+
+    /// 解析单行 `.text` 格式日志，还原成 `LogEntry`
+    ///
+    /// 识别的是本库 `.text` 输出格式：
+    /// `[时间] [级别] [分类] 消息 @ 文件:行 [traceId: xxx] [键=值, 键=值]`，
+    /// 其中位置 / 追踪 ID / 字段三段都可缺省。级别同时接受中文名（「信息」）与英文名（`info` / `warn` 等）。
+    ///
+    /// 解析思路：先摘掉开头的三个方括号字段，再从**尾部**依次剥掉「字段块 → 追踪 ID 块 → 位置」，
+    /// 剩下的就是消息原文——这样消息里出现空格、冒号、方括号也不会被误伤。
+    ///
+    /// - Parameter line: 一行日志文本
+    /// - Returns: 解析出的条目；不是 `.text` 格式（缺开头字段 / 级别不认识）时返回 `nil`
+    ///
+    /// - Note: 只支持 `.text` 格式，`.json` 格式的日志行请用 `JSONSerialization` 自行解析。
+    ///   字段值一律按字符串处理，且值里含逗号会截断（本库文本输出未对逗号做转义）。
+    public static func parseLogLine(_ line: String) -> LogEntry? {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.hasPrefix("[") else { return nil }
+
+        var rest = Substring(trimmed)
+        guard let timeField = takeBracketedField(&rest),
+              let levelField = takeBracketedField(&rest),
+              let categoryField = takeBracketedField(&rest),
+              let parsedLevel = parseLevel(levelField) else { return nil }
+
+        var message = String(rest)
+        var file: String?
+        var lineNumber: Int?
+        var traceId: String?
+        var fields: [String: Any] = [:]
+
+        // 尾部顺序固定为「字段 → traceId → 位置」，倒着剥即可
+        if let block = takeTrailingBlock(&message, where: isFieldsBlock) {
+            fields = parseFields(block)
+        }
+        if let block = takeTrailingBlock(&message, where: { $0.hasPrefix("traceId: ") }) {
+            traceId = String(block.dropFirst("traceId: ".count))
+        }
+        if let marker = message.range(of: " @ ", options: .backwards) {
+            let tail = message[marker.upperBound...]
+            if let colon = tail.lastIndex(of: ":") {
+                let filePart = String(tail[tail.startIndex..<colon])
+                let linePart = String(tail[tail.index(after: colon)...])
+                if !filePart.isEmpty, let parsedLine = Int(linePart) {
+                    file = filePart
+                    lineNumber = parsedLine
+                    message = String(message[message.startIndex..<marker.lowerBound])
+                }
+            }
+        }
+
+        return LogEntry(timestamp: timeField,
+                        date: parseDate(timeField) ?? Date(),
+                        level: parsedLevel,
+                        category: categoryField,
+                        message: message,
+                        file: file,
+                        line: lineNumber,
+                        fields: fields,
+                        traceId: traceId)
+    }
+
+    /// 解析一段日志文本（按行拆分，逐行 `parseLogLine`，无法识别的行跳过）
+    ///
+    /// 与 `parseLogFile(at:)` 的差别只是数据来源：本方法直接吃字符串（比如从网络 / 剪贴板拿到的日志）。
+    ///
+    /// - Parameter contents: 日志全文
+    /// - Returns: 解析出的条目数组（保持原行序）
+    public static func parseLogFile(_ contents: String) -> [LogEntry] {
+        contents.components(separatedBy: .newlines).compactMap { parseLogLine($0) }
+    }
+
+    /// 解析一个日志文件，返回其中的条目
+    ///
+    /// - Parameter url: 日志文件路径
+    /// - Returns: 解析出的条目数组；文件读不出来时为空数组
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+    ///   print(LogKit.summary(of: entries).text())
+    ///   ```
+    public static func parseLogFile(at url: URL) -> [LogEntry] {
+        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return [] }
+        return parseLogFile(content)
+    }
+
+    /// 内部：跳过空白后取出开头的一个 `[...]` 字段，并把游标前移
+    private static func takeBracketedField(_ text: inout Substring) -> String? {
+        text = text.drop(while: { $0 == " " || $0 == "\t" })
+        guard text.hasPrefix("["), let close = text.firstIndex(of: "]") else { return nil }
+        let content = String(text[text.index(after: text.startIndex)..<close])
+        text = text[text.index(after: close)...]
+        return content
+    }
+
+    /// 内部：若字符串以 ` [xxx]` 结尾且 `xxx` 满足条件，摘掉该块并返回 `xxx`
+    private static func takeTrailingBlock(_ text: inout String, where predicate: (String) -> Bool) -> String? {
+        guard text.hasSuffix("]"), let open = text.range(of: " [", options: .backwards) else { return nil }
+        let inner = String(text[text.index(open.lowerBound, offsetBy: 2)..<text.index(before: text.endIndex)])
+        guard predicate(inner) else { return nil }
+        text = String(text[text.startIndex..<open.lowerBound])
+        return inner
+    }
+
+    /// 内部：判断一段方括号内容是否是扩展字段块（形如 `键=值, 键=值`）
+    private static func isFieldsBlock(_ content: String) -> Bool {
+        guard !content.isEmpty, !content.hasPrefix("traceId: ") else { return false }
+        let parts = content.split(separator: ",")
+        guard !parts.isEmpty else { return false }
+        return parts.allSatisfy { $0.contains("=") }
+    }
+
+    /// 内部：把 `键=值, 键=值` 解析成字典（值一律按字符串）
+    private static func parseFields(_ content: String) -> [String: Any] {
+        var result: [String: Any] = [:]
+        for piece in content.split(separator: ",") {
+            guard let eq = piece.firstIndex(of: "=") else { continue }
+            let key = piece[piece.startIndex..<eq].trimmingCharacters(in: .whitespaces)
+            let value = piece[piece.index(after: eq)...].trimmingCharacters(in: .whitespaces)
+            if !key.isEmpty { result[key] = value }
+        }
+        return result
+    }
+
+    /// 内部：把日志行里的级别字段转成 `LogLevel`（先认中文名，再认英文名）
+    private static func parseLevel(_ field: String) -> LogLevel? {
+        let text = field.trimmingCharacters(in: .whitespaces)
+        if let match = LogLevel.allCases.first(where: { $0.chineseName == text }) { return match }
+        switch text.lowercased() {
+        case "debug": return .debug
+        case "info": return .info
+        case "warning", "warn": return .warning
+        case "error": return .error
+        case "critical", "fatal": return .critical
+        default: return nil
+        }
+    }
+
+    /// 内部：按当前 `dateFormat` / `timeZone` 解析时间戳字符串
+    private static func parseDate(_ text: String) -> Date? {
+        let f = DateFormatter()
+        f.dateFormat = dateFormat
+        f.timeZone = timeZone
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f.date(from: text)
+    }
+
     /// 崩溃日志文件路径（安装崩溃兜底后才会写入）
     public static var crashLogFileURL: URL {
         logDirectory.appendingPathComponent("LogKit-crash.log")
@@ -1031,6 +1255,73 @@ public enum LogKit {
         let dest = dir.appendingPathComponent("\(name).zip")
         try ZipWriter.archive(entries).write(to: dest)
         return dest
+    }
+
+    // MARK: - 摘要导出
+
+    /// 把统计摘要导出为文本文件，返回可供系统分享面板使用的文件 URL
+    ///
+    /// 文件开头是标题与生成时间，正文就是 `LogSummary.text(topCategories:)` 那段中文摘要。
+    /// 适合「让用户一键导出一份日志概况」交给技术支持。
+    ///
+    /// - Parameters:
+    ///   - summary: 要导出的摘要（由 `summary(of:topCategories:)` 等得到）
+    ///   - listedCategories: 正文里分类排行最多列出几项，默认 `3`；传 `0` 表示不列出
+    ///   - fileName: 目标文件名（不含扩展名）；默认 `LogKit-摘要-时间戳`
+    /// - Returns: 导出的文本文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let summary = LogKit.summary(of: LogKit.recentEntries)
+    ///   let url = try LogKit.exportSummary(summary)
+    ///   ```
+    public static func exportSummary(_ summary: LogSummary,
+                                     listedCategories: Int = 3,
+                                     fileName: String? = nil) throws -> URL {
+        let text = summaryFileText(summary, listedCategories: listedCategories)
+        let dest = try makeExportURL(ext: "txt", fileName: fileName ?? "LogKit-摘要-\(archiveStamp())")
+        try text.write(to: dest, atomically: true, encoding: .utf8)
+        return dest
+    }
+
+    /// 汇总一批日志条目，并直接导出为文本摘要文件
+    ///
+    /// `topCategories` 控制「算多少项分类」；导出文件里实际列出几项由 `listedCategories` 决定。
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组
+    ///   - topCategories: 分类排行最多统计几项，默认 `5`
+    ///   - listedCategories: 文件里分类排行最多列出几项，默认 `3`
+    ///   - fileName: 目标文件名（不含扩展名）
+    /// - Returns: 导出的文本文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    public static func exportSummary(of entries: [LogEntry],
+                                     topCategories: Int = 5,
+                                     listedCategories: Int = 3,
+                                     fileName: String? = nil) throws -> URL {
+        try exportSummary(summary(of: entries, topCategories: topCategories),
+                          listedCategories: listedCategories,
+                          fileName: fileName)
+    }
+
+    /// 内部：摘要文件的正文（标题 + 生成时间 + 摘要文本）
+    private static func summaryFileText(_ summary: LogSummary, listedCategories: Int) -> String {
+        var lines: [String] = []
+        lines.append("LogKit 日志摘要")
+        lines.append("生成时间：\(timestamp())")
+        lines.append(String(repeating: "-", count: 24))
+        lines.append(summary.text(topCategories: listedCategories))
+        return lines.joined(separator: "\n") + "\n"
+    }
+
+    /// 内部：在临时导出目录里开一个唯一文件名（时间戳 + 短 UUID，避免同一毫秒内撞名）
+    private static func makeExportURL(ext: String, fileName: String?) throws -> URL {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent("LogKitExport", isDirectory: true)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        let name = fileName ?? "LogKit-\(archiveStamp())-\(UUID().uuidString.prefix(8))"
+        return dir.appendingPathComponent("\(name).\(ext)")
     }
 
     // MARK: - 输出预判与作用域追踪 ID
@@ -1242,7 +1533,12 @@ public enum LogKit {
     }
 
     private static func logFileName() -> String {
-        "LogKit-\(dayStamp()).log"
+        "LogKit-\(currentPeriodStamp()).log"
+    }
+
+    /// 当前轮转周期的标识：按小时轮转时为 `yyyy-MM-dd-HH`，否则为 `yyyy-MM-dd`
+    private static func currentPeriodStamp() -> String {
+        hourlyRotation ? hourStamp() : dayStamp()
     }
 
     private static func dayStamp() -> String {
@@ -1250,6 +1546,24 @@ public enum LogKit {
         f.dateFormat = "yyyy-MM-dd"
         f.timeZone = timeZone
         return f.string(from: Date())
+    }
+
+    private static func hourStamp() -> String {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd-HH"
+        f.timeZone = timeZone
+        return f.string(from: Date())
+    }
+
+    /// 判断一段文件名主体是否是「未归档的周期戳」（按天 `2026-09-11` 或按小时 `2026-09-11-14`）
+    ///
+    /// 归档后的文件名会多出一段 `HHmmssSSS`，因此不会再被本判断识别，也就不会重复归档。
+    private static func isPeriodStamp(_ body: String) -> Bool {
+        let parts = body.split(separator: "-", omittingEmptySubsequences: false)
+        guard parts.count == 3 || parts.count == 4 else { return false }
+        guard let first = parts.first, first.count == 4 else { return false }
+        // 除年份外每段都必须是 2 位数字；归档名多出的 `HHmmssSSS` 是 9 位，因此不会被误认
+        return parts.dropFirst().allSatisfy { $0.count == 2 && $0.allSatisfy(\.isNumber) }
     }
 
     private static let fileLock = NSLock()
@@ -1272,7 +1586,7 @@ public enum LogKit {
         let fm = FileManager.default
         do {
             try fm.createDirectory(at: logDirectory, withIntermediateDirectories: true)
-            if dailyRotation { archivePreviousDayFiles() }
+            if dailyRotation || hourlyRotation { archiveStalePeriodFiles() }
             let url = logFileURL
             // 大小轮转：当前文件达到上限时先归档
             if maxFileSize > 0, fm.fileExists(atPath: url.path),
@@ -1305,13 +1619,17 @@ public enum LogKit {
         try? FileManager.default.moveItem(at: url, to: archived)
     }
 
-    /// 按天轮转：把日志目录里「不是今天」的按天日志文件归档掉
+    /// 按周期轮转：把日志目录里「不属于当前周期」的按周期日志文件归档掉
     ///
-    /// 文件名形如 `LogKit-2026-09-09.log`（`LogKit-` 与 `.log` 之间恰好是 10 个字符的日期、
-    /// 含两个短横线），归档后形如 `LogKit-2026-09-09-093000123.log`，不会再被本方法识别，
-    /// 因此不会重复归档。崩溃日志（`LogKit-crash.log`）与已归档文件都不匹配该形状，会被跳过。
-    private static func archivePreviousDayFiles() {
-        let today = dayStamp()
+    /// 未归档的文件名主体形如 `2026-09-11`（按天）或 `2026-09-11-14`（按小时）；
+    /// 归档后形如 `LogKit-2026-09-11-093000123.log`，多出一段 9 位时间戳，
+    /// 不再满足 `isPeriodStamp`，因此不会重复归档。
+    /// 崩溃日志（`LogKit-crash.log`）与已归档文件都会被跳过。
+    ///
+    /// - Note: 按小时轮转时，先前留下的「按天」文件也属于上一个周期，会一并归档，
+    ///   保证目录里「当前文件」始终只有一个。
+    private static func archiveStalePeriodFiles() {
+        let current = currentPeriodStamp()
         let fm = FileManager.default
         guard let files = try? fm.contentsOfDirectory(at: logDirectory,
                                                       includingPropertiesForKeys: nil,
@@ -1320,8 +1638,7 @@ public enum LogKit {
             let name = url.lastPathComponent
             guard name.hasPrefix("LogKit-") else { continue }
             let body = String(name.dropFirst("LogKit-".count).dropLast(".log".count))
-            guard body.count == 10, body.filter({ $0 == "-" }).count == 2 else { continue }
-            guard body != today else { continue }
+            guard isPeriodStamp(body), body != current else { continue }
             archiveCurrentFile(url)
         }
     }

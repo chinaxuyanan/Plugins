@@ -7,6 +7,8 @@ struct SystemInfoKitPanel: View {
     @State private var network: NetworkTraffic?
     @State private var disk: DiskIOTraffic?
     @State private var status = "点击下方按钮采样"
+    @State private var topProcesses: [ProcessUsage] = []
+    @State private var sortByMemory = true
 
     var body: some View {
         VStack(spacing: 20) {
@@ -53,6 +55,54 @@ struct SystemInfoKitPanel: View {
                     row("可用内存", SystemInfoKit.availableMemory)
                     row("磁盘剩余", SystemInfoKit.diskFree)
                     row("启动时长", SystemInfoKit.systemUptimeString)
+                }
+            }
+
+            Card("电池细分状态 batteryState（充电中 / 已充满 / 未接电源 / 未知）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    row("细分状态", SystemInfoKit.batteryStateName)
+                    row("电量", SystemInfoKit.batteryLevel.map { "\(Int($0 * 100))%" } ?? "—")
+                    row("电池健康", SystemInfoKit.batteryHealth)
+                }
+            }
+
+            Card("进程占用排行 topProcesses（仅 macOS · proc_pidinfo）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Button("按内存排行 Top 8") {
+                            sortByMemory = true
+                            topProcesses = SystemInfoKit.topProcesses(by: .memory, limit: 8)
+                            status = "已按内存排行 \(topProcesses.count) 个进程"
+                        }
+                        Button("按 CPU 排行 Top 8") {
+                            sortByMemory = false
+                            topProcesses = SystemInfoKit.topProcesses(by: .cpu, limit: 8)
+                            status = "已按 CPU 排行 \(topProcesses.count) 个进程"
+                        }
+                    }
+                    if topProcesses.isEmpty {
+                        Text("尚未排行，点上方按钮").foregroundStyle(.secondary)
+                    } else {
+                        ForEach(Array(topProcesses.enumerated()), id: \.offset) { index, process in
+                            HStack {
+                                Text("\(index + 1). \(process.name)")
+
+                                Spacer()
+                                Text(sortByMemory ? process.memory : String(format: "%.1f%%", process.cpuPercent))
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Card("网卡物理地址 primaryMACAddress / networkInterfaces") {
+                VStack(alignment: .leading, spacing: 8) {
+                    row("主网卡", SystemInfoKit.primaryMACAddress ?? "—")
+                    ForEach(SystemInfoKit.networkInterfaces.filter { $0.macAddress != nil }, id: \.name) { interface in
+                        row(interface.name, interface.macAddress ?? "—")
+                    }
                 }
             }
 

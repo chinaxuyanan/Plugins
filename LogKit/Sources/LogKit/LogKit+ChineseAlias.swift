@@ -373,6 +373,74 @@ public extension LogKit {
         set { dailyRotation = newValue }
     }
 
+    /// 是否按小时自动轮转（等同 `hourlyRotation`）
+    static var 按小时轮转: Bool {
+        get { hourlyRotation }
+        set { hourlyRotation = newValue }
+    }
+
+    /// 日志条目转 JSON 文本（等同 `jsonString(from:prettyPrinted:)`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 美化: 是否带缩进换行，默认 `true`
+    static func JSON字符串(条目: [LogEntry], 美化: Bool = true) -> String {
+        jsonString(from: 条目, prettyPrinted: 美化)
+    }
+
+    /// 导出 JSON 文件（等同 `exportJSON`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 文件名: 目标文件名（不含扩展名）
+    ///   - 美化: 是否带缩进换行，默认 `true`
+    static func 导出JSON(_ 条目: [LogEntry], 文件名: String? = nil, 美化: Bool = true) throws -> URL {
+        try exportJSON(条目, fileName: 文件名, prettyPrinted: 美化)
+    }
+
+    /// 解析单行文本日志（等同 `parseLogLine`）
+    /// - Parameter 行: 一行日志文本
+    static func 解析日志行(_ 行: String) -> LogEntry? {
+        parseLogLine(行)
+    }
+
+    /// 反解析一段日志文本（等同 `parseLogFile(_:)`）
+    /// - Parameter 全文: 日志全文
+    static func 日志反解析(_ 全文: String) -> [LogEntry] {
+        parseLogFile(全文)
+    }
+
+    /// 反解析一个日志文件（等同 `parseLogFile(at:)`）
+    /// - Parameter 文件: 日志文件路径
+    static func 日志反解析(文件 url: URL) -> [LogEntry] {
+        parseLogFile(at: url)
+    }
+
+    /// 导出统计摘要文本文件（等同 `exportSummary(_:listedCategories:fileName:)`）
+    /// - Parameters:
+    ///   - 摘要: 要导出的摘要
+    ///   - 列出分类数: 正文里分类排行最多列出几项，默认 `3`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出摘要(_ 摘要: LogSummary,
+                        列出分类数: Int = 3,
+                        文件名: String? = nil) throws -> URL {
+        try exportSummary(摘要, listedCategories: 列出分类数, fileName: 文件名)
+    }
+
+    /// 汇总并导出统计摘要（等同 `exportSummary(of:topCategories:listedCategories:fileName:)`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 分类排行数量: 分类排行最多统计几项，默认 `5`
+    ///   - 列出分类数: 文件里分类排行最多列出几项，默认 `3`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出摘要(条目: [LogEntry],
+                        分类排行数量: Int = 5,
+                        列出分类数: Int = 3,
+                        文件名: String? = nil) throws -> URL {
+        try exportSummary(of: 条目,
+                          topCategories: 分类排行数量,
+                          listedCategories: 列出分类数,
+                          fileName: 文件名)
+    }
+
     /// 内存中保留的最近日志条数上限（等同 `maxRecentEntries`）
     static var 最近保留条数: Int {
         get { maxRecentEntries }

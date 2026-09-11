@@ -65,8 +65,12 @@ import SwiftUI
 /// - `Timeline.swift`         时间轴（纵向节点 + 连接线）
 /// - `MiniChart.swift`        迷你图表（迷你折线图 / 迷你柱状图）
 /// - `SearchBar.swift`        搜索栏（防抖 + 一键清空 + 取消）
+/// - `ExpandableText.swift`   展开收起文本（超出限行时出「展开 / 收起」按钮）
+/// - `HighlightedText.swift`  关键词高亮文本（多关键词着色 / 加粗）
+/// - `TypingText.swift`       打字机文本（逐字显现 + 光标闪烁 + 循环）
+/// - `HeatmapCalendar.swift`  热力图日历（一周一列方格，按日强度上色）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.15.0"
+    public static let version = "0.16.0"
 }

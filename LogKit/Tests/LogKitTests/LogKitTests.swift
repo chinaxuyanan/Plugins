@@ -1190,4 +1190,265 @@ final class LogKitTests: XCTestCase {
 
         XCTAssertTrue(fm.fileExists(atPath: old.path), "未开启按天轮转时不应动旧文件")
     }
+
+    // MARK: - JSON 导出 jsonString / exportJSON（第九轮）
+
+    private func makeExportEntry(_ message: String,
+                                 level: LogLevel = .info,
+                                 category: String = "通用",
+                                 fields: [String: Any] = [:]) -> LogEntry {
+        LogEntry(timestamp: "2026-09-10 10:00:00.000",
+                 level: level,
+                 category: category,
+                 message: message,
+                 file: "Demo.swift",
+                 line: 42,
+                 fields: fields,
+                 traceId: nil)
+    }
+
+    func testJSONStringFromEntries() {
+        let entries = [
+            makeExportEntry("登录成功", category: "账号", fields: ["订单号": "A100"]),
+            makeExportEntry("超时", level: .error),
+        ]
+
+        let json = LogKit.jsonString(from: entries)
+        // 能解析回数组，且元素数、字段都对
+        let array = try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [[String: Any]]
+        XCTAssertEqual(array?.count, 2)
+        XCTAssertEqual(array?[0]["message"] as? String, "登录成功")
+        XCTAssertEqual(array?[0]["category"] as? String, "账号")
+        XCTAssertEqual(array?[1]["level"] as? String, "错误")
+        XCTAssertEqual((array?[0]["fields"] as? [String: Any])?["订单号"] as? String, "A100")
+
+        // 默认美化（带换行）；关闭后应为单行
+        XCTAssertTrue(json.contains("\n"))
+        XCTAssertFalse(LogKit.jsonString(from: entries, prettyPrinted: false).contains("\n"))
+
+        // 空数组输出合法 JSON
+        XCTAssertEqual(LogKit.jsonString(from: []), "[]")
+
+        // 中文别名等价，且键序稳定（.sortedKeys）
+        XCTAssertEqual(LogKit.JSON字符串(条目: entries), json)
+    }
+
+    func testExportJSONWritesFile() throws {
+        let entries = [makeExportEntry("导出成功", fields: ["金额": 99])]
+        let url = try LogKit.导出JSON(entries, 文件名: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(url.pathExtension, "json")
+        let data = try Data(contentsOf: url)
+        // JSON 不带 BOM（BOM 会让严格解析器报错）
+        XCTAssertFalse(data.starts(with: [0xEF, 0xBB, 0xBF]))
+
+        let array = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]]
+        XCTAssertEqual(array?.first?["message"] as? String, "导出成功")
+        XCTAssertEqual((array?.first?["fields"] as? [String: Any])?["金额"] as? Int, 99)
+    }
+
+    // MARK: - 日志反解析 parseLogLine / parseLogFile（第九轮）
+
+    func testParseLogLineFullLine() {
+        let line = "[2026-09-10 10:00:00.000] [信息] [账号] 登录成功 @ Login.swift:42 [traceId: req-1] [金额=99, 订单号=A100]"
+        guard let entry = LogKit.parseLogLine(line) else { return XCTFail("应能解析完整日志行") }
+
+        XCTAssertEqual(entry.timestamp, "2026-09-10 10:00:00.000")
+        XCTAssertEqual(entry.level, .info)
+        XCTAssertEqual(entry.category, "账号")
+        XCTAssertEqual(entry.message, "登录成功")
+        XCTAssertEqual(entry.file, "Login.swift")
+        XCTAssertEqual(entry.line, 42)
+        XCTAssertEqual(entry.traceId, "req-1")
+        // 字段值一律按字符串
+        XCTAssertEqual(entry.fields["金额"] as? String, "99")
+        XCTAssertEqual(entry.fields["订单号"] as? String, "A100")
+
+        // 中文别名等价转发
+        XCTAssertEqual(LogKit.解析日志行(line)?.message, "登录成功")
+    }
+
+    func testParseLogLineOptionalSuffixes() {
+        // 只有最小三段：级别 / 分类 / 消息
+        let minimal = "[2026-09-10 10:00:00.000] [debug] [通用] 最简一行"
+        let entry = LogKit.parseLogLine(minimal)
+        XCTAssertEqual(entry?.level, .debug)
+        XCTAssertEqual(entry?.message, "最简一行")
+        XCTAssertNil(entry?.file)
+        XCTAssertNil(entry?.line)
+        XCTAssertNil(entry?.traceId)
+        XCTAssertTrue(entry?.fields.isEmpty ?? false)
+
+        // 消息里带空格、冒号、方括号也不应被误伤（尾部的都不是合法字段块）
+        let tricky = "[2026-09-10 10:00:00.000] [警告] [通用] 处理 [重要] 数据: 完成 @ F.swift:1"
+        XCTAssertEqual(LogKit.parseLogLine(tricky)?.message, "处理 [重要] 数据: 完成")
+
+        // 英文级别名也行
+        XCTAssertEqual(LogKit.parseLogLine("[t] [warn] [通用] 英文级别")?.level, .warning)
+
+        // 非日志行 / 级别不认识 → nil
+        XCTAssertNil(LogKit.parseLogLine("随便一行文本"))
+        XCTAssertNil(LogKit.parseLogLine("[只有一段]"))
+        XCTAssertNil(LogKit.parseLogLine("[t] [不认识的级别] [通用] 消息"))
+    }
+
+    func testParseLogFileSplitsLines() {
+        let contents = [
+            "[2026-09-10 10:00:00.000] [信息] [网络] 请求开始",
+            "这条不是日志，应被跳过",
+            "[2026-09-10 10:00:01.000] [错误] [网络] 请求失败 @ Net.swift:9",
+        ].joined(separator: "\n")
+
+        let entries = LogKit.日志反解析(contents)
+        XCTAssertEqual(entries.count, 2, "无法识别的行应被跳过")
+        XCTAssertEqual(entries.map(\.message), ["请求开始", "请求失败"])
+        XCTAssertEqual(entries[1].level, .error)
+        XCTAssertEqual(entries[1].line, 9)
+    }
+
+    func testParseLogFileReadsURL() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let file = dir.appendingPathComponent("sample.log")
+        try "[2026-09-10 10:00:00.000] [信息] [通用] 来自文件\n".write(to: file, atomically: true, encoding: .utf8)
+
+        let entries = LogKit.日志反解析(文件: file)
+        XCTAssertEqual(entries.map(\.message), ["来自文件"])
+
+        // 文件不存在 → 空数组，不抛错
+        XCTAssertTrue(LogKit.parseLogFile(at: dir.appendingPathComponent("不存在.log")).isEmpty)
+    }
+
+    /// 真实落盘 → 反解析 的往返：比手搓字符串更能锁住 `.text` 格式契约
+    func testTextLogRoundTripThroughFile() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.outputFormat = .text
+        LogKit.info("登录成功", category: "账号", fields: ["订单号": "A100"])
+
+        guard let line = LogKit.tail(1).first else { return XCTFail("应写入一行日志") }
+        guard let entry = LogKit.parseLogLine(line) else { return XCTFail("应能反解析刚写入的日志") }
+
+        XCTAssertEqual(entry.message, "登录成功")
+        XCTAssertEqual(entry.category, "账号")
+        XCTAssertEqual(entry.level, .info)
+        XCTAssertEqual(entry.fields["订单号"] as? String, "A100")
+        XCTAssertEqual(entry.file, "LogKitTests.swift")
+    }
+
+    // MARK: - 摘要导出 exportSummary（第九轮）
+
+    func testExportSummaryWritesFile() throws {
+        let entries = [
+            makeExportEntry("a", level: .info, category: "网络"),
+            makeExportEntry("b", level: .error, category: "网络"),
+            makeExportEntry("c", level: .critical, category: "存储"),
+        ]
+        let url = try LogKit.导出摘要(条目: entries, 文件名: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(url.pathExtension, "txt")
+        let text = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(text.contains("LogKit 日志摘要"))
+        XCTAssertTrue(text.contains("生成时间："))
+        XCTAssertTrue(text.contains("日志共 3 条"))
+        XCTAssertTrue(text.contains("网络(2)"), "分类排行应列出出现最多的分类")
+
+        // 直接导出已有摘要对象也等价
+        let summary = LogKit.summary(of: entries)
+        let url2 = try LogKit.exportSummary(summary)
+        defer { try? FileManager.default.removeItem(at: url2) }
+        XCTAssertTrue(try String(contentsOf: url2, encoding: .utf8).contains("日志共 3 条"))
+    }
+
+    // MARK: - 按小时自动轮转 hourlyRotation（第九轮）
+
+    func testHourlyRotationUsesHourlyFileName() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        let previousHourly = LogKit.hourlyRotation
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+            LogKit.hourlyRotation = previousHourly
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.hourlyRotation = true
+        LogKit.info("按小时轮转")
+
+        // 文件名应为 LogKit-yyyy-MM-dd-HH.log —— 拆段判断，不依赖「当前几点」
+        let name = LogKit.logFileURL.lastPathComponent
+        XCTAssertTrue(name.hasPrefix("LogKit-"))
+        XCTAssertTrue(name.hasSuffix(".log"))
+        let body = name.dropFirst("LogKit-".count).dropLast(".log".count)
+        let parts = body.split(separator: "-", omittingEmptySubsequences: false)
+        XCTAssertEqual(parts.count, 4, "按小时文件名应为 LogKit-yyyy-MM-dd-HH.log")
+        XCTAssertEqual(parts.first?.count, 4, "年份 4 位")
+        XCTAssertTrue(parts.dropFirst().allSatisfy { $0.count == 2 && $0.allSatisfy(\.isNumber) })
+
+        // 中文别名双向等价
+        XCTAssertTrue(LogKit.按小时轮转)
+        LogKit.按小时轮转 = false
+        XCTAssertFalse(LogKit.hourlyRotation)
+    }
+
+    func testHourlyRotationArchivesStalePeriodFileOnly() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        // 一个「过去的」按小时文件（LogKit-yyyy-MM-dd-HH.log）→ 应被归档改名
+        let stale = dir.appendingPathComponent("LogKit-2000-01-01-03.log")
+        _ = fm.createFile(atPath: stale.path, contents: Data("旧小时日志\n".utf8))
+        // 一个已经归档过的名字（末尾多了 9 位 HHmmssSSS）→ 不应被二次归档
+        let alreadyArchived = dir.appendingPathComponent("LogKit-2000-01-01-030000123.log")
+        _ = fm.createFile(atPath: alreadyArchived.path, contents: Data("已归档\n".utf8))
+
+        let previousDir = LogKit.logDirectory
+        let previousOutput = LogKit.fileOutput
+        let previousAsync = LogKit.asyncWrite
+        let previousHourly = LogKit.hourlyRotation
+        defer {
+            LogKit.logDirectory = previousDir
+            LogKit.fileOutput = previousOutput
+            LogKit.asyncWrite = previousAsync
+            LogKit.hourlyRotation = previousHourly
+        }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+        LogKit.hourlyRotation = true
+        LogKit.info("触发轮转")
+
+        XCTAssertFalse(fm.fileExists(atPath: stale.path), "非当前小时的按小时文件应被归档改名")
+        XCTAssertTrue(LogKit.archivedLogFiles.contains { $0.lastPathComponent.hasPrefix("LogKit-2000-01-01-03") },
+                      "归档名应为 LogKit-原小时-时间戳.log")
+        XCTAssertTrue(fm.fileExists(atPath: alreadyArchived.path),
+                      "已带 9 位时间戳的归档名不应被再次归档")
+    }
 }

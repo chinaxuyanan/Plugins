@@ -45,6 +45,10 @@
 - **统计摘要**：`LogSummary` / `日志摘要` 汇总条数 / 各级别条数 / 错误率 / 时间跨度 / 分类排行，`text()` 直接产出中文摘要文本
 - **压缩归档导出**：`exportArchive` / `导出压缩包` 把当前日志 + 崩溃日志 + 历史归档一次打包成 zip（纯 Foundation 手写 ZIP，零依赖）
 - **按天自动轮转**：`dailyRotation` / `按天轮转` 开启后，跨天写入时自动把前一天的按天日志文件归档改名
+- **按小时自动轮转**：`hourlyRotation` / `按小时轮转` 同上的小时级版本，文件名形如 `LogKit-yyyy-MM-dd-HH.log`，适合高频日志或长跑压测
+- **JSON 导出**：`exportJSON` / `导出JSON`（配 `jsonString(from:prettyPrinted:)` / `JSON字符串(条目:美化:)`）把一批日志条目导出成 JSON 数组文件，键序稳定、可美化，交给采集 / 分析工具
+- **日志反解析**：`parseLogFile` / `日志反解析`（含单行 `parseLogLine` / `解析日志行`）把 `.text` 格式日志文本读回 `LogEntry`，便于导入既有日志做过滤 / 摘要 / 再导出
+- **摘要导出**：`exportSummary` / `导出摘要` 把 `LogSummary`（或直接一批条目）写成中文摘要文本文件，随问题反馈一起提交
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -60,7 +64,7 @@ dependencies: [
 
 然后在目标中 `import LogKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.12.1")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "0.13.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -125,6 +129,7 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `maxLogFiles` | `0`（不清理） | 最多保留的日志文件数，超出删最旧 |
 | `maxLogAgeDays` | `0`（不清理） | 日志文件最长保留天数，超出删最旧（按修改时间，可与其他清理项叠加）|
 | `dailyRotation` | `false` | 是否按天自动轮转：跨天写入时把前一天的按天日志文件归档改名 |
+| `hourlyRotation` | `false` | 是否按小时自动轮转：跨小时写入时把上一小时的按小时日志文件归档改名（文件名形如 `LogKit-yyyy-MM-dd-HH.log`）|
 | `maxRecentEntries` | `0`（不保留） | 内存中保留的最近日志条数上限，大于 `0` 时才缓存（供过滤 / 摘要使用）|
 | `enabledCategories` | `nil`（全部） | 分类白名单，只输出名单内分类 |
 | `ignoredCategories` | `[]`（空） | 分类黑名单，跳过名单内分类 |
@@ -171,6 +176,10 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.添加输出 { ... }` / `LogKit.移除输出(标识)` / `LogKit.清空输出()` / `LogKit.输出数量` | `LogKit.addSink(_:)` / `LogKit.removeSink(_:)` / `LogKit.removeAllSinks()` / `LogKit.sinkCount` |
 | `LogKit.日志保留天数` / `LogKit.时区` | `LogKit.maxLogAgeDays` / `LogKit.timeZone` |
 | `LogKit.按天轮转` / `LogKit.最近保留条数` | `LogKit.dailyRotation` / `LogKit.maxRecentEntries` |
+| `LogKit.按小时轮转` | `LogKit.hourlyRotation` |
+| `LogKit.JSON字符串(条目:美化:)` / `LogKit.导出JSON(条目:文件名:美化:)` | `LogKit.jsonString(from:prettyPrinted:)` / `LogKit.exportJSON(_:fileName:prettyPrinted:)` |
+| `LogKit.解析日志行(行)` / `LogKit.日志反解析(全文)` / `LogKit.日志反解析(文件:)` | `LogKit.parseLogLine(_:)` / `LogKit.parseLogFile(_:)` / `LogKit.parseLogFile(at:)` |
+| `LogKit.导出摘要(摘要:列出分类数:文件名:)` / `LogKit.导出摘要(条目:分类排行数量:列出分类数:文件名:)` | `LogKit.exportSummary(_:listedCategories:fileName:)` / `LogKit.exportSummary(of:topCategories:listedCategories:fileName:)` |
 | `LogKit.最近日志` / `LogKit.清空最近日志()` | `LogKit.recentEntries` / `LogKit.clearRecentEntries()` |
 | `LogKit.过滤日志(条目, 条件:)` / `LogKit.过滤最近日志(条件)` | `LogKit.filterEntries(_:matching:)` / `LogKit.filteredRecentEntries(matching:)` |
 | `LogKit.统计摘要(条目, 分类排行数量:)` / `LogKit.最近日志摘要(分类排行数量:)` | `LogKit.summary(of:topCategories:)` / `LogKit.summaryOfRecentEntries(topCategories:)` |
@@ -383,7 +392,61 @@ LogKit.按天轮转 = true    // 跨天后自动归档昨天的文件（崩溃�
 
 配合 `maxFileSize` / `maxLogFiles` / `maxLogAgeDays` 一起用，按天分文件 + 按需清理，长期运行也不会堆满磁盘。
 
+**按小时自动轮转 `hourlyRotation`**：与按天版同源，只是粒度到小时，适合高频日志或长跑压测：
+
+```swift
+LogKit.fileOutput = true
+LogKit.按小时轮转 = true    // 跨小时后自动归档上一小时的文件（LogKit-yyyy-MM-dd-HH.log）
+```
+
+归档判定只认「每年 4 位、其余各段恰好 2 位」的名字，已归档名末尾多出的 9 位时间戳
+（`HHmmssSSS`）不会被当成待归档文件，因此不会反复改名。
+
+**JSON 导出 `exportJSON` / `jsonString`**：把一批日志条目导出成 JSON 数组文件，便于交给采集 / 分析工具：
+
+```swift
+// 用 onLog / addSink 收集条目
+var 收集: [LogEntry] = []
+let 去向 = LogKit.添加输出 { 收集.append($0) }
+LogKit.信息("用户登录成功", 分类: "账号", fields: ["状态码": 200])
+
+let 文本 = LogKit.JSON字符串(条目: 收集)          // 只取文本，默认美化（带缩进换行）
+let 紧凑 = LogKit.JSON字符串(条目: 收集, 美化: false)
+let 文件 = try LogKit.导出JSON(收集, 文件名: "问题反馈")   // 写入临时目录，返回文件 URL
+LogKit.移除输出(去向)
+```
+
+JSON 采用 `.sortedKeys` 键序稳定、可复现，且**不写 UTF-8 BOM**（BOM 会让严格的 JSON 解析器报错）；
+CSV 导出则保留 BOM 以便 Excel 正确识别中文。
+
+**日志反解析 `parseLogFile`**：把 `.text` 格式日志读回 `LogEntry`，可直接喂给 `LogFilter` / `LogSummary` / 再导出：
+
+```swift
+let 条目 = LogKit.日志反解析(文件: LogKit.logFileURL)      // 按行反解析，认不出的行跳过
+let 最近的 = LogKit.日志反解析(一段日志文本)                // 也可以直接吃字符串（剪贴板 / 网络）
+let 单条 = LogKit.解析日志行("[2026-09-10 10:00:00.000] [信息] [账号] 登录成功 @ Login.swift:42")
+
+print(LogKit.summary(of: 条目).text())                     // 反解析后即可统计
+```
+
+解析时从**尾部**依次剥掉「字段块 → 追踪 ID 块 → 位置」，剩下的才是消息原文，所以消息里
+含空格、冒号、方括号也不会被误伤；级别同时接受中文名（`信息`）与英文名（`info` / `warn` / `fatal`）。
+字段值一律按字符串处理，且**值里含逗号会截断**（本库文本输出未对逗号转义），JSON 格式的日志行请自行用 `JSONSerialization` 解析。
+
+**摘要导出 `exportSummary`**：把 `LogSummary` 写成中文摘要文本文件，随问题反馈一起提交：
+
+```swift
+let 文件 = try LogKit.导出摘要(条目: 条目, 文件名: "日志摘要")
+// 或先拿到摘要对象再导出：try LogKit.导出摘要(LogKit.summary(of: 条目))
+// iOS：UIActivityViewController(activityItems: [文件], ...)
+// macOS：NSSharingServicePicker(items: [文件])
+```
+
+导出内容为「LogKit 日志摘要 + 生成时间 + 摘要正文」，分类排行默认最多列出 3 项，可用 `列出分类数` 调整。
+
 ## 更新日志
+
+- **0.13.0**：新增 JSON 导出（`exportJSON` / `导出JSON` 与 `jsonString(from:prettyPrinted:)` / `JSON字符串(条目:美化:)`，导出 JSON 数组文件，键序稳定、默认美化、不写 BOM）、日志反解析（`parseLogLine` / `解析日志行` + `parseLogFile(_:)` / `日志反解析(_:)` + `parseLogFile(at:)` / `日志反解析(文件:)`，从尾部剥掉「字段 → traceId → 位置」还原消息，级别兼容中英文名，可喂给 `LogSummary` / `LogFilter`）、摘要导出（`exportSummary(_:listedCategories:fileName:)` / `exportSummary(of:topCategories:listedCategories:fileName:)` / `导出摘要`，把摘要写成中文文本文件）、按小时自动轮转（`hourlyRotation` / `按小时轮转`，文件名 `LogKit-yyyy-MM-dd-HH.log`，归档判定只认「年 4 位、其余各段 2 位」，已归档名不会被二次改名），均含中文别名并补单元测试。
 
 - **0.12.1**：修复 `ZipWriter` 在较旧工具链上的编译超时。打包 zip 时计算 DOS 时间戳的表达式把多个 `??`、位移、按位或与最外层 `UInt16(...)` 挤在一行，类型推断组合爆炸，CI 报 `unable to type-check this expression in reasonable time`。现拆成具名的 `Int` 常量再拼位，计算结果与产出的 zip 完全不变。
 

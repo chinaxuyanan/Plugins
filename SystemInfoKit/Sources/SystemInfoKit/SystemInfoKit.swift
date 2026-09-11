@@ -23,6 +23,7 @@ import CFNetwork
 /// - 把系统版本、设备型号、硬件、电池、热状态、屏幕、网络、本地化、资源占用、存储详情等常用检测项集中封装；
 /// - 提供设备友好型号名 `deviceModelName`（标识符对照表可自行增补）、深色模式 `isDarkMode`、屏幕亮度 `screenBrightness`、信息快照 `snapshot()`；
 /// - 支持屏幕最大刷新率 `maximumFramesPerSecond`、无障碍设置（`isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled`）、已挂载存储卷列表 `mountedVolumes`（`MountedVolume`）、签名信息（`bundleIdentifier` / `teamIdentifier` / `isTestFlight`）、代理检测（`isUsingProxy` / `proxyDescription`）；
+/// - 支持电池细分状态 `batteryState`（充电中 / 已充满 / 未接电源 / 未知）、网络接口物理地址 `networkInterfaces[].macAddress`、进程占用排行 `topProcesses(by:limit:)`（按内存或 CPU）；
 /// - 每个属性都带中文文档注释 + 中文命名别名，见名即用。
 ///
 /// 快速开始：
@@ -36,7 +37,7 @@ import CFNetwork
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.12.0"
+    public static let version = "0.13.0"
 
     // MARK: - 系统信息
 
@@ -399,6 +400,41 @@ public enum SystemInfoKit {
     public static var batteryHealth: String {
         guard let percent = batteryHealthPercent else { return "不支持" }
         return "\(Int(percent * 100))%"
+    }
+
+    /// 电池细分状态（充电中 / 已充满 / 未接电源 / 未知）
+    ///
+    /// 比 `isCharging` 更细：`isCharging` 把「充电中」和「已充满」都算作 `true`，
+    /// 本属性区分两者，适合做电源状态展示。iOS 取 `UIDevice.batteryState`；
+    /// macOS 在接通交流电后再看 `Is Charging` 标志。
+    public static var batteryState: BatteryState {
+        #if canImport(UIKit)
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        switch UIDevice.current.batteryState {
+        case .charging: return .charging
+        case .full: return .full
+        case .unplugged: return .unplugged
+        case .unknown: return .unknown
+        @unknown default: return .unknown
+        }
+        #elseif os(macOS)
+        guard let desc = macBatteryDescription() else { return .unknown }
+        guard let state = desc[kIOPSPowerSourceStateKey as String] as? String else { return .unknown }
+        // 没接交流电就是未接电源
+        guard state == (kIOPSACPowerValue as String) else { return .unplugged }
+        // 接了交流电：仍在充电 → 充电中，否则视为已充满
+        if let charging = desc[kIOPSIsChargingKey as String] as? Bool {
+            return charging ? .charging : .full
+        }
+        return .full
+        #else
+        return .unknown
+        #endif
+    }
+
+    /// 电池细分状态的中文名（等同 `batteryState.chineseName`）
+    public static var batteryStateName: String {
+        batteryState.chineseName
     }
 
     // MARK: - 热状态与电源
@@ -1289,6 +1325,46 @@ public enum SystemInfoKit {
         runningProcesses.count
     }
 
+    /// 进程占用排行 Top N（按内存或 CPU 排序，仅 macOS）
+    ///
+    /// 逐个进程向内核查询占用信息（libproc），再按 `key` 排序取前 `limit` 个。
+    /// 因为要逐个查，进程多时有一点耗时，适合「按需点一下看排行」，不要放进高频刷新里。
+    ///
+    /// - Parameters:
+    ///   - key: 排序依据，默认 `.memory`（按常驻内存）
+    ///   - limit: 返回条数上限，默认 `10`；传 `0` 或负数返回空数组
+    /// - Returns: 占用排行；非 macOS 平台恒为空数组
+    ///
+    /// - Note: 只统计能读到信息的进程——系统进程受权限限制可能读不到，会被跳过；
+    ///   `pid == 0` 的内核进程也被排除。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   for item in SystemInfoKit.topProcesses(by: .memory, limit: 5) {
+    ///       print(item.name, item.memory, String(format: "%.1f%%", item.cpuPercent))
+    ///   }
+    ///   ```
+    public static func topProcesses(by key: ProcessSortKey = .memory, limit: Int = 10) -> [ProcessUsage] {
+        #if os(macOS)
+        guard limit > 0 else { return [] }
+        var usages: [ProcessUsage] = []
+        for process in runningProcesses where process.pid > 0 {
+            if let usage = processUsage(pid: process.pid, name: process.name) {
+                usages.append(usage)
+            }
+        }
+        switch key {
+        case .memory:
+            usages.sort { $0.memoryBytes > $1.memoryBytes }
+        case .cpu:
+            usages.sort { $0.cpuPercent > $1.cpuPercent }
+        }
+        return Array(usages.prefix(limit))
+        #else
+        return []
+        #endif
+    }
+
     // MARK: - 交换内存
 
     /// 交换空间总量（字节，仅 macOS；其它平台返回 `nil`）
@@ -1327,9 +1403,10 @@ public enum SystemInfoKit {
 
     // MARK: - 网络接口
 
-    /// 网络接口列表（名称 + IPv4 地址 + 是否启用 / 是否回环）
+    /// 网络接口列表（名称 + IPv4 地址 + 物理地址 + 是否启用 / 是否回环）
     ///
     /// 通过 `getifaddrs` 枚举所有接口，含虚拟接口（`lo0`、`utun` 等）。
+    /// 物理地址（MAC）取自链路层地址，只有真实网卡才有，虚拟接口为 `nil`。
     public static var networkInterfaces: [NetworkInterface] {
         var ifaddrPtr: UnsafeMutablePointer<ifaddrs>?
         guard getifaddrs(&ifaddrPtr) == 0, let first = ifaddrPtr else { return [] }
@@ -1337,6 +1414,7 @@ public enum SystemInfoKit {
 
         var flagsByName: [String: (up: Bool, loopback: Bool)] = [:]
         var addressByName: [String: String] = [:]
+        var macByName: [String: String] = [:]
         var order: [String] = []
 
         var current: UnsafeMutablePointer<ifaddrs>? = first
@@ -1350,6 +1428,7 @@ public enum SystemInfoKit {
             if family == UInt8(AF_LINK) {
                 if flagsByName[name] == nil { order.append(name) }
                 flagsByName[name] = ((flags & IFF_UP) == IFF_UP, (flags & IFF_LOOPBACK) == IFF_LOOPBACK)
+                macByName[name] = linkLayerAddress(addr)
             } else if family == UInt8(AF_INET) {
                 var host = [CChar](repeating: 0, count: Int(NI_MAXHOST))
                 if getnameinfo(addr, socklen_t(addr.pointee.sa_len), &host, socklen_t(host.count), nil, 0, NI_NUMERICHOST) == 0 {
@@ -1362,9 +1441,42 @@ public enum SystemInfoKit {
             let f = flagsByName[name] ?? (up: false, loopback: false)
             return NetworkInterface(name: name,
                                     address: addressByName[name],
+                                    macAddress: macByName[name],
                                     isUp: f.up,
                                     isLoopback: f.loopback)
         }
+    }
+
+    /// 主网卡的物理地址（MAC）
+    ///
+    /// 优先取 `en0`（一般就是 Wi-Fi / 有线网卡），没有则取第一个「已启用、非回环、且读到了物理地址」的接口。
+    /// 都取不到时返回 `nil`。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   SystemInfoKit.primaryMACAddress   // "A4:83:E7:12:34:56"
+    ///   ```
+    public static var primaryMACAddress: String? {
+        let interfaces = networkInterfaces
+        if let en0 = interfaces.first(where: { $0.name == "en0" }), let mac = en0.macAddress {
+            return mac
+        }
+        return interfaces.first { $0.isUp && !$0.isLoopback && $0.macAddress != nil }?.macAddress
+    }
+
+    /// 内部：从链路层地址（`sockaddr_dl`）里取出 MAC 并格式化成大写冒号分隔
+    ///
+    /// `sockaddr_dl.sdl_data` 的前 `sdl_nlen` 个字节是接口名，紧跟其后的 `sdl_alen` 个字节才是地址。
+    /// 只认 6 字节的以太网 / Wi-Fi 地址；回环、隧道等接口 `sdl_alen` 为 0，返回 `nil`。
+    private static func linkLayerAddress(_ addr: UnsafeMutablePointer<sockaddr>) -> String? {
+        let link = UnsafeRawPointer(addr).assumingMemoryBound(to: sockaddr_dl.self)
+        let nameLength = Int(link.pointee.sdl_nlen)
+        let addressLength = Int(link.pointee.sdl_alen)
+        guard addressLength == 6 else { return nil }
+        let dataOffset = MemoryLayout<sockaddr_dl>.offset(of: \.sdl_data) ?? 8
+        let start = UnsafeRawPointer(addr).advanced(by: dataOffset + nameLength)
+        let bytes = UnsafeRawBufferPointer(start: start, count: addressLength)
+        return bytes.map { String(format: "%02X", $0) }.joined(separator: ":")
     }
 
     // MARK: - 信息快照
@@ -1434,6 +1546,7 @@ public enum SystemInfoKit {
         if let charging = isCharging {
             dict["isCharging"] = "\(charging)"
         }
+        dict["batteryState"] = batteryStateName
         return dict
     }
 
@@ -1570,6 +1683,39 @@ public enum SystemInfoKit {
     }()
 
     #if os(macOS)
+    /// 读取单个进程的占用信息（libproc，内部工具）
+    ///
+    /// 分两次查询：`PROC_PIDTASKINFO` 拿常驻内存与累计 CPU 时间，`PROC_PIDTBSDINFO` 拿启动时刻。
+    /// CPU 时间单位是纳秒，除以 10 亿换算成秒；平均占用率 = 累计 CPU 时间 / 已运行时长，
+    /// 所以刚启动的进程读数会偏高、长时间运行的进程会偏低，这是「进程生命周期平均值」的正常特性。
+    static func processUsage(pid: Int32, name: String) -> ProcessUsage? {
+        var taskInfo = proc_taskinfo()
+        let taskSize = MemoryLayout<proc_taskinfo>.stride
+        guard proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &taskInfo, Int32(taskSize)) == taskSize else { return nil }
+
+        var startDate: Date?
+        var bsdInfo = proc_bsdinfo()
+        let bsdSize = MemoryLayout<proc_bsdinfo>.stride
+        if proc_pidinfo(pid, PROC_PIDTBSDINFO, 0, &bsdInfo, Int32(bsdSize)) == bsdSize {
+            let seconds = TimeInterval(bsdInfo.pbi_start_tvsec) + TimeInterval(bsdInfo.pbi_start_tvusec) / 1_000_000
+            startDate = Date(timeIntervalSince1970: seconds)
+        }
+
+        let cpuTime = TimeInterval(taskInfo.pti_total_user &+ taskInfo.pti_total_system) / 1_000_000_000
+        var cpuPercent = 0.0
+        if let start = startDate {
+            let elapsed = Date().timeIntervalSince(start)
+            if elapsed > 0 { cpuPercent = cpuTime / elapsed * 100 }
+        }
+
+        return ProcessUsage(pid: pid,
+                            name: name,
+                            memoryBytes: taskInfo.pti_resident_size,
+                            cpuTime: cpuTime,
+                            cpuPercent: cpuPercent,
+                            startDate: startDate)
+    }
+
     /// 同步读取系统当前内存压力级别（内部工具）
     ///
     /// `DispatchSource` 需 `resume()` 后由事件回调上报当前值，故用信号量等待首次回调，
@@ -1743,6 +1889,111 @@ public struct RunningProcess {
 /// 中文名：运行进程（等同 `RunningProcess`）
 public typealias 运行进程 = RunningProcess
 
+/// 电池细分状态
+///
+/// 由 `SystemInfoKit.batteryState` 返回。`isCharging` 只回答「有没有接电源」，
+/// 本枚举进一步区分「接着电源但已充满」与「正在补充电量」。
+public enum BatteryState: CaseIterable {
+    /// 正在充电
+    case charging
+    /// 已接电源且已充满（不再继续充）
+    case full
+    /// 未接电源（用电池供电）
+    case unplugged
+    /// 未知 / 设备没有电池
+    case unknown
+
+    /// 状态的中文名
+    public var chineseName: String {
+        switch self {
+        case .charging: return "充电中"
+        case .full: return "已充满"
+        case .unplugged: return "未接电源"
+        case .unknown: return "未知"
+        }
+    }
+}
+
+/// 中文名：电池状态（等同 `BatteryState`）
+public typealias 电池状态 = BatteryState
+
+public extension BatteryState {
+    /// 正在充电（等同 `.charging`）
+    static var 充电中: BatteryState { .charging }
+    /// 已充满（等同 `.full`）
+    static var 已充满: BatteryState { .full }
+    /// 未接电源（等同 `.unplugged`）
+    static var 未接电源: BatteryState { .unplugged }
+    /// 未知（等同 `.unknown`）
+    static var 未知: BatteryState { .unknown }
+}
+
+/// 进程排行依据
+///
+/// 供 `SystemInfoKit.topProcesses(by:limit:)` 选择按哪个维度排序。
+public enum ProcessSortKey {
+    /// 按常驻内存（RSS）排序
+    case memory
+    /// 按平均 CPU 占用排序
+    case cpu
+}
+
+/// 中文名：进程排序依据（等同 `ProcessSortKey`）
+public typealias 进程排序依据 = ProcessSortKey
+
+public extension ProcessSortKey {
+    /// 按内存排序（等同 `.memory`）
+    static var 内存: ProcessSortKey { .memory }
+    /// 按 CPU 排序（等同 `.cpu`）
+    static var CPU: ProcessSortKey { .cpu }
+}
+
+/// 单个进程的占用信息
+///
+/// 由 `SystemInfoKit.topProcesses(by:limit:)` 返回的列表元素（仅 macOS 有数据）。
+public struct ProcessUsage {
+    /// 进程 ID
+    public let pid: Int32
+    /// 进程名（内核截断后的名称）
+    public let name: String
+    /// 常驻内存（RSS，字节）
+    public let memoryBytes: UInt64
+    /// 累计占用的 CPU 时间（秒，用户态 + 内核态）
+    public let cpuTime: TimeInterval
+    /// 平均 CPU 占用百分比
+    ///
+    /// 按「累计 CPU 时间 / 进程已运行时长」计算，是**进程生命周期内的平均值**，
+    /// 不是瞬时占用率；多线程进程可能超过 100。取不到启动时刻时为 `0`。
+    public let cpuPercent: Double
+    /// 进程启动时刻（取不到为 `nil`）
+    public let startDate: Date?
+
+    /// 常驻内存（人类可读，形如 `128 MB`）
+    public var memory: String {
+        ByteCountFormatter.string(fromByteCount: Int64(memoryBytes), countStyle: .memory)
+    }
+}
+
+/// 中文名：进程占用（等同 `ProcessUsage`）
+public typealias 进程占用 = ProcessUsage
+
+public extension ProcessUsage {
+    /// 常驻内存（人类可读，等同 `memory`）
+    var 内存: String { memory }
+    /// 进程 ID（等同 `pid`）
+    var 进程ID: Int32 { pid }
+    /// 进程名（等同 `name`）
+    var 进程名称: String { name }
+    /// 常驻内存字节（等同 `memoryBytes`）
+    var 内存字节数: UInt64 { memoryBytes }
+    /// 累计 CPU 时间（秒，等同 `cpuTime`）
+    var CPU时间: TimeInterval { cpuTime }
+    /// 平均 CPU 占用百分比（等同 `cpuPercent`）
+    var CPU占用: Double { cpuPercent }
+    /// 进程启动时刻（等同 `startDate`）
+    var 启动时间: Date? { startDate }
+}
+
 /// 单个网络接口的信息
 ///
 /// 由 `SystemInfoKit.networkInterfaces` 返回的列表元素。
@@ -1751,6 +2002,8 @@ public struct NetworkInterface {
     public let name: String
     /// IPv4 地址（无则 `nil`）
     public let address: String?
+    /// 物理地址 / MAC（大写冒号分隔，如 `A4:83:E7:12:34:56`；虚拟接口为 `nil`）
+    public let macAddress: String?
     /// 是否已启用（`IFF_UP`）
     public let isUp: Bool
     /// 是否回环接口（`IFF_LOOPBACK`，如 `lo0`）
@@ -1759,3 +2012,16 @@ public struct NetworkInterface {
 
 /// 中文名：网络接口（等同 `NetworkInterface`）
 public typealias 网络接口 = NetworkInterface
+
+public extension NetworkInterface {
+    /// 接口名（等同 `name`）
+    var 名称: String { name }
+    /// IPv4 地址（等同 `address`）
+    var 地址: String? { address }
+    /// 物理地址 / MAC（等同 `macAddress`）
+    var 物理地址: String? { macAddress }
+    /// 是否已启用（等同 `isUp`）
+    var 已启用: Bool { isUp }
+    /// 是否回环接口（等同 `isLoopback`）
+    var 是否回环: Bool { isLoopback }
+}

@@ -20,9 +20,9 @@ Plugins/
 
 | 库 | 说明 | 版本 |
 | --- | --- | --- |
-| [SwiftUIProKit](SwiftUIProKit/README.md) | SwiftUI 控件属性太多、不知道用哪个？这里把常用控件与属性收成一组封装和复合组件 | 0.15.1 |
-| [LogKit](LogKit/README.md) | 分级 / 分类 / 过滤 / 采样 / 文件轮转 / CSV·JSON 导出 | 0.12.1 |
-| [SystemInfoKit](SystemInfoKit/README.md) | 设备、CPU、内存、磁盘、电池、网络等系统信息检测 | 0.12.0 |
+| [SwiftUIProKit](SwiftUIProKit/README.md) | SwiftUI 控件属性太多、不知道用哪个？这里把常用控件与属性收成一组封装和复合组件 | 0.16.0 |
+| [LogKit](LogKit/README.md) | 分级 / 分类 / 过滤 / 采样 / 文件轮转 / CSV·JSON 导出 | 0.13.0 |
+| [SystemInfoKit](SystemInfoKit/README.md) | 设备、CPU、内存、磁盘、电池、网络等系统信息检测 | 0.13.0 |
 
 ## 怎么用
 
@@ -61,9 +61,9 @@ targets: [
 三个库版本独立演进，所以 tag 带库名前缀：
 
 ```
-SwiftUIProKit-0.15.1
-LogKit-0.12.1
-SystemInfoKit-0.12.0
+SwiftUIProKit-0.16.0
+LogKit-0.13.0
+SystemInfoKit-0.13.0
 ```
 
 （仓库级别不能再用裸的 `0.12.0`，三个库会撞名。）各库当前版本号也能在代码里读到，例如 `LogKit.version`。

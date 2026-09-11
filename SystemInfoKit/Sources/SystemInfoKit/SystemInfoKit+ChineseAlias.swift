@@ -84,6 +84,10 @@ public extension SystemInfoKit {
     static var 电池健康度: Double? { batteryHealthPercent }
     /// 电池健康（等同 `batteryHealth`，人类可读，形如 `98%`）
     static var 电池健康: String { batteryHealth }
+    /// 电池细分状态（等同 `batteryState`，充电中 / 已充满 / 未接电源 / 未知）
+    static var 电池状态: BatteryState { batteryState }
+    /// 电池细分状态的中文名（等同 `batteryStateName`）
+    static var 电池状态名: String { batteryStateName }
     /// 设备热状态（等同 `thermalState`）
     static var 热状态: ProcessInfo.ThermalState { thermalState }
     /// 热状态中文名（等同 `thermalStateName`）
@@ -250,6 +254,15 @@ public extension SystemInfoKit {
     static var 交换内存已用: String { swapUsed }
     /// 网络接口列表（等同 `networkInterfaces`）
     static var 网络接口列表: [NetworkInterface] { networkInterfaces }
+    /// 主网卡物理地址 / MAC（等同 `primaryMACAddress`）
+    static var 主网卡物理地址: String? { primaryMACAddress }
+    /// 进程占用排行 Top N（等同 `topProcesses(by:limit:)`，仅 macOS）
+    /// - Parameters:
+    ///   - 依据: 排序依据，默认 `.memory`
+    ///   - 数量: 返回条数上限，默认 `10`
+    static func 进程排行(依据: ProcessSortKey = .memory, 数量: Int = 10) -> [ProcessUsage] {
+        topProcesses(by: 依据, limit: 数量)
+    }
 
     // MARK: 运行环境
 

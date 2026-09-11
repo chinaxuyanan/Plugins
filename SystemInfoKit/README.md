@@ -11,7 +11,7 @@
 - **设备信息**：标识符 / 名称 / 类型 / 友好型号名（`deviceModelName`，内置标识符→机型对照表，可自行增补）
 - **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
 - **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
-- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）
+- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）/ 细分状态 `batteryState` + `batteryStateName`（充电中 / 已充满 / 未接电源 / 未知）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放 / 是否深色模式 / 屏幕亮度（macOS）
 - **刷新率与无障碍**：屏幕最大刷新率 `maximumFramesPerSecond` / 减弱动态效果 `isReduceMotionEnabled` / 降低透明度 `isReduceTransparencyEnabled` / 粗体文本 `isBoldTextEnabled`（仅 iOS）/ 无障碍设置摘要 `accessibilitySummary`
@@ -24,8 +24,9 @@
 - **网络流量统计**：`sampleNetworkTraffic()` 采样活跃接口累计收发字节 + 每秒速率
 - **磁盘读写速率**：`sampleDiskIOTraffic()` 汇总块存储驱动累计读写字节 + 每秒速率（仅 macOS）
 - **运行进程**：`runningProcesses` / `processCount` 枚举内核进程表（`sysctl(KERN_PROC)`，含 pid 与进程名）
+- **进程占用排行**：`topProcesses(by:limit:)` / `进程排行(依据:数量:)` 按常驻内存或平均 CPU 排行 Top N（`proc_pidinfo`，仅 macOS，含 `ProcessUsage` / `进程占用` 结构体）
 - **交换内存**：`swapTotalBytes` / `swapUsedBytes` / `swapTotal` / `swapUsed`（仅 macOS，`vm.swapusage`）
-- **网络接口**：`networkInterfaces` 枚举所有网络接口（名称 + IPv4 + 是否启用 / 是否回环）
+- **网络接口**：`networkInterfaces` 枚举所有网络接口（名称 + IPv4 + 物理地址 / MAC + 是否启用 / 是否回环），另有 `primaryMACAddress` / `主网卡物理地址` 取主网卡 MAC
 - **存储卷列表**：`mountedVolumes` 枚举已挂载存储卷（卷名 / 路径 / 总容量 / 可用容量 / 是否可移除 / 是否内置），另有 `removableVolumes` 只看可移除设备
 - **本进程信息**：当前进程 CPU 使用率 / 内存占用
 - **运行环境**：内核版本 / 主机名 / 当前用户名 / 是否被调试器附加（`uname` + `sysctl(P_TRACED)`）
@@ -46,7 +47,7 @@ dependencies: [
 
 然后在目标中 `import SystemInfoKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.12.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "0.13.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -94,6 +95,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `batteryCycleCount` | 电池循环次数 | `Int?`，仅 macOS |
 | `batteryHealthPercent` | 电池健康度 | `Double?`，`0.0`~`1.0`，仅 macOS |
 | `batteryHealth` | 电池健康 | 人类可读，形如 `98%`，非 macOS 返回「不支持」 |
+| `batteryState` | 电池细分状态 | `BatteryState`，充电中 / 已充满 / 未接电源 / 未知，双平台 |
+| `batteryStateName` | 电池细分状态中文名 | 形如 `充电中` |
 | `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |
 | `thermalStateName` | 热状态中文名 | 正常 / 尚可 / 严重 / 危急 |
 | `isLowPowerModeEnabled` | 低功耗模式 | 仅 iOS |
@@ -149,9 +152,11 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `processCPUUsage` | 当前进程 CPU 使用率 | 相对单核，多线程可 >`1.0` |
 | `processMemoryBytes` / `processMemory` | 当前进程内存占用（字节 / 可读） | `UInt64` / 人类可读 |
 | `runningProcesses` / `processCount` | 运行进程列表 / 数量 | `[RunningProcess]` / `Int`，`sysctl(KERN_PROC)` |
+| `topProcesses(by:limit:)` | 进程占用排行 Top N | `[ProcessUsage]`，按 `.memory`（常驻内存）/ `.cpu`（平均 CPU）排序，仅 macOS（`proc_pidinfo`，iOS 返回空）|
 | `swapTotalBytes` / `swapUsedBytes` | 交换内存总 / 已用（字节） | `UInt64?`，仅 macOS |
 | `swapTotal` / `swapUsed` | 交换内存总 / 已用（可读） | 非 macOS 返回「不支持」 |
-| `networkInterfaces` | 网络接口列表 | `[NetworkInterface]`，`getifaddrs` |
+| `networkInterfaces` | 网络接口列表 | `[NetworkInterface]`，`getifaddrs`（含物理地址 / MAC）|
+| `primaryMACAddress` | 主网卡物理地址 / MAC | `String?`，优先 `en0`，形如 `A4:83:E7:12:34:56` |
 | `kernelVersion` | 内核版本 | `uname` 的 release，形如 `23.5.0` |
 | `hostName` | 主机名 | `ProcessInfo.hostName` |
 | `userName` | 当前用户名 | `NSUserName()` |
@@ -172,6 +177,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `可用容量` / `机会容量` / `卷名` / `文件系统名称` | `availableCapacity` / `opportunisticCapacity` / `volumeName` / `fileSystemName` |
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
 | `电池循环次数` / `电池健康度` / `电池健康` | `batteryCycleCount` / `batteryHealthPercent` / `batteryHealth` |
+| `电池状态` / `电池状态名` | `batteryState` / `batteryStateName`（`.充电中/.已充满/.未接电源/.未知`）|
 | `屏幕分辨率` / `屏幕缩放` / `显示器数量` / `显示器分辨率` / `显示器缩放` | `screenSize` / `screenScale` / `displayCount` / `displayResolutions` / `displayScales` |
 | `深色模式` / `屏幕亮度` | `isDarkMode` / `screenBrightness` |
 | `系统运行时长` / `系统启动时间` / `是否模拟器` | `systemUptimeString` / `bootTime` / `isSimulator` |
@@ -186,10 +192,11 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `采样网络流量()` / `采样磁盘读写()` | `sampleNetworkTraffic()` / `sampleDiskIOTraffic()` |
 | `网络流量` / `磁盘读写` | `NetworkTraffic` / `DiskIOTraffic`（类型别名）|
 | `运行进程列表` / `运行进程数量` | `runningProcesses` / `processCount` |
+| `进程排行(依据:数量:)` | `topProcesses(by:limit:)`（依据 `.内存` / `.CPU`）|
 | `交换内存总字节数` / `交换内存已用字节数` | `swapTotalBytes` / `swapUsedBytes` |
 | `交换内存总量` / `交换内存已用` | `swapTotal` / `swapUsed` |
-| `网络接口列表` | `networkInterfaces` |
-| `运行进程` / `网络接口` | `RunningProcess` / `NetworkInterface`（类型别名）|
+| `网络接口列表` / `主网卡物理地址` | `networkInterfaces` / `primaryMACAddress` |
+| `运行进程` / `网络接口` / `进程占用` / `电池状态` / `进程排序依据` | `RunningProcess` / `NetworkInterface` / `ProcessUsage` / `BatteryState` / `ProcessSortKey`（类型别名）|
 | `内核版本` / `主机名` / `当前用户名` / `是否被调试` | `kernelVersion` / `hostName` / `userName` / `isDebuggerAttached` |
 | `最大刷新率` / `减弱动态效果` / `降低透明度` / `粗体文本` / `无障碍摘要` | `maximumFramesPerSecond` / `isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled` / `accessibilitySummary` |
 | `存储卷列表` / `存储卷数量` / `可移除存储卷列表` | `mountedVolumes` / `mountedVolumeCount` / `removableVolumes` |
@@ -199,6 +206,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `信息快照()` | `snapshot()` |
 
 ## 更新日志
+
+- **0.13.0**：新增电池细分状态（`batteryState` / `电池状态`，iOS 用 `UIDevice.batteryState`、macOS 用 `IOPSCopyPowerSourcesInfo`，把「接着电源且已充满」与「正在充电」区分开，区分于只回答「有没有接电源」的 `isCharging`；配 `batteryStateName` / `电池状态名`，枚举 `BatteryState` / `电池状态` 含中文静态别名 `充电中` / `已充满` / `未接电源` / `未知`，`snapshot()` 同步补入 `batteryState`）、进程占用排行（`topProcesses(by:limit:)` / `进程排行(依据:数量:)`，按常驻内存 / 平均 CPU 排行 Top N，用 `proc_pidinfo(PROC_PIDTASKINFO / PROC_PIDTBSDINFO)` 读 RSS 与累计 CPU 时间，含 `ProcessUsage` / `进程占用` 结构体与 `ProcessSortKey` / `进程排序依据` 枚举，仅 macOS、iOS 返回空）、网卡物理地址（`NetworkInterface` 新增 `macAddress` / `物理地址` 字段，从 `getifaddrs` 的 `AF_LINK` `sockaddr_dl` 解析 MAC；另有 `primaryMACAddress` / `主网卡物理地址` 优先取 `en0`），均含中文别名并补冒烟测试。
 
 - **0.12.0**：新增刷新率与无障碍（`maximumFramesPerSecond` / `最大刷新率`，iOS `UIScreen` / macOS `NSScreen`；`isReduceMotionEnabled` / `减弱动态效果`、`isReduceTransparencyEnabled` / `降低透明度`，iOS `UIAccessibility` / macOS `NSWorkspace.accessibilityDisplayShould*`；`isBoldTextEnabled` / `粗体文本`，仅 iOS，macOS 恒 `false`；另含 `accessibilitySummary` / `无障碍摘要` 汇总文本）、存储卷列表（`mountedVolumes` / `存储卷列表` 枚举已挂载卷，含 `MountedVolume` / `存储卷` 结构体：卷名 / 路径 / 总容量 / 可用容量 / 是否可移除 / 是否内置 + 已用占比等派生值，另有 `mountedVolumeCount` / `存储卷数量` 与 `removableVolumes` / `可移除存储卷列表`）、App 签名信息（`bundleIdentifier` / `包标识符`、`teamIdentifier` / `团队ID` 读 Info.plist 与内嵌描述文件、`isTestFlight` / `是否TestFlight`）、代理检测（`isUsingProxy` / `是否走代理`、`proxyDescription` / `代理描述`，`CFNetworkCopySystemProxySettings` 判断 HTTP / HTTPS / SOCKS，双平台且无需权限）与 Wi-Fi 名称 `wifiSSID` / `WiFi名称`（macOS CoreWLAN），`snapshot()` 同步补入刷新率 / 无障碍摘要 / 包标识符 / 是否 TestFlight / 是否走代理 / 存储卷数量，均含中文别名并补冒烟测试。
 

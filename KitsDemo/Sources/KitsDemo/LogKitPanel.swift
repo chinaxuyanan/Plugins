@@ -8,6 +8,7 @@ struct LogKitPanel: View {
 
     @State private var status = "尚未操作"
     @State private var samplingRate: Double = LogKit.samplingRate
+    @State private var hourlyRotation = LogKit.hourlyRotation
 
     var body: some View {
         VStack(spacing: 20) {
@@ -76,6 +77,52 @@ struct LogKitPanel: View {
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+
+            Card("日志反解析 parseLogFile（把 .text 读回条目，再做统计 / 导出）") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Button("反解析当前日志文件并统计") {
+                        let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                        let summary = LogKit.summary(of: entries)
+                        let rate = String(format: "%.1f", summary.errorRate * 100)
+                        status = "反解析出 \(entries.count) 条；错误 \(summary.errorCount) 条，错误率 \(rate)%"
+                    }
+                    Button("导出 JSON exportJSON") {
+                        do {
+                            let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                            let url = try LogKit.exportJSON(entries, fileName: "LogKit演示")
+                            status = "JSON 导出成功：\(url.path)"
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        } catch {
+                            status = "JSON 导出失败：\(error)"
+                        }
+                    }
+                    Button("导出摘要 exportSummary") {
+                        do {
+                            let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                            let url = try LogKit.exportSummary(条目: entries, 文件名: "LogKit摘要")
+                            status = "摘要导出成功：\(url.path)"
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        } catch {
+                            status = "摘要导出失败：\(error)"
+                        }
+                    }
+                }
+            }
+
+            Card("按小时自动轮转 hourlyRotation（跨小时自动归档上一小时的文件）") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Button(hourlyRotation ? "关闭按小时轮转" : "开启按小时轮转") {
+                        hourlyRotation.toggle()
+                        LogKit.hourlyRotation = hourlyRotation
+                        status = hourlyRotation
+                            ? "已开启：跨小时后自动归档 LogKit-yyyy-MM-dd-HH.log"
+                            : "已关闭按小时轮转"
+                    }
+                    Text(hourlyRotation ? "当前状态：开启" : "当前状态：关闭")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
                 }
             }
         }

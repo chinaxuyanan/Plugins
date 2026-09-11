@@ -10,7 +10,7 @@
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
 - **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
-- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`，一行代码完成常见交互
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`、展开收起文本 `ExpandableText`、关键词高亮文本 `HighlightedText`、打字机文本 `TypingText`、热力图日历 `HeatmapCalendar`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -26,7 +26,7 @@ dependencies: [
 
 然后在目标中 `import SwiftUIProKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.15.1")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "0.16.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -137,6 +137,10 @@ VStack {
 | `时间轴` / `时间轴条目` | `Timeline` / `TimelineItem`（纵向节点 + 连接线）|
 | `迷你折线图` / `迷你柱状图` | `Sparkline` / `MiniBarChart`（无坐标轴的迷你趋势图）|
 | `搜索栏` | `SearchBar`（防抖 + 一键清空 + 取消）|
+| `展开文本` | `ExpandableText`（超出限行才出「展开 / 收起」按钮）|
+| `高亮文本` | `HighlightedText`（多关键词着色 / 加粗 / 加底色）|
+| `打字机文本` | `TypingText`（逐字显现 + 光标闪烁 + 可选循环）|
+| `热力图日历` | `HeatmapCalendar`（一周一列方格，按日强度上色）|
 
 ## 属性速查表
 
@@ -502,6 +506,10 @@ VStack {
 | `Sparkline(values:tint:lineWidth:height:showsArea:showsDots:)` | 迷你折线图（无坐标轴，按自身最值归一化）|
 | `MiniBarChart(values:tint:height:spacing:cornerRadius:highlightsMax:)` | 迷你柱状图（按最大值比例算柱高，可高亮最大值）|
 | `SearchBar(text:placeholder:showsCancel:cancelTitle:debounceInterval:tint:onSubmit:onDebounce:)` | 搜索栏（放大镜 + 一键清空 + 取消，内置防抖 `Task`）|
+| `ExpandableText(_:lineLimit:font:tint:lineSpacing:expandTitle:collapseTitle:buttonTint:showsIcon:)` | 展开收起文本（并排藏两段文本量高度，确实被截断才出「展开 / 收起」按钮）|
+| `HighlightedText(_:highlights:highlightColor:highlightBackground:isBold:font:tint:caseSensitive:)` | 关键词高亮文本（多关键词全部命中，可加底色 / 加粗，默认不区分大小写）|
+| `TypingText(_:speed:font:tint:cursorColor:showsCursor:loops:loopDelay:cursorBlinkInterval:onFinish:)` | 打字机文本（逐字显现 + 闪烁光标 + 可选循环重播）|
+| `HeatmapCalendar(values:startDate:endDate:cellSize:spacing:cornerRadius:colors:emptyColor:calendar:showsMonthLabels:onSelect:)` | 热力图日历（一周一列、每列 7 格，按「日期→数值」分级上色，可选月份标签与点击回调）|
 
 > 中文构造器（如 `跑马灯(文字:速度:方向:)`、`加载按钮(标题:加载中:动作:)`、`可折叠面板(标题:展开:内容:)`）的**首个参数一律带中文标签**，与英文 `init` 的无标签首参区分开，避免 Swift 报 `ambiguous use of 'init'`。英文写法仍可省略首参标签（`MarqueeText("公告")`、`LoadingButton("提交") { }`）。
 
@@ -517,6 +525,7 @@ VStack {
 
 ## 更新日志
 
+- **0.16.0**：新增四个复合组件——展开收起文本 `ExpandableText` / `展开文本`（长文本默认只显示 `lineLimit` 行，用「并排藏两段不可见文本、分别量高度」的办法判断是否真被截断，没超出就不显示按钮；展开 / 收起按钮文字、箭头图标、行距、颜色都可调）、关键词高亮文本 `HighlightedText` / `高亮文本`（`AttributedString` 实现，多个关键词一次全部命中、同一关键词出现多次也全部着色，默认不区分大小写，可选底色与加粗；`ranges(of:in:caseSensitive:)` / `命中区间` 是可直接复用的纯逻辑）、打字机文本 `TypingText` / `打字机文本`（逐字显现 + 末尾光标闪烁 + 可选循环重播，速度 / 光标样式 / 循环停顿可调，打完一轮回调 `onFinish`）、热力图日历 `HeatmapCalendar` / `热力图日历`（GitHub 贡献图样式，一周一列、每列 7 格、周日在最上，按「日期 → 数值」相对区间最大值分成若干档上色，数值为 0 或缺数据画空格；可选月份标签与点击回调；`levels(values:levelCount:calendar:)` / `weekColumns(from:to:calendar:)` 是纯逻辑，可直接复用与测试）。均含中文别名与文档注释并补测试。
 - **0.15.1**：修复 iOS 目标编译报错。`boldText` / `textStyle` 与 `inlineTitle` / `largeTitle`（及中文别名 `加粗` / `文字样式` / `内联标题` / `大标题`）此前只标了 macOS 的 `@available`、漏了 iOS 那一项，按本包 iOS 15 下限编 iOS 目标会报 `'fontWeight' is only available in iOS 16.0 or newer` / `'toolbarTitleDisplayMode' is only available in iOS 17.0 or newer`。现已补齐双平台标注（`View.fontWeight(_:)` 是 iOS 16 / macOS 13，`toolbarTitleDisplayMode(_:)` 及其 `ToolbarTitleDisplayMode` 是 iOS 17 / macOS 14）。macOS 侧因为引入版本更低、`swift build` 永远能过，本地发现不了，由 CI 的 iOS 编译检查抓出。注意 `Text.fontWeight(_:)` 是 iOS 13 就有的另一个重载，接收者是具体 `Text` 时不触发该限制。
 
 - **0.15.0**：新增四个复合组件——头像 `Avatar` / `头像`（三种内容来源：文字占位（中文取前两字、英文取首字母，底色按姓名稳定派生、同名同色）、本地图片、远程图片（内部转发 `RemoteImage`），可选描边与右下角在线状态小圆点 `AvatarStatus` / `头像状态`）与头像组 `AvatarGroup` / `头像组`（重叠排列 + 超出折叠成「+N」气泡）、时间轴 `Timeline` / `时间轴`（纵向节点 + 连接线，节点 `TimelineItem` / `时间轴条目` 含标题 / 详情 / 图标 / 是否已完成；连接线高度用 `readSize` 量出内容实际高度后再补足，标题换行也不断线）、迷你图表（迷你折线图 `Sparkline` / `迷你折线图`、迷你柱状图 `MiniBarChart` / `迷你柱状图`，数值按自身最小 / 最大值归一化，空数组 / 单值 / 全相等都不除零、不跳顶）、搜索栏 `SearchBar` / `搜索栏`（放大镜图标 + 一键清空 + 可选取消，内置 `Task` + `Task.sleep` 防抖，连续输入只在停顿后回调一次；`debounceInterval` 传 `0` 即退化为即时回调），均含中文别名与文档注释并补测试。另修复 `FlowLayout` / `流式布局` 中文构造器的「歧义调用」隐患：其首参 `间距` 改为无默认值，否则 `FlowLayout()`（以及 `FlowLayout() { ... }`）会与英文 `init(spacing:lineSpacing:)`（参数全有默认值）冲突、编译报 `ambiguous use of 'init'`。

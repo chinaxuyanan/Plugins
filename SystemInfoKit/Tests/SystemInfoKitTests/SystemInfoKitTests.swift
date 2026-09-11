@@ -504,4 +504,129 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(snapshot["isUsingProxy"], "\(SystemInfoKit.isUsingProxy)")
         XCTAssertEqual(snapshot["mountedVolumeCount"], "\(SystemInfoKit.mountedVolumeCount)")
     }
+
+    // MARK: - 电池细分状态（第九轮）
+
+    func testBatteryState() {
+        // 状态恒为四个 case 之一，名称与枚举一致
+        let state = SystemInfoKit.batteryState
+        XCTAssertTrue(BatteryState.allCases.contains(state))
+        XCTAssertEqual(state.chineseName, SystemInfoKit.batteryStateName)
+        XCTAssertFalse(SystemInfoKit.电池状态名.isEmpty)
+        XCTAssertEqual(SystemInfoKit.电池状态, SystemInfoKit.batteryState)
+
+        // 各 case 的中文名固定
+        XCTAssertEqual(BatteryState.charging.chineseName, "充电中")
+        XCTAssertEqual(BatteryState.full.chineseName, "已充满")
+        XCTAssertEqual(BatteryState.unplugged.chineseName, "未接电源")
+        XCTAssertEqual(BatteryState.unknown.chineseName, "未知")
+
+        // 中文静态别名等价
+        XCTAssertEqual(BatteryState.充电中, .charging)
+        XCTAssertEqual(BatteryState.已充满, .full)
+        XCTAssertEqual(BatteryState.未接电源, .unplugged)
+        XCTAssertEqual(BatteryState.未知, .unknown)
+
+        // 类型别名等价于英文类型
+        let _: 电池状态.Type = BatteryState.self
+    }
+
+    func testSnapshotIncludesBatteryState() {
+        XCTAssertEqual(SystemInfoKit.snapshot()["batteryState"], SystemInfoKit.batteryStateName)
+    }
+
+    // MARK: - 进程占用排行（第九轮）
+
+    func testTopProcessesByMemory() {
+        #if os(macOS)
+        let top = SystemInfoKit.topProcesses(by: .memory, limit: 10)
+        XCTAssertFalse(top.isEmpty, "进程排行不应为空")
+        for process in top {
+            XCTAssertGreaterThan(process.pid, 0)
+            XCTAssertGreaterThanOrEqual(process.memoryBytes, 0)
+            XCTAssertGreaterThanOrEqual(process.cpuTime, 0)
+            XCTAssertGreaterThanOrEqual(process.cpuPercent, 0)
+            XCTAssertFalse(process.memory.isEmpty)
+        }
+        // 按内存降序
+        let memoryValues = top.map(\.memoryBytes)
+        XCTAssertEqual(memoryValues, memoryValues.sorted(by: >))
+
+        // 数量上限生效
+        XCTAssertLessThanOrEqual(SystemInfoKit.topProcesses(by: .memory, limit: 3).count, 3)
+        // limit ≤ 0 返回空
+        XCTAssertTrue(SystemInfoKit.topProcesses(by: .memory, limit: 0).isEmpty)
+        XCTAssertTrue(SystemInfoKit.topProcesses(by: .memory, limit: -1).isEmpty)
+        #else
+        XCTAssertTrue(SystemInfoKit.topProcesses(by: .memory, limit: 10).isEmpty, "iOS 无进程排行数据")
+        #endif
+    }
+
+    func testTopProcessesByCPUAndAliases() {
+        #if os(macOS)
+        let top = SystemInfoKit.topProcesses(by: .cpu, limit: 5)
+        let percents = top.map(\.cpuPercent)
+        XCTAssertEqual(percents, percents.sorted(by: >), "按 CPU 排序应降序")
+        #endif
+
+        // 中文别名等价（字段级）
+        let alias = SystemInfoKit.进程排行(依据: .内存, 数量: 3)
+        #if os(macOS)
+        XCTAssertLessThanOrEqual(alias.count, 3)
+        if let first = alias.first {
+            XCTAssertEqual(first.内存, first.memory)
+            XCTAssertEqual(first.进程ID, first.pid)
+            XCTAssertEqual(first.进程名称, first.name)
+            XCTAssertEqual(first.内存字节数, first.memoryBytes)
+            XCTAssertEqual(first.CPU时间, first.cpuTime)
+            XCTAssertEqual(first.CPU占用, first.cpuPercent)
+            XCTAssertEqual(first.启动时间, first.startDate)
+        }
+        #endif
+
+        // 类型别名等价于英文类型
+        let _: 进程占用.Type = ProcessUsage.self
+        let _: 进程排序依据.Type = ProcessSortKey.self
+        XCTAssertEqual(ProcessSortKey.内存, .memory)
+        XCTAssertEqual(ProcessSortKey.CPU, .cpu)
+    }
+
+    // MARK: - 网卡物理地址 / MAC（第九轮）
+
+    /// 校验 MAC 形如 `AA:BB:CC:DD:EE:FF`（大写、冒号分隔、6 组两位十六进制）
+    private func isWellFormedMAC(_ mac: String) -> Bool {
+        let groups = mac.split(separator: ":")
+        guard groups.count == 6 else { return false }
+        return groups.allSatisfy { group in
+            group.count == 2 && group.allSatisfy { $0.isHexDigit && !$0.isLowercase }
+        }
+    }
+
+    func testNetworkInterfaceMACAddress() {
+        let interfaces = SystemInfoKit.networkInterfaces
+        XCTAssertFalse(interfaces.isEmpty)
+        for interface in interfaces {
+            if let mac = interface.macAddress {
+                XCTAssertTrue(isWellFormedMAC(mac), "MAC 应为 AA:BB:CC:DD:EE:FF 形式，实际：\(mac)")
+                XCTAssertEqual(interface.物理地址, mac)
+            }
+            // 中文别名等价
+            XCTAssertEqual(interface.名称, interface.name)
+            XCTAssertEqual(interface.地址, interface.address)
+            XCTAssertEqual(interface.已启用, interface.isUp)
+            XCTAssertEqual(interface.是否回环, interface.isLoopback)
+        }
+        // 回环接口没有链路层地址
+        if let loopback = interfaces.first(where: { $0.isLoopback }) {
+            XCTAssertNil(loopback.macAddress, "回环接口不应有 MAC")
+        }
+    }
+
+    func testPrimaryMACAddress() {
+        // 沙箱里可能取不到（无 en0 / 无权限），有值时校验格式
+        if let mac = SystemInfoKit.primaryMACAddress {
+            XCTAssertTrue(isWellFormedMAC(mac), "主网卡 MAC 格式应合法，实际：\(mac)")
+        }
+        XCTAssertEqual(SystemInfoKit.主网卡物理地址, SystemInfoKit.primaryMACAddress)
+    }
 }
