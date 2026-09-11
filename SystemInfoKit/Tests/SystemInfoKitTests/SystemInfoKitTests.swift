@@ -872,11 +872,11 @@ final class SystemInfoKitTests: XCTestCase {
         XCTAssertEqual(键盘.text, "键盘 · Apple Inc. (05AC:0250)")
         XCTAssertEqual(键盘.serialNumber, "ABC123")
 
-        // 只有厂商 ID：标识文本只给厂商部分
+        // 只有厂商 ID：标识文本只给厂商部分；没有厂商名时 (ID) 直接跟在产品名后（不是 ` · `）
         let 半个 = USBDevice(name: "U 盘", vendorName: nil, vendorID: 0x1234,
                             productID: nil, serialNumber: nil)
         XCTAssertEqual(半个.idText, "1234")
-        XCTAssertEqual(半个.text, "U 盘 · (1234)")
+        XCTAssertEqual(半个.text, "U 盘 (1234)")
 
         // 没有任何 ID：标识文本为 nil，摘要只有名字
         let 纯名 = USBDevice(name: "未知设备", vendorName: nil, vendorID: nil,

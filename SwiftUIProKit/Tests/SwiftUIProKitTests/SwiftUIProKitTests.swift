@@ -588,7 +588,8 @@ final class SwiftUIProKitTests: XCTestCase {
 
     func testChartAxisPaddedRange() {
         // 空 / 全非有限数 → 兜底 0...1
-        XCTAssertEqual(ChartAxis.paddedRange([]), 0...1)
+        // 空数组字面量 `[]` 会同时在 `[Double]` 与 `[ChartSeries]` 两个重载之间歧义，必须写清元素类型
+        XCTAssertEqual(ChartAxis.paddedRange([Double]()), 0...1)
         XCTAssertEqual(ChartAxis.paddedRange([.nan, .infinity]), 0...1)
         // 上下各留 5% 的跨度
         let range = ChartAxis.paddedRange([1, 2, 3])

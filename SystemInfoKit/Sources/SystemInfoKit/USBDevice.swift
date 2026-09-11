@@ -53,15 +53,18 @@ public struct USBDevice: Hashable {
     }
 
     /// 中文单行摘要（形如 `键盘 · Apple Inc. (05AC:0250)`，缺项自动省略）
+    ///
+    /// 产品名与厂商名之间用 ` · `，最后的 `(厂商:产品)` 是前者的附注、只隔一个空格，
+    /// 所以没有厂商名时是 `U 盘 (1234)` 而不是 `U 盘 · (1234)`。
     public var text: String {
-        var parts: [String] = [name]
+        var text = name
         if let vendorName, !vendorName.isEmpty, vendorName != name {
-            parts.append(vendorName)
+            text += " · " + vendorName
         }
         if let idText {
-            parts.append("(\(idText))")
+            text += " (\(idText))"
         }
-        return parts.joined(separator: " · ")
+        return text
     }
 }
 
