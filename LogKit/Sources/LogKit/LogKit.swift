@@ -862,6 +862,8 @@ public enum LogKit {
     ///   print(LogKit.jsonString(from: collected))
     ///   ```
     public static func jsonString(from entries: [LogEntry], prettyPrinted: Bool = true) -> String {
+        // 空数组直接返回 `[]`：`JSONSerialization` 在 `.prettyPrinted` 下会把空数组写成 "[\n\n]"
+        guard !entries.isEmpty else { return "[]" }
         let array = entries.map { $0.jsonObject }
         var options: JSONSerialization.WritingOptions = [.sortedKeys]
         if prettyPrinted { options.insert(.prettyPrinted) }
@@ -909,7 +911,7 @@ public enum LogKit {
     /// 其中位置 / 追踪 ID / 字段三段都可缺省。级别同时接受中文名（「信息」）与英文名（`info` / `warn` 等）。
     ///
     /// 解析思路：先摘掉开头的三个方括号字段，再从**尾部**依次剥掉「字段块 → 追踪 ID 块 → 位置」，
-    /// 剩下的就是消息原文——这样消息里出现空格、冒号、方括号也不会被误伤。
+    /// 剩下的去掉首尾空白就是消息原文——这样消息里出现空格、冒号、方括号也不会被误伤。
     ///
     /// - Parameter line: 一行日志文本
     /// - Returns: 解析出的条目；不是 `.text` 格式（缺开头字段 / 级别不认识）时返回 `nil`
@@ -956,7 +958,9 @@ public enum LogKit {
                         date: parseDate(timeField) ?? Date(),
                         level: parsedLevel,
                         category: categoryField,
-                        message: message,
+                        // 三个方括号字段后面跟着一个空格，剥完前缀要把它去掉，
+                        // 否则消息会平白多一个前导空格、与原文不等
+                        message: message.trimmingCharacters(in: .whitespaces),
                         file: file,
                         line: lineNumber,
                         fields: fields,

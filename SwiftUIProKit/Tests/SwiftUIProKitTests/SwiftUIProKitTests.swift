@@ -389,12 +389,16 @@ final class SwiftUIProKitTests: XCTestCase {
     }
 
     func testHeatmapCalendarConstructs() {
-        _ = HeatmapCalendar(values: [:])
-        _ = HeatmapCalendar(values: [:], cellSize: 14, spacing: 4, cornerRadius: 3,
+        // 起止日期没有默认值，必须显式给
+        let start = Date(timeIntervalSince1970: 1_767_225_600)   // 2026-01-01（UTC）
+        let end = start.addingTimeInterval(86_400 * 6)
+        _ = HeatmapCalendar(values: [:], startDate: start, endDate: end)
+        _ = HeatmapCalendar(values: [:], startDate: start, endDate: end,
+                            cellSize: 14, spacing: 4, cornerRadius: 3,
                             colors: [.gray, .green, .blue], emptyColor: .gray.opacity(0.2),
                             showsMonthLabels: false) { _ in }
         // 中文 init 首参带「数值:」标签——与英文无标签首参区分，避免重载歧义
-        _ = 热力图日历(数值: [:], 方格尺寸: 12, 显示月份: false)
+        _ = 热力图日历(数值: [:], 起始: start, 结束: end, 方格尺寸: 12, 显示月份: false)
         _ = 热力图日历.级别(数值: [:], 级别数: 4)
         _ = 热力图日历.周列(起始: Date(), 结束: Date())
     }

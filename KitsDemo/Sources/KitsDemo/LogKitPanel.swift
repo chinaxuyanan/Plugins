@@ -101,7 +101,7 @@ struct LogKitPanel: View {
                     Button("导出摘要 exportSummary") {
                         do {
                             let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
-                            let url = try LogKit.exportSummary(条目: entries, 文件名: "LogKit摘要")
+                            let url = try LogKit.导出摘要(条目: entries, 文件名: "LogKit摘要")
                             status = "摘要导出成功：\(url.path)"
                             NSWorkspace.shared.activateFileViewerSelecting([url])
                         } catch {
