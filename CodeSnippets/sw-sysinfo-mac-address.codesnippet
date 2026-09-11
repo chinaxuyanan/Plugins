@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfomac</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 网卡物理地址（MAC，大写六段）
+if let mac = SystemInfoKit.主网卡物理地址 {
+    print("主网卡 MAC：", mac)
+}
+
+// 逐个接口：名称 + IPv4 + 物理地址 + 是否启用 / 是否回环
+for 接口 in SystemInfoKit.网络接口列表 where 接口.物理地址 != nil {
+    print(接口.name, 接口.macAddress ?? "—")
+}
+
+// 英文 API：primaryMACAddress / networkInterfaces / NetworkInterface.macAddress
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>1FB4AEC9-87E1-48FB-B213-3C8796371012</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：读主网卡 MAC，或逐个网络接口取名称 / IPv4 / 物理地址 / 启用与回环标志</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>网卡物理地址 · macAddress</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

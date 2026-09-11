@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogparse</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 反解析：把 .text 格式读回 LogEntry（只支持 .text，.json 行请自行用 JSONSerialization）
+let 条目 = LogKit.日志反解析(文件: LogKit.logFileURL)
+let 同样 = LogKit.日志反解析("[2026-01-01 10:00:00] [信息] [订单] 下单成功 @ 下单.swift:42")
+
+// 单行解析：不是 .text 格式 / 级别不认识 → nil；级别中英文都认
+if let 一条 = LogKit.解析日志行("[2026-01-01 10:00:00] [警告] [网络] 请求超时") {
+    print(一条.level.chineseName, 一条.message)
+}
+
+// 值里含逗号会被截断（本库文本输出未对逗号转义）
+let 摘要 = LogKit.统计摘要(条目)
+print(摘要.错误条数, 摘要.错误率)   // 也可用 摘要.摘要文本() 直接拿中文多行摘要
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>8D5F97D5-3574-44D7-BF9E-AFCD0A6FB999</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：把 .text 格式日志读回 LogEntry（文件 / 字符串 / 单行），再做统计或转存</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日志反解析 · parseLogFile</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

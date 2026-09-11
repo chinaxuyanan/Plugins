@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swheatmapcalendar</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 热力图日历：日期 → 强度的色阶方格，点击回调传该天零点
+热力图日历(
+    数值: 每天活跃度,        // [Date: Double]，键不必是零点，内部会归一
+    起始: 起点日期,
+    结束: 终点日期,
+    方格尺寸: 12,
+    点击: { 那天 in print("点了", 那天) }
+)
+
+// 纯逻辑静态方法：数值 → 级别（1…级别数，负值 / 零不算）
+let 级别 = 热力图日历.级别(数值: 每天活跃度, 级别数: 4)
+// 按周切列：周日在最上，首尾不足一周处补 nil，每列恒 7 个
+let 周列 = 热力图日历.周列(起始: 起点日期, 结束: 终点日期)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>66C01608-5D1A-4A89-BF92-E7A0DD5450C8</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：GitHub 贡献图样式的日期热力图，附带级别映射与按周切列两个纯逻辑静态方法</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>热力图日历 · HeatmapCalendar</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

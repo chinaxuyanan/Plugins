@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swexpandabletext</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 展开收起：并排藏两段测量文本比高度，确实被截断才出按钮（不靠预估字数）
+展开文本(
+    文字: "这是一段较长的商品简介……",
+    行数: 3,
+    展开文字: "查看全部",
+    收起文字: "收起内容"
+)
+
+// 英文 API：ExpandableText(_:lineLimit:font:tint:lineSpacing:expandTitle:collapseTitle:buttonTint:showsIcon:)
+let view = ExpandableText(简介, lineLimit: 2, expandTitle: "展开全文")
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>73C1FC5B-D41B-40F9-B322-FB8594BFBB0F</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：长文本按实测高度决定是否显示「展开 / 收起」按钮，内容没超出就不出现按钮</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>展开收起文本 · ExpandableText</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

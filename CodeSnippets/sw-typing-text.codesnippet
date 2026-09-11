@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtypingtext</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 打字机：逐字显现 + 闪烁光标
+打字机文本(文字: "正在为你生成回答……", 速度: 0.06)
+
+// 打完一轮回调；循环模式会按「循环停顿」秒后从头再来
+打字机文本(
+    文字: "欢迎回来",
+    速度: 0.08,
+    光标颜色: .orange,
+    循环: true,
+    结束: { print("打完了") }
+)
+
+// 英文 API：TypingText(_:speed:font:tint:cursorColor:showsCursor:loops:loopDelay:cursorBlinkInterval:onFinish:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>DDADEC4C-0F98-4043-BEC5-7C3077C21193</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：逐字显现 + 闪烁光标，可选循环重播与结束回调</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>打字机文本 · TypingText</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

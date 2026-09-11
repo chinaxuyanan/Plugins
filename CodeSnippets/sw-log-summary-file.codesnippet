@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogsummaryfile</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 摘要导出：写成文本文件（标题 + 生成时间 + 摘要正文）
+let 条目 = LogKit.parseLogFile(at: LogKit.logFileURL)
+
+// 方式一：先算摘要，再导出
+let 摘要 = LogKit.统计摘要(条目, 分类排行数量: 5)
+let 文件1 = try LogKit.导出摘要(摘要, 列出分类数: 3, 文件名: "LogKit摘要")
+
+// 方式二：一步到位（汇总 + 导出）
+let 文件2 = try LogKit.导出摘要(条目: 条目, 列出分类数: 3, 文件名: "LogKit摘要")
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>EE16D3B8-33CD-4BD3-A1B5-3840EA8FC6AB</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：把统计摘要写成文本文件（标题 + 生成时间 + 摘要正文），支持先算摘要再导出或一步到位</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>摘要导出 · exportSummary</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

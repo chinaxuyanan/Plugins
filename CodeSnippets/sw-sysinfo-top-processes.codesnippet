@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfotopprocesses</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 进程占用排行（仅 macOS · proc_pidinfo；逐个进程查询，别放进高频刷新）
+for 进程 in SystemInfoKit.进程排行(依据: .内存, 数量: 8) {
+    print(进程.进程名称, 进程.内存, String(format: "%.1f%%", 进程.cpuPercent))
+}
+
+// 英文 API：topProcesses(by:limit:)，limit 传 0 / 负数返回空数组
+let 排行 = SystemInfoKit.topProcesses(by: .cpu, limit: 10)
+// cpuPercent 是进程生命周期内的平均值，不是瞬时占用率
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>6E4DD144-A9FD-4BA4-AB5C-AD2A4BD12CC2</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：按内存 / CPU 排序取前 N 个进程（仅 macOS · proc_pidinfo，逐个查询别用于高频刷新）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>进程占用排行 · topProcesses</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

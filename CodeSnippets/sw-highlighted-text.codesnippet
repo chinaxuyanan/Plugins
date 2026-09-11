@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swhighlightedtext</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 关键词高亮：命中词着色 + 底色 + 加粗，默认不区分大小写
+高亮文本(
+    文字: "SwiftUI 的中文封装库，让常用控件见名知意。",
+    关键词: ["SwiftUI", "中文", "控件"],
+    高亮颜色: .orange,
+    高亮底色: .yellow.opacity(0.3)
+)
+
+// 只取命中区间（纯逻辑，供搜索 / 统计复用）：按起始位置排序，同一词多次出现全部命中
+let 区间 = 高亮文本.命中区间(关键词: ["kit"], 文字: "Search KIT here")
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>B532C59F-B7ED-421E-A2F8-E156288A7DC3</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：命中关键词着色 / 加粗 / 底色，多个关键词一次处理，默认不区分大小写</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>关键词高亮 · HighlightedText</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

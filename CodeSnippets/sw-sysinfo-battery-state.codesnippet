@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfobatterystate</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 电池细分状态：比 isCharging 更细（充电中 / 已充满 / 未接电源 / 未知）
+print(SystemInfoKit.电池状态名)      // 形如「充电中」
+print(SystemInfoKit.电池状态)        // BatteryState 枚举
+print(SystemInfoKit.电池电量 ?? 0, SystemInfoKit.电池健康)
+
+// 英文 API：batteryState / batteryStateName / BatteryState.chineseName
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7A76665E-3C18-4B24-A964-5933C62B281B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：比 isCharging 更细的电源状态（充电中 / 已充满 / 未接电源 / 未知）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>电池细分状态 · batteryState</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>
