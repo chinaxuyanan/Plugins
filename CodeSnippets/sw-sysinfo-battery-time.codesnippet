@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfobatterytime</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 电池剩余时间估算（读 IOKit 电源源，仅 macOS）
+import SystemInfoKit
+
+print(SystemInfoKit.batteryTimeRemaining)          // TimeInterval?（秒），未知为 nil
+print(SystemInfoKit.batteryTimeRemainingText)      // 1 小时 20 分 / 不支持
+print(SystemInfoKit.batteryTimeToFullCharge)       // 充满还需多久（秒）
+print(SystemInfoKit.batteryTimeToFullChargeText)   // 35 分 / 不支持
+
+// 纯格式化函数也能单独用（nil 或负数一律「不支持」）
+print(SystemInfoKit.batteryTimeText(5000))         // 1 小时 23 分
+print(SystemInfoKit.batteryTimeText(1800))         // 30 分
+
+// 中文别名：电池剩余时间 / 电池剩余时间文本 / 充满剩余时间 / 充满剩余时间文本 / 电池时长文本(_:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>1C58ADDD-9F5B-490C-8B62-F406D223B816</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：读 IOKit 电源源的剩余使用时间与充满剩余时间（仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>电池剩余时间 · batteryTimeRemaining</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

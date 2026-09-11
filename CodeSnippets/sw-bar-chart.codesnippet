@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swbarchart</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 柱状图 BarChart（多系列组内并排，可高亮每组最大值）
+import SwiftUI
+import SwiftUIProKit
+
+BarChart(
+    series: [
+        ChartSeries(label: "iOS", values: [40, 32, 28, 36], color: .blue),
+        ChartSeries(label: "Android", values: [35, 38, 30, 22], color: .green),
+    ],
+    labels: ["Q1", "Q2", "Q3", "Q4"],
+    height: 180,
+    spacing: 6,
+    highlightsMax: true,       // 每组里最高的那根柱子不变淡
+    ySuffix: "%"
+)
+
+// 基线固定在 0，有负值时向下画
+// 中文别名：柱状图（等同 BarChart）
+// 纯逻辑（可单测）：BarChart.barWidth(groupWidth:spacing:barCount:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>AFEC2EBE-C275-4EC2-9343-12E6A2821946</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：多系列并排柱状图，支持高亮每组最大值</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>柱状图 · BarChart</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

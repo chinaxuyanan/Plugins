@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swloghtml</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit HTML 报告（自包含网页，特殊字符先换 &amp; 再转义，不会二次转义）
+import LogKit
+
+// 1) 只要文本，自己写文件 / 塞进邮件
+let summary = LogKit.summary(of: LogKit.recentEntries)
+let html = LogKit.htmlString(summary, listedCategories: 5)   // listedCategories: 0 则不列分类表
+
+// 2) 直接落盘（会自动在 Finder 里定位）
+do {
+    let url = try LogKit.exportHTML(summary, fileName: "LogKit报告")
+    print(url.path)
+} catch {
+    print("导出失败：\(error)")
+}
+
+// 3) 一步到位：给一批条目，内部先汇总再导出
+let url2 = try LogKit.exportHTML(of: LogKit.parseLogFile(at: LogKit.logFileURL),
+                                 topCategories: 5,
+                                 listedCategories: 5,
+                                 fileName: "LogKit报告")
+
+// 中文别名：HTML报告(_:列出分类数:) / 导出HTML(_:列出分类数:文件名:) / 导出HTML(条目:分类排行数量:列出分类数:文件名:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>F71261F4-F14B-4D3F-8F02-AEB344F32F7C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：把日志摘要导成自包含 HTML 网页（样式内联、零外部资源）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>HTML 报告 · htmlString / exportHTML</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

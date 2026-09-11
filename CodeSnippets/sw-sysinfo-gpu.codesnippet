@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfogpu</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 显卡信息 GPUInfo（取系统默认 Metal 设备；多显卡机型只给默认这块）
+import SystemInfoKit
+
+if let 显卡 = SystemInfoKit.gpuInfo {
+    print(显卡.name)                        // Apple M1 Pro
+    print(显卡.maxWorkingMemory)            // 5461 MB
+    print(显卡.hasUnifiedMemory)            // true（Apple Silicon / 集成显卡）
+    print(显卡.maxThreadsPerThreadgroup)    // 1024
+    print(显卡.text)                        // Apple M1 Pro · 统一内存 · 5461 MB
+} else {
+    print("取不到 Metal 设备（模拟器 / 无独显环境）")
+}
+
+print(SystemInfoKit.gpuName)        // String?，取不到为 nil
+print(SystemInfoKit.gpuInfoText)    // 取不到为「不支持」
+
+// 中文别名：显卡信息 / 显卡名称 / 显卡信息文本
+//          显卡信息（等同 GPUInfo，结构体带 名称 / 最大工作内存 / 统一内存 / 最大线程组）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>9B976A49-8451-4A9F-BAC3-A1C00407B90C</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：取系统默认 Metal 设备的名称 / 最大工作内存 / 统一内存 / 线程组上限</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>显卡信息 · gpuInfo</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

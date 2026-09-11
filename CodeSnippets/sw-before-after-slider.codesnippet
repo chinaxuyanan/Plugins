@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swbeforeafter</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 图片对比滑块 BeforeAfterSlider（双层内容按比例裁切，拖动把手改分割）
+import SwiftUI
+import SwiftUIProKit
+
+struct CompareView: View {
+    @State private var ratio: CGFloat = 0.5
+
+    var body: some View {
+        VStack {
+            BeforeAfterSlider(
+                before: {
+                    Image("original").resizable().scaledToFill()
+                },
+                after: {
+                    Image("filtered").resizable().scaledToFill()
+                },
+                ratio: $ratio,             // 可绑定外部，不传则内部自管
+                initialRatio: 0.5,
+                handleSize: 34,
+                beforeLabel: "原图",
+                afterLabel: "滤镜"
+            )
+            .frame(height: 260)
+
+            Text("分割比例：\(Int((ratio * 100).rounded()))%")
+        }
+    }
+}
+
+// 中文别名：图片对比滑块（等同 BeforeAfterSlider）
+// 纯逻辑（可单测）：BeforeAfterSlider.clampRatio(_:) / ratio(x:width:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7877D26A-DEFF-496F-AFED-292276811E54</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：两张内容叠放，拖动把手或点击改分割位置</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>图片对比滑块 · BeforeAfterSlider</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swbottomsheet</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 底部抽屉 BottomSheet（贴底弹出、可拖动在多个档位间展开）
+// 为兼容 iOS 15 / macOS 12，自己用 DragGesture + 高度吸附实现，没用 iOS 16.4 的 presentationDetents
+import SwiftUI
+import SwiftUIProKit
+
+struct DemoView: View {
+    @State private var show = false
+
+    var body: some View {
+        Button("选择城市") { show = true }
+            .bottomSheet(isPresented: $show,
+                         detents: [0.35, 0.7],   // 档位 = 占容器高度的比例
+                         initialDetent: 0,
+                         showsHandle: true,
+                         cornerRadius: 16,
+                         dismissOnTapOutside: true) {
+                CityList()
+            }
+    }
+}
+
+// 往下拖到最小档以下、或点击面板外部即关闭
+// 中文别名：底部抽屉（等同 BottomSheet）
+// 纯逻辑（可单测）：BottomSheet.normalizedDetents(_:) / height(containerHeight:detent:)
+//                  / nearestIndex(currentDetent:detents:velocity:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7AF5A99B-2394-4C49-9C97-8FC57E6EE5F8</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：贴底弹出的多档位可拖动抽屉（兼容 iOS 15 / macOS 12）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>底部抽屉 · BottomSheet</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

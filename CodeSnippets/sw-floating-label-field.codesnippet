@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swfloatinglabel</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 浮动标签输入框 FloatingLabelField
+import SwiftUI
+import SwiftUIProKit
+
+struct FormView: View {
+    @State private var email = ""
+    @State private var password = ""
+
+    var body: some View {
+        VStack(spacing: 16) {
+            FloatingLabelField(label: "邮箱",
+                               text: $email,
+                               helperText: "我们不会公开你的邮箱")
+            FloatingLabelField(label: "密码",
+                               text: $password,
+                               isSecure: true)          // 自动换成 SecureField
+            FloatingLabelField(label: "用户名",
+                               text: .constant("已填内容"),
+                               errorText: "该用户名已被占用")   // 红色错误态 + 边框变色
+        }
+        .frame(maxWidth: 320)
+    }
+}
+
+// 中文别名：浮动标签输入框（等同 FloatingLabelField）
+// 纯逻辑（可单测）：FloatingLabelField.shouldFloat(text:isFocused:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>54CF8D45-810E-4E6E-92E4-62A87AFD6389</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：标签空且未聚焦时居中当占位，聚焦或有内容时上浮；支持错误态</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>浮动标签输入框 · FloatingLabelField</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfousb</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit USB 外设列表 USBDevice（仅 macOS；iOS 恒为空数组）
+import SystemInfoKit
+
+print(SystemInfoKit.usbDeviceCount)         // 设备数量
+print(SystemInfoKit.usbDevicesText)         // 一台设备以「 · 」连接的单行文本
+
+for 设备 in SystemInfoKit.usbDevices {
+    print(设备.name)            // 产品名（读不到为「未知设备」）
+    print(设备.vendorName)      // 厂商名，可能为 nil
+    print(设备.idText)          // 形如「05AC:0250」，缺项时只给能拿到的部分
+    print(设备.serialNumber)    // 序列号，可能为 nil
+    print(设备.text)            // 键盘 · Apple Inc. (05AC:0250)
+}
+
+// 注意：集线器、内建键盘 / 触控板也会出现在列表里，要区分可自行按名称或 ID 过滤
+// 本属性会遍历 IOKit 注册表，开销比一般属性大，建议按需调用
+// 中文别名：USB外设列表 / USB外设数量 / USB外设文本 / USB设备（等同 USBDevice）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>9D41C07F-A2B7-431B-A6E1-6D4B920CBC9D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：枚举 IOKit 注册表里的 USB 设备（仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>USB 外设列表 · usbDevices</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

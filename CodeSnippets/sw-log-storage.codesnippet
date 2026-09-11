@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogstorage</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 日志体积统计与清理
+import LogKit
+
+// 汇总「当前日志 + 归档日志 + 崩溃日志」的体积
+let storage = LogKit.logStorage
+print(storage.fileCount)        // 文件个数
+print(storage.totalSizeText)    // 合计大小，形如「1.5 MB」
+print(storage.text)             // 一段可直接展示的中文清单（当前日志标「当前」）
+
+for item in storage.items {
+    print(item.name, item.sizeText, item.isCurrent)
+}
+
+// 删掉全部归档日志（当前正在写的日志不动），返回删除个数
+let removed = LogKit.clearArchivedLogs()
+print("已删除 \(removed) 个归档文件")
+
+// 中文别名：日志体积（等同 logStorage）/ 清理归档日志() / 日志体积统计（等同 LogStorage）
+//          日志文件项（等同 LogStorage.Item）/ 人性化大小(_:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>CF68EF8B-7554-4C16-AD61-6203C6643FAB</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：量出所有日志文件大小并汇总，一键清理归档日志</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>体积统计与清理 · logStorage / clearArchivedLogs</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

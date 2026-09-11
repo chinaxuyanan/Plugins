@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlinechart</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 折线图 LineChart（带 Y 轴刻度与网格线，区别于无坐标轴的迷你图表）
+import SwiftUI
+import SwiftUIProKit
+
+LineChart(
+    series: [
+        ChartSeries(label: "本周", values: [12, 18, 9, 22, 17, 25, 20], color: .blue),
+        ChartSeries(label: "上周", values: [8, 14, 11, 19, 13, 21, 16], color: .orange),
+    ],
+    height: 180,
+    showsArea: false,          // 多系列时建议关掉面积填充
+    xLabels: ["一", "二", "三", "四", "五", "六", "日"],
+    ySuffix: "℃",
+    showsLegend: true
+)
+
+// 中文别名：折线图（等同 LineChart）、图表数据系列（等同 ChartSeries）
+// 纯逻辑（可单测）：ChartAxis.paddedRange(_:) / ChartAxis.ticks(in:count:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>80B9E3C1-6A04-4CEB-99F2-AE3C6E11F7B5</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：带 Y 轴刻度 / 网格线 / X 轴标签的折线图</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>折线图 · LineChart</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

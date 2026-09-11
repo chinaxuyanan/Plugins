@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swloggroupmsg</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 按消息聚合 groupByMessage（次数降序，次数相同按消息字典序）
+import LogKit
+
+let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+
+// 默认去首尾空白、区分大小写；top 最多返回几组（0 表示不限）
+let groups = LogKit.groupByMessage(entries, trimWhitespace: true, ignoringCase: false, top: 10)
+
+for group in groups {
+    print(group.text)          // 形如「12 次 · 错误 · 网络请求失败」
+    print(group.count)         // 组内条数
+    print(group.levelText)     // 最高级别中文名
+    print(group.categories)    // 组内出现过的分类
+    print(group.earliest, group.latest)
+}
+
+// 中文别名：按消息聚合(_:去空白:忽略大小写:最多组数:)
+//          消息聚合组（等同 MessageGroup）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>CFD2BFA7-8D29-4001-AE92-E7E09328C422</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：把相同消息归为一组，给出次数 / 最高级别 / 涉及分类 / 最早最晚时间</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>按消息聚合 · groupByMessage</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

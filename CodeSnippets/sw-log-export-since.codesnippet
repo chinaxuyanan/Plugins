@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogexportsince</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 差异导出（增量导出：只要某时刻之后的日志）
+import LogKit
+
+// 1) 纯筛选：取某时刻之后（含该时刻）的条目
+let checkpoint = Date(timeIntervalSinceNow: -3600)      // 最近 1 小时
+let recent = LogKit.entries(since: checkpoint, in: LogKit.mergeLogFiles())
+print("最近 1 小时有 \(recent.count) 条日志")
+
+// 2) 直接把这段导出成 CSV（自动在 Finder 里定位）
+do {
+    let url = try LogKit.exportSince(checkpoint,
+                                     includeArchived: true,
+                                     fileName: "LogKit增量")
+    print(url.path)
+} catch {
+    print("导出失败：\(error)")
+}
+
+// 3) 也可以从「某一条日志」之后导出
+if let last = recent.last {
+    let url = try LogKit.exportSince(after: last, fileName: "LogKit增量")
+    print(url.path)
+}
+
+// 中文别名：增量日志(起始:条目:) / 导出增量(_:包含归档:文件名:) / 导出增量(上次:包含归档:文件名:)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>D4B879F0-FCD4-44EC-85BF-E6670BB0DA0D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：只导出某时刻之后（或某条日志之后）的条目为 CSV</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>差异导出 · exportSince</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>
