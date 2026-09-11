@@ -629,4 +629,189 @@ final class SystemInfoKitTests: XCTestCase {
         }
         XCTAssertEqual(SystemInfoKit.主网卡物理地址, SystemInfoKit.primaryMACAddress)
     }
+
+    // MARK: - 内存明细（第十轮）
+
+    func testMemoryBreakdown() {
+        guard let 明细 = SystemInfoKit.memoryBreakdown else {
+            XCTFail("memoryBreakdown 在受支持的平台不应为 nil")
+            return
+        }
+        XCTAssertGreaterThan(明细.totalBytes, 0)
+        XCTAssertGreaterThanOrEqual(明细.usedPercent, 0)
+        XCTAssertLessThanOrEqual(明细.usedPercent, 1)
+        // 可用 = 空闲 + 非活跃 + 可丢弃 + 预读
+        XCTAssertEqual(明细.availableBytes,
+                       明细.freeBytes &+ 明细.inactiveBytes &+ 明细.purgeableBytes &+ 明细.speculativeBytes)
+        // 已用 = 总容量 − 可用（总容量小于可用时按 0 计）
+        XCTAssertEqual(明细.usedBytes,
+                       明细.totalBytes > 明细.availableBytes ? 明细.totalBytes - 明细.availableBytes : 0)
+        XCTAssertFalse(明细.text.isEmpty)
+        XCTAssertFalse(明细.usedPercentText.isEmpty)
+
+        // 中文别名等价（明细是已取到的结构体副本，别名读的是同一份存储值，可精确比较）
+        XCTAssertEqual(明细.总容量, 明细.totalBytes)
+        XCTAssertEqual(明细.空闲, 明细.freeBytes)
+        XCTAssertEqual(明细.活跃, 明细.activeBytes)
+        XCTAssertEqual(明细.非活跃, 明细.inactiveBytes)
+        XCTAssertEqual(明细.联动, 明细.wiredBytes)
+        XCTAssertEqual(明细.压缩, 明细.compressedBytes)
+        XCTAssertEqual(明细.可丢弃, 明细.purgeableBytes)
+        XCTAssertEqual(明细.预读, 明细.speculativeBytes)
+        XCTAssertEqual(明细.可用字节, 明细.availableBytes)
+        XCTAssertEqual(明细.已用字节, 明细.usedBytes)
+        XCTAssertEqual(明细.已用占比, 明细.usedPercent)
+        XCTAssertEqual(明细.已用占比文本, 明细.usedPercentText)
+        XCTAssertEqual(明细.总容量文本, 明细.totalDescription)
+        XCTAssertEqual(明细.联动文本, 明细.wiredDescription)
+        XCTAssertEqual(明细.压缩文本, 明细.compressedDescription)
+        XCTAssertEqual(明细.明细文本, 明细.text)
+
+        // 类型别名等价
+        let _: 内存明细.Type = MemoryBreakdown.self
+    }
+
+    func testMemoryBreakdownDeterministicArithmetic() {
+        // 中文 init + 派生计算（与实时系统值无关，可精确断言）
+        let 手造 = 内存明细(总容量: 100, 空闲: 20, 活跃: 30, 非活跃: 10,
+                            联动: 25, 压缩: 15, 可丢弃: 5, 预读: 5)
+        XCTAssertEqual(手造.可用字节, 40)           // 20 + 10 + 5 + 5
+        XCTAssertEqual(手造.已用字节, 60)           // 100 − 40
+        XCTAssertEqual(手造.已用占比, 0.6, accuracy: 0.0001)
+        XCTAssertEqual(手造.已用占比文本, "60.0%")
+
+        let 空 = MemoryBreakdown(totalBytes: 0, freeBytes: 0, activeBytes: 0, inactiveBytes: 0,
+                                 wiredBytes: 0, compressedBytes: 0, purgeableBytes: 0, speculativeBytes: 0)
+        XCTAssertEqual(空.已用占比, 0, "总容量为 0 时使用率按 0 计")
+    }
+
+    func testMemoryBreakdownConsistentWithMemoryUsed() {
+        guard let 明细 = SystemInfoKit.memoryBreakdown else { return }
+        // 两者同源，但两次读取之间内存会变动，故用容差比较
+        XCTAssertEqual(Double(SystemInfoKit.memoryUsedBytes), Double(明细.usedBytes),
+                       accuracy: Double(明细.totalBytes) * 0.1)
+        XCTAssertEqual(SystemInfoKit.memoryUsagePercent, 明细.usedPercent, accuracy: 0.1)
+        // 中文只读别名（实时重取，只校验取值范围）
+        XCTAssertGreaterThanOrEqual(SystemInfoKit.内存使用率, 0)
+        XCTAssertLessThanOrEqual(SystemInfoKit.内存使用率, 1)
+    }
+
+    // MARK: - 每核 CPU 使用率（第十轮）
+
+    func testPerCoreCPUUsage() {
+        let usages = SystemInfoKit.perCoreCPUUsage
+        if usages.isEmpty {
+            // 极罕见：两次采样核数不一致
+            XCTAssertEqual(SystemInfoKit.perCoreCPUUsageText, "不支持")
+        } else {
+            XCTAssertGreaterThan(usages.count, 0)
+            XCTAssertLessThanOrEqual(usages.count, SystemInfoKit.processorCount)
+            for value in usages {
+                XCTAssertGreaterThanOrEqual(value, 0)
+                XCTAssertLessThanOrEqual(value, 1)
+            }
+            let text = SystemInfoKit.perCoreCPUUsageText
+            XCTAssertFalse(text.isEmpty)
+            XCTAssertTrue(text.contains("CPU1"), "文本应含首核标签，实际：\(text)")
+        }
+    }
+
+    // MARK: - 电池温度 / 电源明细（第十轮）
+
+    func testBatteryTemperature() {
+        XCTAssertFalse(SystemInfoKit.batteryTemperatureText.isEmpty)
+        if let celsius = SystemInfoKit.batteryTemperature {
+            XCTAssertGreaterThan(celsius, -20)
+            XCTAssertLessThan(celsius, 120)
+        }
+    }
+
+    func testPowerSourceName() {
+        let name = SystemInfoKit.powerSourceName
+        XCTAssertFalse(name.isEmpty)
+        XCTAssertTrue(["交流电源", "电池", "未知", "不支持"].contains(name), "供电来源取值异常：\(name)")
+        XCTAssertEqual(SystemInfoKit.供电来源, name)
+    }
+
+    func testPowerAdapter() {
+        if let adapter = SystemInfoKit.powerAdapter {
+            XCTAssertFalse(adapter.text.isEmpty)
+            XCTAssertTrue(adapter.text.hasPrefix("适配器"))
+            XCTAssertFalse(adapter.wattsText.isEmpty)
+            XCTAssertFalse(adapter.voltageText.isEmpty)
+            XCTAssertFalse(adapter.currentText.isEmpty)
+            // 中文别名等价（结构体副本，可精确比较）
+            XCTAssertEqual(adapter.功率, adapter.watts)
+            XCTAssertEqual(adapter.电压毫伏, adapter.voltageMillivolts)
+            XCTAssertEqual(adapter.电流毫安, adapter.currentMilliamps)
+            XCTAssertEqual(adapter.标识, adapter.adapterID)
+            XCTAssertEqual(adapter.功率文本, adapter.wattsText)
+            XCTAssertEqual(adapter.电压文本, adapter.voltageText)
+            XCTAssertEqual(adapter.电流文本, adapter.currentText)
+        } else {
+            // 未接电源 / 非 macOS
+            XCTAssertEqual(SystemInfoKit.powerAdapterText, "不支持")
+        }
+
+        // 中文 init 与派生文本（确定性）
+        let 适配器 = 电源适配器(功率: 96, 电压毫伏: 20000, 电流毫安: 4800, 标识: 1)
+        XCTAssertEqual(适配器.功率文本, "96W")
+        XCTAssertEqual(适配器.电压文本, "20.0V")
+        XCTAssertEqual(适配器.电流文本, "4.80A")
+        XCTAssertEqual(适配器.text, "适配器 96W · 20.0V · 4.80A")
+
+        // 类型别名等价
+        let _: 电源适配器.Type = PowerAdapter.self
+    }
+
+    // MARK: - 已安装应用（第十轮）
+
+    func testInstalledApplications() {
+        let apps = SystemInfoKit.installedApplications
+        XCTAssertEqual(SystemInfoKit.installedApplicationCount, apps.count)
+
+        // 按名称本地化升序
+        let names = apps.map(\.name)
+        XCTAssertEqual(names, names.sorted { $0.localizedStandardCompare($1) == .orderedAscending })
+
+        for app in apps {
+            XCTAssertFalse(app.name.isEmpty)
+            XCTAssertFalse(app.versionText.isEmpty)
+            XCTAssertFalse(app.bundleIdentifierText.isEmpty)
+            XCTAssertEqual(app.path, app.url.path)
+            XCTAssertEqual(app.id, app.url.path)
+            XCTAssertTrue(app.url.pathExtension == "app", "应指向 .app 包，实际：\(app.path)")
+            // 中文别名等价
+            XCTAssertEqual(app.名称, app.name)
+            XCTAssertEqual(app.标识符, app.bundleIdentifier)
+            XCTAssertEqual(app.版本, app.version)
+            XCTAssertEqual(app.路径, app.url)
+            XCTAssertEqual(app.版本文本, app.versionText)
+            XCTAssertEqual(app.标识符文本, app.bundleIdentifierText)
+        }
+
+        // 中文别名列表（实时重扫，只比数量）
+        XCTAssertEqual(SystemInfoKit.已安装应用列表.count, apps.count)
+
+        #if !os(macOS)
+        XCTAssertTrue(apps.isEmpty, "iOS 无已安装应用列表")
+        #endif
+    }
+
+    func testInstalledApplicationDeterministicFields() {
+        let 应用 = 已安装应用(名称: "Safari",
+                            标识符: "com.apple.Safari",
+                            版本: "17.0",
+                            路径: URL(fileURLWithPath: "/Applications/Safari.app"))
+        XCTAssertEqual(应用.版本文本, "17.0")
+        XCTAssertEqual(应用.标识符文本, "com.apple.Safari")
+        XCTAssertEqual(应用.id, "/Applications/Safari.app")
+
+        let 未知应用 = InstalledApplication(name: "X", bundleIdentifier: nil, version: nil,
+                                            url: URL(fileURLWithPath: "/Applications/X.app"))
+        XCTAssertEqual(未知应用.版本文本, "未知")
+        XCTAssertEqual(未知应用.标识符文本, "未知")
+
+        let _: 已安装应用.Type = InstalledApplication.self
+    }
 }

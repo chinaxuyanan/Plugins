@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfopercorecpu</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 每核 CPU 使用率（两次采样求差，逐核分别计算）
+let 占用 = SystemInfoKit.perCoreCPUUsage        // [Double]，下标即核序号，0.0 ~ 1.0
+for (index, value) in 占用.enumerated() {
+    print("CPU\(index + 1)：\(Int((value * 100).rounded()))%")
+}
+
+print(SystemInfoKit.perCoreCPUUsageText)        // CPU1 12% · CPU2 34% · …
+
+// 中文别名：SystemInfoKit.每核CPU使用率 / 每核CPU使用率文本
+// 取不到时返回空数组 / 「不支持」（极罕见：两次采样核数不一致）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>DDB211FD-8FCE-402D-A277-243C4C4C1DCC</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：逐核采样，下标即核序号（调用阻塞约 100ms）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>每核 CPU 使用率 · perCoreCPUUsage</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

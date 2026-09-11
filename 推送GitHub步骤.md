@@ -41,12 +41,12 @@ git push -u origin main
 git push origin --tags
 ```
 
-`git push origin --tags` 会把 47 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
+`git push origin --tags` 会把 50 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
 
 ```
-SwiftUIProKit-0.16.0
-LogKit-0.13.0
-SystemInfoKit-0.13.0
+SwiftUIProKit-1.7.0
+LogKit-1.4.0
+SystemInfoKit-1.4.0
 ```
 
 > 注意：这些 tag 只是**版本标记**，不是给 SwiftPM 用的。因为三个包在同一个仓库的子目录里，

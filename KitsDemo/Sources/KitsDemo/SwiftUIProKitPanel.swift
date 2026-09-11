@@ -1,12 +1,15 @@
 import SwiftUI
 import SwiftUIProKit
 
-/// SwiftUIProKit 组件分区：轮播图 / 倒计时 / 引导页
+/// SwiftUIProKit 组件分区：轮播图 / 倒计时 / 引导页 / 文本增强 / 热力图 / 瀑布流 / 日历 / 标签 / 饼图
 struct SwiftUIProKitPanel: View {
 
     @State private var countdownPaused = false
     @State private var countdownID = 0
     @State private var showOnboarding = false
+    @State private var selectedDate = Date()
+    @State private var selectedRange: ClosedRange<Date>?
+    @State private var tags: [String] = ["SwiftUI", "中文"]
 
     var body: some View {
         VStack(spacing: 20) {
@@ -99,6 +102,62 @@ struct SwiftUIProKitPanel: View {
                     print("点击了 \(day)")
                 }
             }
+
+            if #available(macOS 13, *) {
+                Card("瀑布流 MasonryGrid（不等高多列 · Layout 协议 · iOS 16 / macOS 13+）") {
+                    MasonryGrid(columns: 3, spacing: 8) {
+                        ForEach(0..<9, id: \.self) { index in
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .fill(Color.blue.opacity(0.15 + Double(index % 5) * 0.15))
+                                .frame(height: 40 + CGFloat(index % 4) * 26)
+                                .overlay(Text("\(index + 1)").foregroundStyle(.secondary))
+                        }
+                    }
+                }
+            }
+
+            Card("日历选择器 CalendarPicker（左：单选 · 右：选区段）") {
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .top, spacing: 20) {
+                        CalendarPicker(selection: $selectedDate)
+                        CalendarPicker(range: $selectedRange)
+                    }
+                    Text("单选：\(selectedDate.formatted(date: .abbreviated, time: .omitted))")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    Text("区间：\(rangeDescription)")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if #available(macOS 13, *) {
+                Card("标签输入 TagInput（回车 / 逗号 / 顿号成标签 · FlowLayout 自动换行）") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        TagInput(tags: $tags,
+                                 placeholder: "输入后回车，或用逗号 / 顿号分隔",
+                                 maxTags: 6,
+                                 onReject: { print("被拒绝的标签：\($0)") })
+                        Text("当前 \(tags.count) 个标签：\(tags.joined(separator: "、"))")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Card("饼图 / 环形占比图 PieChart（左：环形 + 中心文字 · 右：饼图）") {
+                HStack(alignment: .top, spacing: 24) {
+                    PieChart(values: [40, 35, 25],
+                             labels: ["iOS", "Android", "其他"],
+                             isDonut: true,
+                             centerText: "占比")
+                    PieChart(slices: [
+                        .init(label: "已完成", value: 12, color: .green),
+                        .init(label: "进行中", value: 5, color: .orange),
+                        .init(label: "未开始", value: 3, color: .gray),
+                    ], size: 140)
+                }
+            }
         }
         .sheet(isPresented: $showOnboarding) {
             OnboardingView(
@@ -112,6 +171,14 @@ struct SwiftUIProKitPanel: View {
             )
             .frame(width: 420, height: 420)
         }
+    }
+
+    /// 已选区间的可读描述
+    private var rangeDescription: String {
+        guard let range = selectedRange else { return "未选完（先点起点，再点终点）" }
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return "\(formatter.string(from: range.lowerBound)) ~ \(formatter.string(from: range.upperBound))"
     }
 
     /// 自定义轮播页内容

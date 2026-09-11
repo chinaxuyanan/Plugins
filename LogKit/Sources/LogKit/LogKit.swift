@@ -13,6 +13,7 @@ import Darwin
 /// - 支持追踪 ID `traceId`（全局 / 作用域日志器两级，串联一次请求的全部日志）、按构建环境自适应默认级别（DEBUG `.debug` / RELEASE `.warning`）、级别计数统计（`totalCount(by:)` / `totalCount()` / `resetCounts()`）；
 /// - 支持自定义输出去向 `addSink`（控制台 / 文件之外的第三方接收者，可移除）、按天数清理 `maxLogAgeDays`、CSV 导出 `exportCSV`、JSON 导出 `exportJSON`、时区配置 `timeZone`；
 /// - 支持内存检索（`maxRecentEntries` 保留最近若干条 + `LogFilter` 按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 过滤）、统计摘要 `LogSummary`（可导出成文本文件 `exportSummary`）、压缩归档导出 `exportArchive`（纯 Foundation 打包 zip）、日志反解析 `parseLogFile`（文本行还原成 `LogEntry`）、按天 / 按小时自动轮转 `dailyRotation` / `hourlyRotation`；
+/// - 支持按 `traceId` 聚合 `groupByTrace`（还原一条链路的完整日志）、合并当前与归档日志 `mergeLogFiles`、格式化模板 `LogTemplate`（`{级别}` 等占位符接管行格式）、Markdown 报告 `markdownString` / `exportMarkdown`；
 /// - 提供中文命名别名（`LogKit.调试(...)` 等），补全列表直接显示中文。
 ///
 /// 快速开始：
@@ -34,7 +35,7 @@ import Darwin
 public enum LogKit {
 
     /// 库版本号
-    public static let version = "0.13.0"
+    public static let version = "1.4.0"
 
     // MARK: - 配置
 
@@ -1326,6 +1327,208 @@ public enum LogKit {
         try fm.createDirectory(at: dir, withIntermediateDirectories: true)
         let name = fileName ?? "LogKit-\(archiveStamp())-\(UUID().uuidString.prefix(8))"
         return dir.appendingPathComponent("\(name).\(ext)")
+    }
+
+    // MARK: - 导出 Markdown 报告
+
+    /// 把统计摘要写成 Markdown 报告文本
+    ///
+    /// 输出「总览 / 各级别条数 / 分类排行」三张表，可直接粘进 GitHub issue、飞书文档或备忘录。
+    /// 分类名里的 `|` 会被转义成 `\|`，不会把表格撑坏。
+    ///
+    /// - Parameters:
+    ///   - summary: 要导出的摘要
+    ///   - listedCategories: 分类排行最多列出几项，默认 `5`；传 `0` 表示不列出这张表
+    /// - Returns: Markdown 文本
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let md = LogKit.markdownString(LogKit.summary(of: LogKit.recentEntries))
+    ///   ```
+    public static func markdownString(_ summary: LogSummary, listedCategories: Int = 5) -> String {
+        var lines: [String] = []
+        lines.append("# LogKit 日志摘要")
+        lines.append("")
+        lines.append("生成时间：\(timestamp())")
+        lines.append("")
+
+        lines.append("## 总览")
+        lines.append("")
+        var overview: [[String]] = [
+            ["总条数", "\(summary.total)"],
+            ["错误条数", "\(summary.errorCount)"],
+            ["错误率", String(format: "%.1f%%", summary.errorRate * 100)]
+        ]
+        if let duration = summary.duration {
+            overview.append(["时间跨度", String(format: "%.2f 秒", duration)])
+        }
+        if let earliest = summary.earliest {
+            overview.append(["最早一条", dateText(earliest)])
+        }
+        if let latest = summary.latest {
+            overview.append(["最晚一条", dateText(latest)])
+        }
+        lines.append(contentsOf: markdownTable(headers: ["项目", "数值"], rows: overview))
+        lines.append("")
+
+        lines.append("## 各级别条数")
+        lines.append("")
+        lines.append(contentsOf: markdownTable(
+            headers: ["级别", "条数"],
+            rows: LogLevel.allCases.map { [$0.chineseName, "\(summary.count(of: $0))"] }))
+        lines.append("")
+
+        if listedCategories > 0, !summary.topCategories.isEmpty {
+            lines.append("## 分类排行")
+            lines.append("")
+            lines.append(contentsOf: markdownTable(
+                headers: ["分类", "条数"],
+                rows: summary.topCategories.prefix(listedCategories).map { [$0.category, "\($0.count)"] }))
+            lines.append("")
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    /// 把统计摘要导出为 Markdown 报告文件（`.md`）
+    ///
+    /// 文件写在系统临时目录的 `LogKitExport` 子目录下，文件名默认带时间戳，不会互相覆盖。
+    ///
+    /// - Parameters:
+    ///   - summary: 要导出的摘要
+    ///   - listedCategories: 分类排行最多列出几项，默认 `5`
+    ///   - fileName: 目标文件名（不含扩展名）
+    /// - Returns: 导出的 `.md` 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let url = try LogKit.exportMarkdown(LogKit.summary(of: LogKit.recentEntries))
+    ///   ```
+    public static func exportMarkdown(_ summary: LogSummary,
+                                      listedCategories: Int = 5,
+                                      fileName: String? = nil) throws -> URL {
+        let text = markdownString(summary, listedCategories: listedCategories)
+        let dest = try makeExportURL(ext: "md", fileName: fileName ?? "LogKit-摘要-\(archiveStamp())")
+        try text.write(to: dest, atomically: true, encoding: .utf8)
+        return dest
+    }
+
+    /// 汇总一批日志条目，并直接导出为 Markdown 报告文件
+    ///
+    /// - Parameters:
+    ///   - entries: 日志条目数组
+    ///   - topCategories: 分类排行最多统计几项，默认 `5`
+    ///   - listedCategories: 报告里分类排行最多列出几项，默认 `5`
+    ///   - fileName: 目标文件名（不含扩展名）
+    /// - Returns: 导出的 `.md` 文件 URL
+    /// - Throws: 创建目录或写文件失败时抛出
+    public static func exportMarkdown(of entries: [LogEntry],
+                                      topCategories: Int = 5,
+                                      listedCategories: Int = 5,
+                                      fileName: String? = nil) throws -> URL {
+        try exportMarkdown(summary(of: entries, topCategories: topCategories),
+                           listedCategories: listedCategories,
+                           fileName: fileName)
+    }
+
+    // MARK: - 按 traceId 聚合
+
+    /// 把日志按 `traceId` 分组，还原一次请求 / 一条链路的完整日志
+    ///
+    /// 返回的字典键是 traceId，值是同一链路的日志（组内按时间从早到晚排序；
+    /// 时间相同时保持传入顺序，结果稳定可复现）。
+    /// `traceId` 为空的条目会归到 `untrackedKey` 桶里，不会凭空丢掉。
+    ///
+    /// - Parameters:
+    ///   - entries: 待分组的日志条目
+    ///   - untrackedKey: 没有 traceId 的条目归到哪个键，默认「未标记」
+    /// - Returns: traceId → 该链路的日志
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let groups = LogKit.groupByTrace(LogKit.recentEntries)
+    ///   for (traceId, entries) in groups {
+    ///       print("链路 \(traceId) 共 \(entries.count) 条")
+    ///   }
+    ///   ```
+    public static func groupByTrace(_ entries: [LogEntry],
+                                    untrackedKey: String = "未标记") -> [String: [LogEntry]] {
+        var groups: [String: [LogEntry]] = [:]
+        for entry in entries {
+            let key = entry.traceId ?? untrackedKey
+            groups[key, default: []].append(entry)
+        }
+        return groups.mapValues { stableSortedByDate($0) }
+    }
+
+    // MARK: - 合并日志文件
+
+    /// 读取当前日志与全部归档，合并成一个按时间排序的完整日志流
+    ///
+    /// 读之前会先 `flush()`，确保缓冲区里还没落盘的日志也进来；
+    /// 逐行反解析（与 `parseLogFile(at:)` 同一套规则），解析不出来的行跳过。
+    ///
+    /// - Parameter includeArchived: 是否连归档文件一起读，默认 `true`
+    /// - Returns: 合并后的条目（按时间从早到晚；时间相同时保持文件读取顺序）
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let all = LogKit.mergeLogFiles()
+    ///   let summary = LogKit.summary(of: all)
+    ///   ```
+    public static func mergeLogFiles(includeArchived: Bool = true) -> [LogEntry] {
+        flush()
+        var urls: [URL] = []
+        if FileManager.default.fileExists(atPath: logFileURL.path) {
+            urls.append(logFileURL)
+        }
+        if includeArchived {
+            urls.append(contentsOf: archivedLogFiles)
+        }
+        var merged: [LogEntry] = []
+        for url in urls {
+            merged.append(contentsOf: parseLogFile(at: url))
+        }
+        return stableSortedByDate(merged)
+    }
+
+    // MARK: - 内部：导出与合并用的公共小工具
+
+    /// 内部：把一张二维表拼成 Markdown 表格；表头、分隔行、数据行加起来是一个完整的表
+    private static func markdownTable(headers: [String], rows: [[String]]) -> [String] {
+        var lines: [String] = []
+        lines.append("| " + headers.map(escapedCell).joined(separator: " | ") + " |")
+        lines.append("| " + headers.map { _ in "---" }.joined(separator: " | ") + " |")
+        for row in rows {
+            lines.append("| " + row.map(escapedCell).joined(separator: " | ") + " |")
+        }
+        return lines
+    }
+
+    /// 内部：转义 Markdown 表格单元格里的竖线（不转义会把表格截断成多列）
+    private static func escapedCell(_ text: String) -> String {
+        text.replacingOccurrences(of: "|", with: "\\|")
+    }
+
+    /// 内部：把日期按当前 `dateFormat` / `timeZone` 格式化成字符串
+    private static func dateText(_ date: Date) -> String {
+        let f = DateFormatter()
+        f.dateFormat = dateFormat
+        f.timeZone = timeZone
+        f.locale = Locale(identifier: "en_US_POSIX")
+        return f.string(from: date)
+    }
+
+    /// 内部：按时间升序稳定排序（时间相同保持原有先后，结果可复现）
+    private static func stableSortedByDate(_ entries: [LogEntry]) -> [LogEntry] {
+        entries.enumerated()
+            .sorted { lhs, rhs in
+                lhs.element.date == rhs.element.date
+                    ? lhs.offset < rhs.offset
+                    : lhs.element.date < rhs.element.date
+            }
+            .map { $0.element }
     }
 
     // MARK: - 输出预判与作用域追踪 ID

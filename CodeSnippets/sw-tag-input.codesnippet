@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swtaginput</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 标签输入：支持半角逗号、全角逗号、顿号三种分隔符
+@State private var tags = ["SwiftUI", "中文"]
+
+标签输入(
+    标签: $tags,
+    占位: "输入后回车，或逗号 / 顿号分隔",
+    最大数量: 6,
+    标签颜色: .accentColor,
+    拒绝: { print("被拒绝的标签：\($0)") }   // 超上限 / 查重被拒时回调
+)
+
+// 英文 API：TagInput(tags:placeholder:maxTags:allowsDuplicates:tagColor:onAdd:onRemove:onReject:)
+// 纯逻辑：TagInput.拆分("a, b，，c、") == ["a", "b", "c"]
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>508332E4-A8BA-4422-8E96-F6AF7A903C14</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：回车或逗号 / 顿号成标签，FlowLayout 自动换行（iOS 16 / macOS 13+）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>标签输入 · TagInput</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

@@ -1451,4 +1451,244 @@ final class LogKitTests: XCTestCase {
         XCTAssertTrue(fm.fileExists(atPath: alreadyArchived.path),
                       "已带 9 位时间戳的归档名不应被再次归档")
     }
+
+    // MARK: - 按 traceId 聚合 groupByTrace（第十轮）
+
+    private func makeTraceEntry(_ message: String,
+                                timeOffset: TimeInterval,
+                                traceId: String?,
+                                level: LogLevel = .info,
+                                category: String = "通用") -> LogEntry {
+        let date = Date(timeIntervalSince1970: 1_700_000_000).addingTimeInterval(timeOffset)
+        return LogEntry(timestamp: "2026-09-11 10:00:0\(Int(timeOffset)).000",
+                        date: date,
+                        level: level,
+                        category: category,
+                        message: message,
+                        file: "Demo.swift",
+                        line: 1,
+                        fields: [:],
+                        traceId: traceId)
+    }
+
+    func testGroupByTraceGroupsAndSortsByTime() {
+        // 故意乱序传入，验证组内会重新按时间从早到晚排
+        let entries = [
+            makeTraceEntry("第二", timeOffset: 2, traceId: "req-1"),
+            makeTraceEntry("第一", timeOffset: 0, traceId: "req-1"),
+            makeTraceEntry("别的链路", timeOffset: 1, traceId: "req-2"),
+            makeTraceEntry("中间", timeOffset: 1, traceId: "req-1"),
+        ]
+
+        let groups = LogKit.groupByTrace(entries)
+        XCTAssertEqual(groups.count, 2)
+        XCTAssertEqual(groups["req-1"]?.map(\.message), ["第一", "中间", "第二"])
+        XCTAssertEqual(groups["req-2"]?.map(\.message), ["别的链路"])
+    }
+
+    func testGroupByTraceKeepsInsertionOrderForSameTime() {
+        // 时间完全相同 → 保持传入顺序，结果稳定可复现
+        let entries = [
+            makeTraceEntry("A", timeOffset: 0, traceId: "x"),
+            makeTraceEntry("B", timeOffset: 0, traceId: "x"),
+            makeTraceEntry("C", timeOffset: 0, traceId: "x"),
+        ]
+        XCTAssertEqual(LogKit.groupByTrace(entries)["x"]?.map(\.message), ["A", "B", "C"])
+    }
+
+    func testGroupByTraceUntrackedBucketAndChineseAlias() {
+        let entries = [
+            makeTraceEntry("有链路", timeOffset: 0, traceId: "req-1"),
+            makeTraceEntry("无链路", timeOffset: 1, traceId: nil),
+        ]
+
+        // 没有 traceId 的条目归到默认的「未标记」桶，不会丢
+        let groups = LogKit.groupByTrace(entries)
+        XCTAssertEqual(groups.count, 2)
+        XCTAssertEqual(groups["未标记"]?.first?.message, "无链路")
+
+        // 桶名可自定义；中文别名等价
+        XCTAssertEqual(LogKit.按链路聚合(entries, 未标记键: "散装")["散装"]?.first?.message, "无链路")
+        XCTAssertEqual(LogKit.按链路聚合(entries).count, 2)
+
+        // 空输入返回空字典
+        XCTAssertTrue(LogKit.groupByTrace([]).isEmpty)
+    }
+
+    // MARK: - 合并日志文件 mergeLogFiles（第十轮）
+
+    func testMergeLogFilesReadsCurrentAndArchivedSorted() throws {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+        defer { try? fm.removeItem(at: dir) }
+
+        let previousDir = LogKit.logDirectory
+        defer { LogKit.logDirectory = previousDir }
+
+        LogKit.logDirectory = dir
+        LogKit.fileOutput = true
+        LogKit.asyncWrite = false
+
+        LogKit.info("当前文件里的日志")
+        LogKit.flush()
+
+        // 手动造一个「归档文件」：以 LogKit- 开头、扩展名 .log，且不是当前文件名
+        let archived = dir.appendingPathComponent("LogKit-2000-01-01-030000123.log")
+        try Data("[2000-01-01 03:00:00.000] [信息] [通用] 归档里的日志 @ Old.swift:7\n".utf8)
+            .write(to: archived)
+
+        // 当前日志是 2026 年，归档是 2000 年 → 归档排在前
+        let merged = LogKit.合并日志()
+        XCTAssertEqual(merged.count, 2)
+        XCTAssertEqual(merged.first?.message, "归档里的日志")
+        XCTAssertEqual(merged.last?.message, "当前文件里的日志")
+        XCTAssertLessThanOrEqual(merged[0].date, merged[1].date)
+
+        // 只要当前文件时只剩一条
+        let onlyCurrent = LogKit.mergeLogFiles(includeArchived: false)
+        XCTAssertEqual(onlyCurrent.map(\.message), ["当前文件里的日志"])
+    }
+
+    // MARK: - 格式模板 LogTemplate（第十轮）
+
+    private func makeTemplateEntry() -> LogEntry {
+        LogEntry(timestamp: "2026-09-11 10:00:00.000",
+                 level: .warning,
+                 category: "网络",
+                 message: "请求超时",
+                 file: "Net.swift",
+                 line: 42,
+                 fields: ["状态码": 504, "接口": "/api/user"],
+                 traceId: "req-1")
+    }
+
+    func testLogTemplateRendersEnglishAndChinesePlaceholders() {
+        let entry = makeTemplateEntry()
+
+        let english = LogTemplate.format("{time}|{level}|{category}|{message}|{file}|{line}|{traceId}",
+                                         with: entry)
+        XCTAssertEqual(english, "2026-09-11 10:00:00.000|警告|网络|请求超时|Net.swift|42|req-1")
+
+        // 中文占位符与英文完全等价
+        XCTAssertEqual(日志模板("【{级别}】{消息}（{分类}）").render(entry), "【警告】请求超时（网络）")
+        XCTAssertEqual(日志模板(模板: "{追踪ID}/{行}").render(entry), "req-1/42")
+
+        // 扩展字段按键名排序拼成「键=值, 键=值」
+        XCTAssertEqual(LogTemplate.format("{字段}", with: entry), "接口=/api/user, 状态码=504")
+    }
+
+    func testLogTemplateHandlesMissingValuesAndUnknownPlaceholders() {
+        let entry = LogEntry(timestamp: "t",
+                             level: .info,
+                             category: "通用",
+                             message: "消息",
+                             file: nil,
+                             line: nil,
+                             fields: [:],
+                             traceId: nil)
+
+        // 没有值 → 空串，不是 "nil"
+        XCTAssertEqual(LogTemplate.format("{文件}:{行}:{追踪ID}:{字段}", with: entry), ":::")
+        // 写错的占位符原样保留（含花括号），一眼能看出模板错了
+        XCTAssertEqual(LogTemplate.format("{消息} {不存在}", with: entry), "消息 {不存在}")
+        // 只有 { 没有配对的 } 时，从该处起原样保留
+        XCTAssertEqual(LogTemplate.format("前缀 {未闭合", with: entry), "前缀 {未闭合")
+        // 占位符名周围的空白忽略
+        XCTAssertEqual(LogTemplate.format("{ 消息 }", with: entry), "消息")
+    }
+
+    func testLogTemplatePlaceholderIntrospection() {
+        let template = "{级别} {类别} {消息} {类别}"
+        XCTAssertEqual(LogTemplate.placeholderTokens(in: template), ["级别", "类别", "消息", "类别"])
+        XCTAssertEqual(LogTemplate.unknownPlaceholders(in: template), ["类别"], "未知占位符去重且保持首次出现顺序")
+        XCTAssertTrue(LogTemplate.unknownPlaceholders(in: "{级别}{消息}").isEmpty)
+        XCTAssertTrue(LogTemplate.isSupported("traceId"))
+        XCTAssertFalse(LogTemplate.isSupported(" 追踪 "))
+
+        // 中文别名等价
+        XCTAssertEqual(LogTemplate.占位符("{消息}"), ["消息"])
+        XCTAssertTrue(日志模板.未知占位符("{消息}").isEmpty)
+    }
+
+    func testLogTemplateAsCustomFormatter() {
+        var captured: [String] = []
+        let template = 日志模板("{级别}/{分类}/{消息}")
+        LogKit.customFormatter = { entry in
+            let text = template.formatter(entry)
+            captured.append(text)
+            return text
+        }
+        defer { LogKit.customFormatter = nil }
+
+        LogKit.error("出错了", category: "网络")
+        XCTAssertEqual(captured, ["错误/网络/出错了"])
+    }
+
+    // MARK: - Markdown 报告 markdownString / exportMarkdown（第十轮）
+
+    func testMarkdownStringContainsTables() {
+        let entries = [
+            makeExportEntry("登录成功", category: "账号"),
+            makeExportEntry("超时", level: .error, category: "网络"),
+            makeExportEntry("又超时", level: .error, category: "网络"),
+        ]
+        let markdown = LogKit.markdownString(LogKit.summary(of: entries))
+
+        XCTAssertTrue(markdown.hasPrefix("# LogKit 日志摘要"))
+        XCTAssertTrue(markdown.contains("## 总览"))
+        XCTAssertTrue(markdown.contains("## 各级别条数"))
+        XCTAssertTrue(markdown.contains("## 分类排行"))
+        XCTAssertTrue(markdown.contains("| 总条数 | 3 |"))
+        XCTAssertTrue(markdown.contains("| 错误条数 | 2 |"))
+        XCTAssertTrue(markdown.contains("| 错误率 | 66.7% |"))
+        XCTAssertTrue(markdown.contains("| 网络 | 2 |"))
+        XCTAssertTrue(markdown.contains("| 账号 | 1 |"))
+        // 没出现过的级别也列出来，条数为 0
+        XCTAssertTrue(markdown.contains("| 严重 | 0 |"))
+
+        // 中文别名等价
+        XCTAssertEqual(LogKit.Markdown报告(LogKit.summary(of: entries)), markdown)
+    }
+
+    func testMarkdownStringEscapesPipeAndHonorsListedCategories() {
+        let entries = [makeExportEntry("含竖线", category: "a|b")]
+        let summary = LogKit.summary(of: entries)
+
+        // 分类名里的 | 必须转义，否则会把表格撑成多列
+        XCTAssertTrue(LogKit.markdownString(summary).contains("a\\|b"))
+
+        // 列出 0 项时省掉分类排行整节
+        let noRank = LogKit.markdownString(summary, listedCategories: 0)
+        XCTAssertFalse(noRank.contains("## 分类排行"))
+        XCTAssertTrue(noRank.contains("## 总览"))
+    }
+
+    func testMarkdownStringWithNoEntries() {
+        let markdown = LogKit.markdownString(LogSummary(entries: []))
+
+        XCTAssertTrue(markdown.contains("| 总条数 | 0 |"))
+        XCTAssertTrue(markdown.contains("| 错误率 | 0.0% |"))
+        // 一条都没有 → 不算时间跨度、不列分类排行
+        XCTAssertFalse(markdown.contains("时间跨度"))
+        XCTAssertFalse(markdown.contains("## 分类排行"))
+    }
+
+    func testExportMarkdownWritesFile() throws {
+        let entries = [makeExportEntry("导出报告", category: "账号")]
+
+        let url = try LogKit.导出Markdown(条目: entries, 文件名: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        XCTAssertEqual(url.pathExtension, "md")
+        let text = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(text.contains("# LogKit 日志摘要"))
+        XCTAssertTrue(text.contains("| 账号 | 1 |"))
+
+        // 直接吃摘要对象的重载
+        let summaryURL = try LogKit.exportMarkdown(LogKit.summary(of: entries),
+                                                   fileName: "LogKitTest-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: summaryURL) }
+        XCTAssertEqual(summaryURL.pathExtension, "md")
+    }
 }

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfoinstalledapps</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 已安装应用列表（仅 macOS，只扫顶层，不深入 .app 内部）
+print("共 \(SystemInfoKit.installedApplicationCount) 个应用")
+
+for 应用 in SystemInfoKit.installedApplications.prefix(10) {
+    print("\(应用.name)  \(应用.versionText)  —  \(应用.bundleIdentifierText)")
+    print(应用.path)     // /Applications/xxx.app
+}
+
+// 结构体字段：name / bundleIdentifier / version / url，派生文本 versionText / bundleIdentifierText / path
+// 中文别名：SystemInfoKit.已安装应用列表 / 已安装应用数量；类型别名 已安装应用
+// 按名称本地化升序；iOS 上恒为空数组
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>12AF4D61-F6C8-412C-BFF2-6E5F8D4BCDF8</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：扫 /Applications 与 /System/Applications（仅 macOS）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>已安装应用 · installedApplications</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

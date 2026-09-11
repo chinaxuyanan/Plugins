@@ -49,6 +49,10 @@
 - **JSON 导出**：`exportJSON` / `导出JSON`（配 `jsonString(from:prettyPrinted:)` / `JSON字符串(条目:美化:)`）把一批日志条目导出成 JSON 数组文件，键序稳定、可美化，交给采集 / 分析工具
 - **日志反解析**：`parseLogFile` / `日志反解析`（含单行 `parseLogLine` / `解析日志行`）把 `.text` 格式日志文本读回 `LogEntry`，便于导入既有日志做过滤 / 摘要 / 再导出
 - **摘要导出**：`exportSummary` / `导出摘要` 把 `LogSummary`（或直接一批条目）写成中文摘要文本文件，随问题反馈一起提交
+- **链路聚合**：`groupByTrace` / `按链路聚合` 按 `traceId` 把日志分组，还原一次请求的完整链路（组内按时间排序，无 traceId 的归到「未标记」）
+- **合并日志文件**：`mergeLogFiles` / `合并日志` 把当前日志与全部归档一起读出，按时间归并成一个完整日志流
+- **格式模板**：`LogTemplate` / `日志模板` 用 `"{级别} | {分类} | {消息}"` 这样的占位符接管行格式，`.formatter` 可直接赋给 `customFormatter`
+- **Markdown 报告**：`markdownString` / `Markdown报告`（导出文件 `exportMarkdown` / `导出Markdown`）把摘要写成 Markdown 表格报告，直接粘进 issue / 文档
 - **中文别名**：`LogKit.调试(...)` 等，与英文成员一一等价
 - **纯 Foundation、零依赖**，iOS 15+ / macOS 12+
 
@@ -64,7 +68,7 @@ dependencies: [
 
 然后在目标中 `import LogKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.13.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "1.4.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -184,7 +188,10 @@ JSON 输出示例（设置 `LogKit.outputFormat = .json`）：
 | `LogKit.过滤日志(条目, 条件:)` / `LogKit.过滤最近日志(条件)` | `LogKit.filterEntries(_:matching:)` / `LogKit.filteredRecentEntries(matching:)` |
 | `LogKit.统计摘要(条目, 分类排行数量:)` / `LogKit.最近日志摘要(分类排行数量:)` | `LogKit.summary(of:topCategories:)` / `LogKit.summaryOfRecentEntries(topCategories:)` |
 | `LogKit.导出压缩包(含归档:文件名:)` | `LogKit.exportArchive(includeArchived:fileName:)` |
+| `LogKit.按链路聚合(条目, 未标记键:)` / `LogKit.合并日志(包含归档:)` | `LogKit.groupByTrace(_:untrackedKey:)` / `LogKit.mergeLogFiles(includeArchived:)` |
+| `LogKit.Markdown报告(摘要, 列出分类数:)` / `LogKit.导出Markdown(摘要:列出分类数:文件名:)` / `LogKit.导出Markdown(条目:分类排行数量:列出分类数:文件名:)` | `LogKit.markdownString(_:listedCategories:)` / `LogKit.exportMarkdown(_:listedCategories:fileName:)` / `LogKit.exportMarkdown(of:topCategories:listedCategories:fileName:)` |
 | `LogEntry.产生时间` | `LogEntry.date` |
+| `日志模板` | `LogTemplate`（`.模板` / `.渲染(条目)` / `.formatter` + `占位符(模板)` / `未知占位符(模板)`）|
 | `日志过滤条件` / `日志摘要` | `LogFilter`（`.按关键字/.按级别/.按追踪ID/.时间段(从:到:)/.为空/.匹配(_:)/.过滤(_:)`）/ `LogSummary`（`.总计/.各级别条数/.最早时间/.最晚时间/.级别条数/.错误条数/.错误率/.时间跨度/.分类排行/.摘要文本`）|
 | `LogKit.CSV字符串(条目:含表头:)` / `LogKit.导出CSV(条目:文件名:)` | `LogKit.csvString(from:includeHeader:)` / `LogKit.exportCSV(_:fileName:)` |
 | `LogEntry.JSON字典` / `LogEntry.JSON字符串` | `LogEntry.jsonObject` / `LogEntry.jsonString` |
@@ -444,7 +451,59 @@ let 文件 = try LogKit.导出摘要(条目: 条目, 文件名: "日志摘要")
 
 导出内容为「LogKit 日志摘要 + 生成时间 + 摘要正文」，分类排行默认最多列出 3 项，可用 `列出分类数` 调整。
 
+**日志格式模板 `LogTemplate`**：只想换个顺序 / 分隔符时，不必写 `customFormatter` 闭包，用一段带占位符的字符串即可：
+
+```swift
+let 模板 = 日志模板("{级别} | {分类} | {消息} @ {文件}:{行}")
+LogKit.customFormatter = 模板.formatter      // 直接接管全部日志的拼装
+LogKit.信息("用户登录成功", 分类: "账号")
+// 信息 | 账号 | 用户登录成功 @ LoginViewModel.swift:42
+
+LogTemplate.unknownPlaceholders(in: "{级别} {不存在的}")   // ["不存在的"]，启动时自查拼错的占位符
+```
+
+占位符英文 / 中文两种写法等价：`{time}`/`{时间}`、`{level}`/`{级别}`、`{category}`/`{分类}`、`{message}`/`{消息}`、`{file}`/`{文件}`、`{line}`/`{行}`、`{traceId}`/`{追踪ID}`、`{fields}`/`{字段}`（形如 `键=值, 键=值`，按键名排序）。
+**写错的占位符会原样保留**（含花括号），不会被静默吞成空串——一眼就能看出模板写错了。
+
+**按 traceId 聚合 `groupByTrace`**：一次请求的日志散落在各处时，按 `traceId` 归组还原完整链路：
+
+```swift
+let 分组 = LogKit.按链路聚合(条目)              // [traceId: [LogEntry]]，组内按时间从早到晚
+for (链路, 日志) in 分组 {
+    print("链路 \(链路) 共 \(日志.count) 条")
+}
+
+// 没有 traceId 的散装日志不会丢，统一归到「未标记」桶（键名可自定义）
+let 严格 = LogKit.groupByTrace(条目, untrackedKey: "无链路")
+```
+
+组内按时间升序；时间相同时保持传入顺序，结果稳定可复现。
+
+**合并日志文件 `mergeLogFiles`**：把当前日志与全部归档一起读出来，按时间归并成一个完整日志流：
+
+```swift
+let 全部 = LogKit.合并日志()                 // 读之前先 flush()，缓冲区里的日志也进来
+let 摘要 = LogKit.summary(of: 全部)          // 之后直接过滤 / 统计 / 再导出
+LogKit.导出Markdown(摘要, 文件名: "本地会话")
+```
+
+解析规则与 `parseLogFile` 一致，认不出的行跳过；只想要当前文件时传 `包含归档: false`。
+
+**Markdown 报告 `exportMarkdown`**：把摘要写成 Markdown 表格，直接粘进 GitHub issue / 飞书文档：
+
+```swift
+let 文本 = LogKit.Markdown报告(摘要)                     // 只取文本
+let 文件 = try LogKit.导出Markdown(条目, 文件名: "日志报告")   // 写成 .md 文件
+```
+
+输出包含「总览 / 各级别条数 / 分类排行」三张表（分类排行默认列 5 项，传 `列出分类数: 0` 可省掉）。
+分类名里的 `|` 会自动转义成 `\|`，不会把表格撑坏。
+
 ## 更新日志
+
+- **版本号规则变更（自 1.4.0 起）**：版本号改为「满十进位式」——次版本满 10 就进位到主版本。按此规则，`0.13.0` 的下一版写作 `1.4.0`（而不是 `0.14.0`）。此前已发布的 `0.x` tag 原样保留，上面的旧条目也保持原编号。
+
+- **1.4.0**：新增按 `traceId` 聚合（`groupByTrace` / `按链路聚合`，按 traceId 分组还原一次请求的完整链路，组内按时间升序、时间相同保持传入顺序，无 traceId 的条目归到可自定义的 `untrackedKey` 桶）、合并日志文件（`mergeLogFiles` / `合并日志`，读取当前日志与全部归档并归并排序，读前先 `flush()`，沿用 `parseLogFile` 的解析规则）、格式模板（`LogTemplate` / `日志模板`，用 `{级别}` / `{时间}` 等占位符接管行格式，`.formatter` 可直接赋给 `customFormatter`，支持中英文占位符名，写错的占位符原样保留并提供 `unknownPlaceholders(in:)` 自查）、Markdown 报告（`markdownString` / `Markdown报告` 与 `exportMarkdown` / `导出Markdown`，输出总览 / 各级别条数 / 分类排行三张表格，单元格里的 `|` 自动转义），均含中文别名。
 
 - **0.13.0**：新增 JSON 导出（`exportJSON` / `导出JSON` 与 `jsonString(from:prettyPrinted:)` / `JSON字符串(条目:美化:)`，导出 JSON 数组文件，键序稳定、默认美化、不写 BOM）、日志反解析（`parseLogLine` / `解析日志行` + `parseLogFile(_:)` / `日志反解析(_:)` + `parseLogFile(at:)` / `日志反解析(文件:)`，从尾部剥掉「字段 → traceId → 位置」还原消息，级别兼容中英文名，可喂给 `LogSummary` / `LogFilter`）、摘要导出（`exportSummary(_:listedCategories:fileName:)` / `exportSummary(of:topCategories:listedCategories:fileName:)` / `导出摘要`，把摘要写成中文文本文件）、按小时自动轮转（`hourlyRotation` / `按小时轮转`，文件名 `LogKit-yyyy-MM-dd-HH.log`，归档判定只认「年 4 位、其余各段 2 位」，已归档名不会被二次改名），均含中文别名并补单元测试。
 

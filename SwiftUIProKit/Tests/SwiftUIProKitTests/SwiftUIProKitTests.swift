@@ -402,4 +402,185 @@ final class SwiftUIProKitTests: XCTestCase {
         _ = 热力图日历.级别(数值: [:], 级别数: 4)
         _ = 热力图日历.周列(起始: Date(), 结束: Date())
     }
+
+    // MARK: - 瀑布流（iOS 16 / macOS 13+，与包最低平台不同，需要可用性标注）
+
+    @available(macOS 13.0, iOS 16.0, *)
+    func testMasonryGridShortestColumn() {
+        // 空数组兜底
+        XCTAssertEqual(MasonryGrid.shortestColumnIndex(in: []), 0)
+        // 都为空时取最靠左
+        XCTAssertEqual(MasonryGrid.shortestColumnIndex(in: [0, 0, 0]), 0)
+        // 取最矮的那一列
+        XCTAssertEqual(MasonryGrid.shortestColumnIndex(in: [10, 4, 7]), 1)
+        // 并列最矮取最左（保证同样输入总是同样摆法）
+        XCTAssertEqual(MasonryGrid.shortestColumnIndex(in: [9, 4, 4]), 1)
+    }
+
+    @available(macOS 13.0, iOS 16.0, *)
+    func testMasonryGridConstructs() {
+        _ = MasonryGrid()
+        _ = MasonryGrid(columns: 3, spacing: 10, lineSpacing: 12)
+        // 中文 init 首参带「列数:」标签——与英文 init（参数全有默认值）区分，避免歧义
+        _ = 瀑布流(列数: 2)
+        _ = 瀑布流(列数: 2, 间距: 10, 行间距: 12)
+        _ = 瀑布流.最矮列(高度: [1, 2])
+    }
+
+    // MARK: - 日历选择器
+
+    func testCalendarPickerMonthGrid() {
+        var calendar = fixedCalendar()
+        // 2026-01-01 是周四（2026-01-05 是周一）
+        let january = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15))!
+
+        calendar.firstWeekday = 1   // 周日开头：前面补 4 个空格
+        let sundayFirst = CalendarPicker.monthGrid(for: january, calendar: calendar)
+        XCTAssertEqual(sundayFirst.count % 7, 0)
+        XCTAssertEqual(sundayFirst.prefix(4).compactMap { $0 }.count, 0)
+        XCTAssertEqual(sundayFirst.compactMap { $0 }.count, 31)
+        XCTAssertEqual(sundayFirst.compactMap { $0 }.first,
+                       calendar.date(from: DateComponents(year: 2026, month: 1, day: 1))!)
+
+        calendar.firstWeekday = 2   // 周一开头：前面补 3 个空格
+        let mondayFirst = CalendarPicker.monthGrid(for: january, calendar: calendar)
+        XCTAssertEqual(mondayFirst.count % 7, 0)
+        XCTAssertEqual(mondayFirst.prefix(3).compactMap { $0 }.count, 0)
+        XCTAssertEqual(mondayFirst.compactMap { $0 }.count, 31)
+    }
+
+    func testCalendarPickerSymbolsAndSameDay() {
+        var calendar = fixedCalendar()
+        calendar.firstWeekday = 1
+        XCTAssertEqual(CalendarPicker.weekdaySymbols(calendar: calendar),
+                       ["日", "一", "二", "三", "四", "五", "六"])
+        calendar.firstWeekday = 2
+        XCTAssertEqual(CalendarPicker.weekdaySymbols(calendar: calendar),
+                       ["一", "二", "三", "四", "五", "六", "日"])
+
+        let morning = calendar.date(from: DateComponents(year: 2026, month: 1, day: 5, hour: 9))!
+        let night = calendar.date(from: DateComponents(year: 2026, month: 1, day: 5, hour: 23))!
+        let nextDay = calendar.date(from: DateComponents(year: 2026, month: 1, day: 6, hour: 1))!
+        XCTAssertTrue(CalendarPicker.isSameDay(morning, night, calendar: calendar))
+        XCTAssertFalse(CalendarPicker.isSameDay(morning, nextDay, calendar: calendar))
+    }
+
+    func testCalendarPickerMonthShiftAndConstructs() {
+        let calendar = fixedCalendar()
+        let january = calendar.date(from: DateComponents(year: 2026, month: 1, day: 15))!
+        XCTAssertEqual(CalendarPicker.month(byAdding: 1, to: january, calendar: calendar),
+                       calendar.date(from: DateComponents(year: 2026, month: 2, day: 1))!)
+        XCTAssertEqual(CalendarPicker.month(byAdding: -1, to: january, calendar: calendar),
+                       calendar.date(from: DateComponents(year: 2025, month: 12, day: 1))!)
+
+        let february = calendar.date(from: DateComponents(year: 2026, month: 2, day: 10))!
+        let range: ClosedRange<Date>? = january...february
+        let emptyRange: ClosedRange<Date>? = nil
+
+        _ = CalendarPicker(selection: .constant(january))
+        _ = CalendarPicker(selection: .constant(january), calendar: calendar, tint: .red,
+                           minimumDate: january, maximumDate: february)
+        _ = CalendarPicker(range: .constant(range))
+        // 中文 init 首参都带标签，`选择:` 与 `区间:` 凭标签区分，不会歧义
+        _ = 日历选择器(选择: .constant(january))
+        _ = 日历选择器(区间: .constant(emptyRange))
+        _ = 日历选择器.月份矩阵(月份: january, 日历: calendar)
+        _ = 日历选择器.同一天(january, february, 日历: calendar)
+        _ = 日历选择器.星期表头(日历: calendar)
+    }
+
+    // MARK: - 标签输入（iOS 16 / macOS 13+）
+
+    @available(macOS 13.0, iOS 16.0, *)
+    func testTagInputParse() {
+        XCTAssertEqual(TagInput.parse(""), [])
+        XCTAssertEqual(TagInput.parse("   "), [])
+        // 半角逗号 / 全角逗号 / 顿号都当分隔符
+        XCTAssertEqual(TagInput.parse("a, b，，c、"), ["a", "b", "c"])
+        XCTAssertEqual(TagInput.parse("Swift"), ["Swift"])
+        XCTAssertEqual(TagInput.parse(" , ， "), [])
+    }
+
+    @available(macOS 13.0, iOS 16.0, *)
+    func testTagInputApplied() {
+        let first = TagInput.applied(["b"], to: ["a"], maxTags: 0, allowsDuplicates: false)
+        XCTAssertEqual(first.tags, ["a", "b"])
+        XCTAssertEqual(first.added, ["b"])
+        XCTAssertTrue(first.rejected.isEmpty)
+
+        // 重复的被拒，其余照常进
+        let duplicate = TagInput.applied(["a", "c"], to: ["a"], maxTags: 0, allowsDuplicates: false)
+        XCTAssertEqual(duplicate.tags, ["a", "c"])
+        XCTAssertEqual(duplicate.added, ["c"])
+        XCTAssertEqual(duplicate.rejected, ["a"])
+
+        let allowed = TagInput.applied(["a"], to: ["a"], maxTags: 0, allowsDuplicates: true)
+        XCTAssertEqual(allowed.tags, ["a", "a"])
+
+        // 满员后剩下的全拒
+        let limited = TagInput.applied(["x", "y", "z"], to: ["a", "b"],
+                                       maxTags: 3, allowsDuplicates: false)
+        XCTAssertEqual(limited.tags, ["a", "b", "x"])
+        XCTAssertEqual(limited.added, ["x"])
+        XCTAssertEqual(limited.rejected, ["y", "z"])
+    }
+
+    @available(macOS 13.0, iOS 16.0, *)
+    func testTagInputConstructs() {
+        _ = TagInput(tags: .constant([]))
+        _ = TagInput(tags: .constant(["Swift"]), placeholder: "添加", maxTags: 5,
+                     allowsDuplicates: true, tagColor: .blue,
+                     onAdd: { _ in }, onRemove: { _ in }, onReject: { _ in })
+        // 中文 init 首参带「标签:」标签
+        _ = 标签输入(标签: .constant([]))
+        _ = 标签输入(标签: .constant(["Swift"]), 占位: "添加", 最大数量: 5,
+                     允许重复: true, 标签颜色: .blue,
+                     添加: { _ in }, 移除: { _ in }, 拒绝: { _ in })
+        _ = 标签输入.拆分("a,b")
+        _ = 标签输入.合并(["x"], 已有: ["a"], 最大数量: 2)
+    }
+
+    // MARK: - 饼图 / 环形占比图
+
+    func testPieChartRatios() {
+        XCTAssertEqual(PieChart.ratios([]), [])
+        // 总和 0 / 全为负 → 全 0（不画扇形）
+        XCTAssertEqual(PieChart.ratios([0, 0]), [0, 0])
+        XCTAssertEqual(PieChart.ratios([-1, -2]), [0, 0])
+        // 负值按 0，正值照常归一化
+        XCTAssertEqual(PieChart.ratios([-1, 1]), [0, 1])
+        XCTAssertEqual(PieChart.ratios([1, 3]), [0.25, 0.75])
+        XCTAssertEqual(PieChart.ratios([1, 1, 1]).reduce(0, +), 1.0, accuracy: 1e-9)
+    }
+
+    func testPieChartAngleRanges() {
+        XCTAssertTrue(PieChart.angleRanges([]).isEmpty)
+
+        // 只有一段 → 整圈
+        let single = PieChart.angleRanges([5])
+        XCTAssertEqual(single.count, 1)
+        XCTAssertEqual(single[0].start, 0, accuracy: 1e-9)
+        XCTAssertEqual(single[0].end, 360, accuracy: 1e-9)
+
+        // 四等分 → 每段 90°，首尾相接不断档
+        let quarters = PieChart.angleRanges([1, 1, 1, 1])
+        XCTAssertEqual(quarters.count, 4)
+        XCTAssertEqual(quarters[0].start, 0, accuracy: 1e-9)
+        XCTAssertEqual(quarters[1].start, 90, accuracy: 1e-9)
+        XCTAssertEqual(quarters[2].start, 180, accuracy: 1e-9)
+        XCTAssertEqual(quarters[3].end, 360, accuracy: 1e-9)
+    }
+
+    func testPieChartConstructs() {
+        _ = PieChart(values: [1, 2, 3])
+        _ = PieChart(values: [1, 2], labels: ["甲", "乙"], colors: [.red], size: 120,
+                     isDonut: true, innerRatio: 0.6, showsLegend: false, centerText: "3")
+        _ = PieChart(slices: [PieChart.Slice(label: "甲", value: 1, color: .red)])
+        _ = PieChart(slices: [.init(label: "甲", value: 1, color: .red)])
+        // 中文 init 首参 「分片:」/「数值:」凭标签区分，不会歧义
+        _ = 饼图(分片: [饼图分片(名称: "甲", 数值: 1, 颜色: .red)], 环形: true, 中心文字: "1")
+        _ = 饼图(数值: [1, 2], 名称: ["甲", "乙"], 尺寸: 100, 显示图例: false)
+        _ = 饼图.占比([1, 3])
+        _ = 饼图.角度区间([1, 3])
+    }
 }

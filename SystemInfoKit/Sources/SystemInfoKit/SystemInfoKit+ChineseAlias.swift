@@ -88,6 +88,16 @@ public extension SystemInfoKit {
     static var 电池状态: BatteryState { batteryState }
     /// 电池细分状态的中文名（等同 `batteryStateName`）
     static var 电池状态名: String { batteryStateName }
+    /// 电池温度（等同 `batteryTemperature`，摄氏度，仅 macOS）
+    static var 电池温度: Double? { batteryTemperature }
+    /// 电池温度文本（等同 `batteryTemperatureText`，形如 `30.3 ℃`）
+    static var 电池温度文本: String { batteryTemperatureText }
+    /// 当前供电来源中文名（等同 `powerSourceName`）
+    static var 供电来源: String { powerSourceName }
+    /// 电源适配器明细（等同 `powerAdapter`，仅 macOS）
+    static var 电源适配器: PowerAdapter? { powerAdapter }
+    /// 电源适配器明细文本（等同 `powerAdapterText`）
+    static var 电源适配器文本: String { powerAdapterText }
     /// 设备热状态（等同 `thermalState`）
     static var 热状态: ProcessInfo.ThermalState { thermalState }
     /// 热状态中文名（等同 `thermalStateName`）
@@ -155,6 +165,10 @@ public extension SystemInfoKit {
     static var 团队ID: String? { teamIdentifier }
     /// 是否通过 TestFlight 安装（等同 `isTestFlight`）
     static var 是否TestFlight: Bool { isTestFlight }
+    /// 已安装的应用列表（等同 `installedApplications`，仅 macOS）
+    static var 已安装应用列表: [InstalledApplication] { installedApplications }
+    /// 已安装应用的个数（等同 `installedApplicationCount`，仅 macOS）
+    static var 已安装应用数量: Int { installedApplicationCount }
 
     // MARK: 网络信息
 
@@ -200,6 +214,10 @@ public extension SystemInfoKit {
 
     /// CPU 使用率（等同 `cpuUsage`，调用会阻塞约 100ms 采样）
     static var CPU使用率: Double { cpuUsage }
+    /// 每个逻辑核的 CPU 使用率（等同 `perCoreCPUUsage`，下标即核序号，会阻塞约 100ms 采样）
+    static var 每核CPU使用率: [Double] { perCoreCPUUsage }
+    /// 每个逻辑核 CPU 使用率的单行文本（等同 `perCoreCPUUsageText`）
+    static var 每核CPU使用率文本: String { perCoreCPUUsageText }
     /// 内存已用容量字节（等同 `memoryUsedBytes`）
     static var 内存已用字节数: UInt64 { memoryUsedBytes }
     /// 内存已用容量（等同 `memoryUsed`）
@@ -220,6 +238,8 @@ public extension SystemInfoKit {
     static var 可用内存字节数: UInt64? { availableMemoryBytes }
     /// 当前进程可用内存（等同 `availableMemory`）
     static var 可用内存: String { availableMemory }
+    /// 内存占用明细（等同 `memoryBreakdown`）
+    static var 内存明细: MemoryBreakdown? { memoryBreakdown }
     /// 系统负载（等同 `loadAverage`，1/5/15 分钟三值）
     static var 系统负载: [Double] { loadAverage }
     /// 1 分钟平均负载（等同 `loadAverage1Min`）

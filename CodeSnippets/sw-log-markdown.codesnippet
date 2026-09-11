@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogmarkdown</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 导出 Markdown 报告：总览 / 各级别条数 / 分类排行三张表格
+let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+let summary = LogKit.summary(of: entries)
+
+print(LogKit.markdownString(summary))                     // 直接拿字符串
+let url = try LogKit.exportMarkdown(of: entries,          // 落盘 .md（默认文件名 LogKit-摘要-时间戳）
+                                    fileName: "LogKit报告")
+
+// 中文别名
+let text = LogKit.Markdown报告(summary)
+let file = try LogKit.导出Markdown(summary, 文件名: "摘要")
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>463FC94F-F430-402B-8FEB-62835B1A4F4B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：把日志摘要导出成 Markdown 报告</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>Markdown 报告 · markdownString / exportMarkdown</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

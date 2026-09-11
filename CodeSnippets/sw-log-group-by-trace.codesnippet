@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swloggroupbytrace</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 按 traceId 聚合：把一次请求链路的所有日志捞到一起
+let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+let groups = LogKit.groupByTrace(entries)
+for (trace, list) in groups {
+    print("链路 \(trace) 共 \(list.count) 条")   // 组内按时间升序，时间相同保持传入顺序
+}
+
+// 没有 traceId 的条目归到可自定义的桶
+LogKit.按链路聚合(entries, 未标记键: "无链路")
+
+// 写入时用作用域追踪 ID：块内所有日志自动带上 traceId，退出后自动还原
+LogKit.withTrace("req-42") {
+    LogKit.info("开始请求", category: "网络")
+}
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>DACC1579-A1FC-4808-92A8-D20880021A46</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：按 traceId 分组，还原一条链路的完整日志</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>按 traceId 聚合 · groupByTrace</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

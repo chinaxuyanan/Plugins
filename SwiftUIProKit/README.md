@@ -10,7 +10,7 @@
 - **中文文档注释**：每个方法都带中文说明（用途、参数、示例），按住 Option 点按方法即可查看
 - **按类别封装**：布局、背景、文字、图片、交互、动画、手势、输入框、按钮、列表、导航、选择器、进度、弹窗、弹窗进阶、复合样式、控件样式、标签页、键盘与焦点、颜色工具、布局强化、形状与裁剪、阴影与渐变、生命周期、骨架屏、刷新与搜索、流式布局、网格、表单与分组、毛玻璃与材质、触觉反馈、文字渐变、徽标角标、空状态视图、Toast 轻提示、尺寸监听、微光扫光、二维码生成、确认弹窗、渐变描边、水印，见名知意
 - **复合样式**：卡片、徽标、按压反馈等常用效果一行代码搞定
-- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`、展开收起文本 `ExpandableText`、关键词高亮文本 `HighlightedText`、打字机文本 `TypingText`、热力图日历 `HeatmapCalendar`，一行代码完成常见交互
+- **复合组件**：加载按钮 `LoadingButton`、评分视图 `RatingView`、可折叠面板 `CollapsibleView`、轮播图 `CarouselView`、倒计时 `CountdownView`、引导页 `OnboardingView`、环形进度 `RingProgress`、滚动数字 `AnimatedNumber`、远程图片 `RemoteImage`、验证码输入框 `OTPField`、跑马灯 `MarqueeText`、步骤条 `StepsView`、头像与头像组 `Avatar` / `AvatarGroup`、时间轴 `Timeline`、迷你图表 `Sparkline` / `MiniBarChart`、搜索栏 `SearchBar`、展开收起文本 `ExpandableText`、关键词高亮文本 `HighlightedText`、打字机文本 `TypingText`、热力图日历 `HeatmapCalendar`、瀑布流 `MasonryGrid`、日历选择器 `CalendarPicker`、标签输入 `TagInput`、饼图 `PieChart`，一行代码完成常见交互
 - **纯 SwiftUI、零第三方依赖**：Swift Package 引入即用
 - **iOS 15+ / macOS 12+**
 
@@ -26,7 +26,7 @@ dependencies: [
 
 然后在目标中 `import SwiftUIProKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.16.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "1.7.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -510,6 +510,10 @@ VStack {
 | `HighlightedText(_:highlights:highlightColor:highlightBackground:isBold:font:tint:caseSensitive:)` | 关键词高亮文本（多关键词全部命中，可加底色 / 加粗，默认不区分大小写）|
 | `TypingText(_:speed:font:tint:cursorColor:showsCursor:loops:loopDelay:cursorBlinkInterval:onFinish:)` | 打字机文本（逐字显现 + 闪烁光标 + 可选循环重播）|
 | `HeatmapCalendar(values:startDate:endDate:cellSize:spacing:cornerRadius:colors:emptyColor:calendar:showsMonthLabels:onSelect:)` | 热力图日历（一周一列、每列 7 格，按「日期→数值」分级上色，可选月份标签与点击回调）|
+| `MasonryGrid(columns:spacing:lineSpacing:)`（iOS 16 / macOS 13+）| 瀑布流布局（不等高多列，按「谁矮往谁那儿放」填充；与先行后列、每行等高的 `FlowLayout` 互补）|
+| `CalendarPicker(selection:...)` / `CalendarPicker(range:...)` | 日历选择器（可点的月份网格：单选某天或选一段区间，自带上月 / 下月切换、今天描边、可选范围限制）|
+| `TagInput(tags:placeholder:maxTags:allowsDuplicates:tagColor:onAdd:onRemove:onReject:)`（iOS 16 / macOS 13+）| 标签输入（回车或输入逗号成标签块，用 `FlowLayout` 自动换行，可限数量 / 查重，逐个可删）|
+| `PieChart(slices:size:isDonut:innerRatio:showsLegend:centerText:legendFont:)` / `PieChart(values:labels:colors:...)` | 饼图 / 环形占比图（多段构成比例 + 图例，负值按 0、总和为 0 不画，只有一段时画整圆）|
 
 > 中文构造器（如 `跑马灯(文字:速度:方向:)`、`加载按钮(标题:加载中:动作:)`、`可折叠面板(标题:展开:内容:)`）的**首个参数一律带中文标签**，与英文 `init` 的无标签首参区分开，避免 Swift 报 `ambiguous use of 'init'`。英文写法仍可省略首参标签（`MarqueeText("公告")`、`LoadingButton("提交") { }`）。
 
@@ -525,6 +529,8 @@ VStack {
 
 ## 更新日志
 
+- **1.7.0**：新增四个复合组件——瀑布流 `MasonryGrid` / `瀑布流`（基于 `Layout` 协议的不等高多列，每次把子视图放进「当前最矮的列」、并列时取最左，因此同样输入总是同样摆法；列表宽度不确定时用「最宽子视图 × 列数」兜底，不会塌成 0 高；`shortestColumnIndex(in:)` / `最矮列(高度:)` 是可直接复用的纯逻辑。iOS 16 / macOS 13+）、日历选择器 `CalendarPicker` / `日历选择器`（可点的月份网格，支持「选某天」与「选一段区间」两种模式，自带上月 / 下月切换、今天描边、可选范围限制 `minimumDate` / `maximumDate`；星期表头跟着 `calendar.firstWeekday` 走，周一起头还是周日起头都行；`monthGrid(for:calendar:)` / `isSameDay(_:_:calendar:)` / `weekdaySymbols(calendar:)` / `month(byAdding:to:calendar:)` 均为纯逻辑）、标签输入 `TagInput` / `标签输入`（输入后回车或输入逗号即变成标签块，用 `FlowLayout` 自动换行；支持全角 / 半角逗号与顿号三种分隔符、数量上限、查重，被拒的标签走 `onReject` 回调；`parse(_:)` / `applied(_:to:maxTags:allowsDuplicates:)` 是纯逻辑。iOS 16 / macOS 13+）、饼图 / 环形占比图 `PieChart` / `饼图`（多段构成比例 + 图例，负值按 0、总和为 0 时整块不画，只有一段时走椭圆分支画成整圆而不是空；环形可加中心文字；`ratios(_:)` / `angleRanges(_:)` / `占比(_:)` / `角度区间(_:)` 返回「12 点方向为 0°、顺时针增大」的表盘角度，是纯逻辑）。均含中文别名与文档注释并补测试。
+- **版本号规则变更（自 1.7.0 起）**：改用「满十进位式」——次版本满 10 就进位到主版本。旧编号 `0.16.0` 在新记法里对应 `1.6.0`，所以本版是 `1.7.0` 而非 `0.17.0`；`1.9.x` 的下一个版本将是 `2.0.0`。更早的条目一律保留发布时的原编号，不改写。
 - **0.16.0**：新增四个复合组件——展开收起文本 `ExpandableText` / `展开文本`（长文本默认只显示 `lineLimit` 行，用「并排藏两段不可见文本、分别量高度」的办法判断是否真被截断，没超出就不显示按钮；展开 / 收起按钮文字、箭头图标、行距、颜色都可调）、关键词高亮文本 `HighlightedText` / `高亮文本`（`AttributedString` 实现，多个关键词一次全部命中、同一关键词出现多次也全部着色，默认不区分大小写，可选底色与加粗；`ranges(of:in:caseSensitive:)` / `命中区间` 是可直接复用的纯逻辑）、打字机文本 `TypingText` / `打字机文本`（逐字显现 + 末尾光标闪烁 + 可选循环重播，速度 / 光标样式 / 循环停顿可调，打完一轮回调 `onFinish`）、热力图日历 `HeatmapCalendar` / `热力图日历`（GitHub 贡献图样式，一周一列、每列 7 格、周日在最上，按「日期 → 数值」相对区间最大值分成若干档上色，数值为 0 或缺数据画空格；可选月份标签与点击回调；`levels(values:levelCount:calendar:)` / `weekColumns(from:to:calendar:)` 是纯逻辑，可直接复用与测试）。均含中文别名与文档注释并补测试。
 - **0.15.1**：修复 iOS 目标编译报错。`boldText` / `textStyle` 与 `inlineTitle` / `largeTitle`（及中文别名 `加粗` / `文字样式` / `内联标题` / `大标题`）此前只标了 macOS 的 `@available`、漏了 iOS 那一项，按本包 iOS 15 下限编 iOS 目标会报 `'fontWeight' is only available in iOS 16.0 or newer` / `'toolbarTitleDisplayMode' is only available in iOS 17.0 or newer`。现已补齐双平台标注（`View.fontWeight(_:)` 是 iOS 16 / macOS 13，`toolbarTitleDisplayMode(_:)` 及其 `ToolbarTitleDisplayMode` 是 iOS 17 / macOS 14）。macOS 侧因为引入版本更低、`swift build` 永远能过，本地发现不了，由 CI 的 iOS 编译检查抓出。注意 `Text.fontWeight(_:)` 是 iOS 13 就有的另一个重载，接收者是具体 `Text` 时不触发该限制。
 

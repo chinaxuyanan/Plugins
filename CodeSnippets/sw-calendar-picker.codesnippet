@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swcalendarpicker</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 日历选择器：自带上月 / 下月切换、今天描边、可选范围限制
+@State private var date = Date()
+@State private var range: ClosedRange&lt;Date&gt;?
+
+// 单选
+日历选择器(选择: $date)
+
+// 选区间：第一次点起点，第二次点终点；未选完为 nil
+日历选择器(区间: $range, 主题色: .orange)
+
+// 英文 API 也可限定范围：CalendarPicker(selection: $date, minimumDate: Date())
+// 纯逻辑：月份矩阵(月份:) / 同一天(_:_:) / 星期表头() / 月份(偏移:从:)
+CalendarPicker.月份矩阵(月份: Date())      // 7 的倍数的日期数组，nil 表示空格
+CalendarPicker.星期表头()                  // 跟 calendar.firstWeekday 走（周一起头 / 周日起头都行）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>5A5488C6-D119-4B99-B37E-F18D048F4834</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：可点的月份网格，支持单选与选区段</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>日历选择器 · CalendarPicker</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

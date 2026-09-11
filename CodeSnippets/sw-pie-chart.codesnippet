@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swpiechart</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 饼图 / 环形占比图
+// 数值先按总和归一化：负值按 0，总和为 0 时不画扇形；只有一段时画成整圆而不是空。
+PieChart(values: [40, 35, 25],
+         labels: ["iOS", "Android", "其他"],
+         isDonut: true,
+         centerText: "占比")
+
+// 中文 API（数值 + 名称）
+饼图(数值: [12, 5, 3], 名称: ["已完成", "进行中", "未开始"], 环形: true)
+
+// 也可以直接给分片
+PieChart(slices: [
+    .init(label: "已完成", value: 12, color: .green),
+    .init(label: "进行中", value: 5,  color: .orange),
+], size: 140)
+
+// 纯逻辑：PieChart.占比([1, 1, 2]) == [0.25, 0.25, 0.5]
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>A9643B6D-BC3A-48B9-8171-BBC3049A0791</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：多段构成比例 + 图例，可画成环形并带中心文字</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>饼图 / 环形占比图 · PieChart</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

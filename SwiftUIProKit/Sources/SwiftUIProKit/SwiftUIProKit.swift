@@ -69,8 +69,12 @@ import SwiftUI
 /// - `HighlightedText.swift`  关键词高亮文本（多关键词着色 / 加粗）
 /// - `TypingText.swift`       打字机文本（逐字显现 + 光标闪烁 + 循环）
 /// - `HeatmapCalendar.swift`  热力图日历（一周一列方格，按日强度上色）
+/// - `MasonryGrid.swift`      瀑布流（不等高多列，iOS 16 / macOS 13+）
+/// - `CalendarPicker.swift`   日历选择器（单选 / 选区间 + 月份切换）
+/// - `TagInput.swift`         标签输入（回车成标签块，iOS 16 / macOS 13+）
+/// - `PieChart.swift`         饼图 / 环形占比图（多段构成比例 + 图例）
 /// - `View+ChineseAlias.swift` 中文命名别名
 public enum SwiftUIProKit {
     /// 库版本号
-    public static let version = "0.16.0"
+    public static let version = "1.7.0"
 }

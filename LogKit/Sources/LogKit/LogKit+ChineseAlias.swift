@@ -490,6 +490,55 @@ public extension LogKit {
     static func 导出压缩包(含归档: Bool = true, 文件名: String? = nil) throws -> URL {
         try exportArchive(includeArchived: 含归档, fileName: 文件名)
     }
+
+    /// 摘要转 Markdown 报告文本（等同 `markdownString(_:listedCategories:)`）
+    /// - Parameters:
+    ///   - 摘要: 要导出的摘要
+    ///   - 列出分类数: 分类排行最多列出几项，默认 `5`；传 `0` 表示不列出
+    static func Markdown报告(_ 摘要: LogSummary, 列出分类数: Int = 5) -> String {
+        markdownString(摘要, listedCategories: 列出分类数)
+    }
+
+    /// 导出 Markdown 报告文件（等同 `exportMarkdown(_:listedCategories:fileName:)`）
+    /// - Parameters:
+    ///   - 摘要: 要导出的摘要
+    ///   - 列出分类数: 分类排行最多列出几项，默认 `5`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出Markdown(_ 摘要: LogSummary,
+                            列出分类数: Int = 5,
+                            文件名: String? = nil) throws -> URL {
+        try exportMarkdown(摘要, listedCategories: 列出分类数, fileName: 文件名)
+    }
+
+    /// 汇总并导出 Markdown 报告（等同 `exportMarkdown(of:topCategories:listedCategories:fileName:)`）
+    /// - Parameters:
+    ///   - 条目: 日志条目数组
+    ///   - 分类排行数量: 分类排行最多统计几项，默认 `5`
+    ///   - 列出分类数: 报告里分类排行最多列出几项，默认 `5`
+    ///   - 文件名: 目标文件名（不含扩展名）
+    static func 导出Markdown(条目: [LogEntry],
+                            分类排行数量: Int = 5,
+                            列出分类数: Int = 5,
+                            文件名: String? = nil) throws -> URL {
+        try exportMarkdown(of: 条目,
+                           topCategories: 分类排行数量,
+                           listedCategories: 列出分类数,
+                           fileName: 文件名)
+    }
+
+    /// 把日志按 traceId 分组（等同 `groupByTrace(_:untrackedKey:)`）
+    /// - Parameters:
+    ///   - 条目: 待分组的日志条目
+    ///   - 未标记键: 没有 traceId 的条目归到哪个键，默认「未标记」
+    static func 按链路聚合(_ 条目: [LogEntry], 未标记键: String = "未标记") -> [String: [LogEntry]] {
+        groupByTrace(条目, untrackedKey: 未标记键)
+    }
+
+    /// 合并当前日志与归档日志（等同 `mergeLogFiles(includeArchived:)`）
+    /// - Parameter 包含归档: 是否连归档文件一起读，默认 `true`
+    static func 合并日志(包含归档: Bool = true) -> [LogEntry] {
+        mergeLogFiles(includeArchived: 包含归档)
+    }
 }
 
 // MARK: - LogEntry 中文命名别名

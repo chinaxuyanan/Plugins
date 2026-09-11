@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swlogmergefiles</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// LogKit 合并当前日志与全部归档（读前先 flush，结果按时间归并）
+let all = LogKit.mergeLogFiles()
+print("合并后共 \(all.count) 条日志")
+
+// 只看当前日志文件，不含归档
+let current = LogKit.合并日志(包含归档: false)
+
+// 配合聚合：跨文件统计某条链路
+let groups = LogKit.groupByTrace(all)
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>F0A5AC8F-2941-473C-B851-BB981BF63B1B</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>LogKit：读取当前日志与全部归档并归并排序</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>合并日志文件 · mergeLogFiles</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

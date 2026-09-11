@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swmasonrygrid</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SwiftUIProKit 瀑布流：每次把子视图放进「当前最矮的列」，并列时取最左，同样输入总是同样摆法
+瀑布流(列数: 3, 间距: 8, 行间距: 8) {
+    ForEach(items) { item in
+        CardView(item)      // 每个子视图可以是不等高
+    }
+}
+
+// 英文 API：MasonryGrid(columns:spacing:lineSpacing:) { ... }
+// 纯逻辑可直接复用：MasonryGrid.最矮列(高度: [120, 90, 160]) == 1
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>99DE529B-1C22-4EA2-9CC8-FA18F9EFE2ED</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SwiftUIProKit：不等高多列瀑布流（Layout 协议，iOS 16 / macOS 13+）</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>瀑布流 · MasonryGrid</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>

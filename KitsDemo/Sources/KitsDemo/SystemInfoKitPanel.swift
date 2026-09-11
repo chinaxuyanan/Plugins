@@ -1,7 +1,7 @@
 import SwiftUI
 import SystemInfoKit
 
-/// SystemInfoKit 系统分区：网络流量 / 磁盘读写 / 系统信息速览
+/// SystemInfoKit 系统分区：网络流量 / 磁盘读写 / 内存明细 / 每核 CPU / 电池电源 / 已安装应用
 struct SystemInfoKitPanel: View {
 
     @State private var network: NetworkTraffic?
@@ -9,6 +9,7 @@ struct SystemInfoKitPanel: View {
     @State private var status = "点击下方按钮采样"
     @State private var topProcesses: [ProcessUsage] = []
     @State private var sortByMemory = true
+    @State private var perCore: [Double] = []
 
     var body: some View {
         VStack(spacing: 20) {
@@ -103,6 +104,71 @@ struct SystemInfoKitPanel: View {
                     ForEach(SystemInfoKit.networkInterfaces.filter { $0.macAddress != nil }, id: \.name) { interface in
                         row(interface.name, interface.macAddress ?? "—")
                     }
+                }
+            }
+
+            Card("内存明细 memoryBreakdown（活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    if let 明细 = SystemInfoKit.memoryBreakdown {
+                        row("总容量", 明细.totalDescription)
+                        row("已用", "\(明细.usedDescription)（\(明细.usedPercentText)）")
+                        row("可用", 明细.availableDescription)
+                        row("活跃", 明细.activeDescription)
+                        row("非活跃", 明细.inactiveDescription)
+                        row("联动", 明细.wiredDescription)
+                        row("压缩", 明细.compressedDescription)
+                    } else {
+                        Text("无法读取内存明细").foregroundStyle(.secondary)
+                    }
+                }
+            }
+
+            Card("每核 CPU 使用率 perCoreCPUUsage（逐核采样 · 下标即核序号）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button("采样每核 CPU（约 100ms）") {
+                        perCore = SystemInfoKit.perCoreCPUUsage
+                        status = perCore.isEmpty ? "取不到每核数据" : "已采样 \(perCore.count) 个逻辑核"
+                    }
+                    if perCore.isEmpty {
+                        Text("点上方按钮采样").foregroundStyle(.secondary)
+                    } else {
+                        ForEach(Array(perCore.enumerated()), id: \.offset) { index, value in
+                            HStack {
+                                Text("CPU\(index + 1)")
+                                Spacer()
+                                Text("\(Int((value * 100).rounded()))%")
+                                    .monospacedDigit()
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+            }
+
+            Card("电池温度与电源明细 batteryTemperature / powerAdapter（仅 macOS）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    row("供电来源", SystemInfoKit.powerSourceName)
+                    row("电池温度", SystemInfoKit.batteryTemperatureText)
+                    row("循环次数", SystemInfoKit.batteryCycleCount.map { "\($0) 次" } ?? "不支持")
+                    if let adapter = SystemInfoKit.powerAdapter {
+                        row("适配器功率", adapter.wattsText)
+                        row("协商电压", adapter.voltageText)
+                        row("协商电流", adapter.currentText)
+                    } else {
+                        row("适配器", "未接电源 / 无内置电池")
+                    }
+                }
+            }
+
+            Card("已安装应用 installedApplications（仅 macOS · 扫 /Applications）") {
+                VStack(alignment: .leading, spacing: 8) {
+                    row("应用数量", "\(SystemInfoKit.installedApplicationCount)")
+                    ForEach(SystemInfoKit.installedApplications.prefix(8)) { app in
+                        row(app.name, app.versionText)
+                    }
+                    Text("（只列前 8 个）")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
             }
 

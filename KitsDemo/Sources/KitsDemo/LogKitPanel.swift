@@ -125,6 +125,49 @@ struct LogKitPanel: View {
                         .foregroundStyle(.secondary)
                 }
             }
+
+            Card("链路聚合 / 合并日志 / 格式模板 / Markdown 报告（本轮新增）") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Button("写 3 条同链路日志并聚合") {
+                        let trace = "req-\(Int(Date().timeIntervalSince1970) % 10000)"
+                        LogKit.withTrace(trace) {
+                            LogKit.info("开始处理订单", category: "链路")
+                            LogKit.warning("等待下游返回", category: "链路")
+                            LogKit.error("下游超时，准备重试", category: "链路")
+                        }
+                        let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                        let groups = LogKit.groupByTrace(entries)
+                        status = "共 \(groups.count) 条链路；\(trace) 有 \(groups[trace]?.count ?? 0) 条日志"
+                    }
+                    Button("合并当前 + 归档日志 mergeLogFiles") {
+                        let merged = LogKit.mergeLogFiles()
+                        status = "合并后共 \(merged.count) 条日志（含归档）"
+                    }
+                    Button("用模板格式化最后一条日志 LogTemplate") {
+                        let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                        guard let last = entries.last else {
+                            status = "还没有日志，先点上面的按钮写几条"
+                            return
+                        }
+                        let template = 日志模板("[{级别}] {时间} · {分类}：{消息}")
+                        status = template.render(last)
+                    }
+                    Button("导出 Markdown 报告 exportMarkdown") {
+                        do {
+                            let entries = LogKit.parseLogFile(at: LogKit.logFileURL)
+                            let url = try LogKit.exportMarkdown(of: entries, fileName: "LogKit报告")
+                            status = "Markdown 报告已导出：\(url.path)"
+                            NSWorkspace.shared.activateFileViewerSelecting([url])
+                        } catch {
+                            status = "Markdown 导出失败：\(error)"
+                        }
+                    }
+                    Text(status)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
         }
     }
 

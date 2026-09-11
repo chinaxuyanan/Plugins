@@ -24,6 +24,7 @@ import CFNetwork
 /// - 提供设备友好型号名 `deviceModelName`（标识符对照表可自行增补）、深色模式 `isDarkMode`、屏幕亮度 `screenBrightness`、信息快照 `snapshot()`；
 /// - 支持屏幕最大刷新率 `maximumFramesPerSecond`、无障碍设置（`isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled`）、已挂载存储卷列表 `mountedVolumes`（`MountedVolume`）、签名信息（`bundleIdentifier` / `teamIdentifier` / `isTestFlight`）、代理检测（`isUsingProxy` / `proxyDescription`）；
 /// - 支持电池细分状态 `batteryState`（充电中 / 已充满 / 未接电源 / 未知）、网络接口物理地址 `networkInterfaces[].macAddress`、进程占用排行 `topProcesses(by:limit:)`（按内存或 CPU）；
+/// - 支持内存明细 `memoryBreakdown`（`MemoryBreakdown`：活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读）、每核 CPU 占用 `perCoreCPUUsage`、已安装应用列表 `installedApplications`（`InstalledApplication`，仅 macOS）、电池温度 `batteryTemperature` 与电源适配器明细 `powerAdapter`（`PowerAdapter`）；
 /// - 每个属性都带中文文档注释 + 中文命名别名，见名即用。
 ///
 /// 快速开始：
@@ -37,7 +38,7 @@ import CFNetwork
 public enum SystemInfoKit {
 
     /// 库版本号
-    public static let version = "0.13.0"
+    public static let version = "1.4.0"
 
     // MARK: - 系统信息
 
@@ -437,6 +438,90 @@ public enum SystemInfoKit {
         batteryState.chineseName
     }
 
+    /// 电池温度（摄氏度；仅 macOS，读取不到或非 macOS 返回 `nil`）
+    ///
+    /// 读自 IOKit `AppleSmartBattery` 注册表的 `Temperature`（单位 1/100 ℃，先除以 100）。
+    /// 该键在部分机型上缺失，此时回退读 `VirtualTemperature`；读数明显异常（超出 −20 ~ 120 ℃）时
+    /// 视为无效返回 `nil`。
+    ///
+    /// - Important: 这是**电池电芯**的温度，不是 CPU / 环境温度（iOS 未开放该数据）。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   print(SystemInfoKit.batteryTemperatureText)   // 30.3 ℃
+    ///   ```
+    public static var batteryTemperature: Double? {
+        #if os(macOS)
+        guard let raw = smartBatteryNumber("Temperature") ?? smartBatteryNumber("VirtualTemperature"),
+              raw != 0 else { return nil }
+        let celsius = Double(raw) / 100
+        guard celsius > -20, celsius < 120 else { return nil }
+        return celsius
+        #else
+        return nil
+        #endif
+    }
+
+    /// 电池温度文本（形如 `30.3 ℃`；读取不到或非 macOS 返回「不支持」）
+    public static var batteryTemperatureText: String {
+        guard let celsius = batteryTemperature else { return "不支持" }
+        return String(format: "%.1f ℃", celsius)
+    }
+
+    /// 当前供电来源中文名（「交流电源」「电池」「未知」「不支持」）
+    ///
+    /// iOS 由 `UIDevice.batteryState` 推断；macOS 读 IOKit 电源描述里的「交流 / 电池」标志。
+    /// 台式机（无内置电池）在 macOS 上返回「不支持」。
+    public static var powerSourceName: String {
+        #if canImport(UIKit)
+        switch batteryState {
+        case .charging, .full: return "交流电源"
+        case .unplugged: return "电池"
+        case .unknown: return "未知"
+        }
+        #elseif os(macOS)
+        guard let desc = macBatteryDescription() else { return "不支持" }
+        guard let state = desc[kIOPSPowerSourceStateKey as String] as? String else { return "未知" }
+        return state == (kIOPSACPowerValue as String) ? "交流电源" : "电池"
+        #else
+        return "不支持"
+        #endif
+    }
+
+    /// 电源适配器明细（仅 macOS；未接适配器或台式机无内置电池时返回 `nil`）
+    ///
+    /// 读自 IOKit 的 `IOPSCopyExternalPowerAdapterDetails()`，含功率 / 协商电压 / 协商电流 / 适配器标识。
+    /// 用电池供电时该接口没有内容，返回 `nil`。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   print(SystemInfoKit.powerAdapterText)   // 适配器 96W · 20.0V · 4.80A
+    ///   ```
+    public static var powerAdapter: PowerAdapter? {
+        #if os(macOS)
+        guard let details = IOPSCopyExternalPowerAdapterDetails()?.takeRetainedValue() as? [String: Any] else {
+            return nil
+        }
+        let watts = details[AdapterKey.watts] as? Int
+        let voltage = details[AdapterKey.voltage] as? Int
+        let current = details[AdapterKey.current] as? Int
+        let adapterID = details[AdapterKey.adapterID] as? Int
+        // 一个字段都没读到，视为拿不到适配器信息
+        guard watts != nil || voltage != nil || current != nil || adapterID != nil else { return nil }
+        return PowerAdapter(watts: watts,
+                            voltageMillivolts: voltage,
+                            currentMilliamps: current,
+                            adapterID: adapterID)
+        #else
+        return nil
+        #endif
+    }
+
+    /// 电源适配器明细文本（形如 `适配器 96W · 20.0V · 4.80A`；未接电源或非 macOS 返回「不支持」）
+    public static var powerAdapterText: String {
+        powerAdapter?.text ?? "不支持"
+    }
+
     // MARK: - 热状态与电源
 
     /// 设备热状态（`ProcessInfo.ThermalState` 枚举）
@@ -808,6 +893,69 @@ public enum SystemInfoKit {
         return teams.first
     }
 
+    /// 已安装的应用列表（仅 macOS；iOS 返回空数组）
+    ///
+    /// 扫描 `/Applications` 与 `/System/Applications` 下的 `.app` 包，读取各自 `Info.plist`
+    /// 里的名称 / 标识符 / 版本号，按名称排序。
+    ///
+    /// 只扫顶层目录、不深入 `.app` 内部，所以不会把 App 里嵌的辅助程序（XPC 服务等）也算进来。
+    /// 目录读不到（沙盒未授权等）时跳过该目录，不抛错。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let 应用 = SystemInfoKit.installedApplications
+    ///   print("共 \(应用.count) 个应用")
+    ///   for item in 应用.prefix(5) { print("\(item.name) \(item.versionText)") }
+    ///   ```
+    public static var installedApplications: [InstalledApplication] {
+        #if os(macOS)
+        let roots = [
+            URL(fileURLWithPath: "/Applications", isDirectory: true),
+            URL(fileURLWithPath: "/System/Applications", isDirectory: true)
+        ]
+        var apps: [InstalledApplication] = []
+        var seen = Set<String>()
+        for root in roots {
+            guard let entries = try? FileManager.default.contentsOfDirectory(at: root,
+                                                                             includingPropertiesForKeys: [.isDirectoryKey],
+                                                                             options: [.skipsHiddenFiles]) else { continue }
+            for entry in entries where entry.pathExtension == "app" {
+                guard let app = makeInstalledApplication(at: entry) else { continue }
+                // 两个目录都扫，万一出现同名同路径的包只留一份
+                if seen.insert(app.url.path).inserted {
+                    apps.append(app)
+                }
+            }
+        }
+        // 用本地化排序，中文环境下更接近访达里的显示顺序
+        return apps.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
+        #else
+        return []
+        #endif
+    }
+
+    /// 已安装应用的个数（仅 macOS；iOS 恒为 `0`）
+    public static var installedApplicationCount: Int {
+        installedApplications.count
+    }
+
+    #if os(macOS)
+    /// 读取一个 `.app` 包的基本信息；不是有效应用包时返回 `nil`（内部工具）
+    private static func makeInstalledApplication(at url: URL) -> InstalledApplication? {
+        guard let bundle = Bundle(url: url) else { return nil }
+        let displayName = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+        let bundleName = bundle.object(forInfoDictionaryKey: "CFBundleName") as? String
+        let fallback = url.deletingPathExtension().lastPathComponent
+        let name = [displayName, bundleName]
+            .compactMap { $0 }
+            .first { !$0.isEmpty } ?? fallback
+        return InstalledApplication(name: name,
+                                    bundleIdentifier: bundle.bundleIdentifier,
+                                    version: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+                                    url: url)
+    }
+    #endif
+
     // MARK: - 网络信息
 
     /// 本机局域网 IP 地址（如 `192.168.1.8`；未接入网络时返回 `nil`）
@@ -1048,6 +1196,50 @@ public enum SystemInfoKit {
         return Double(busy) / Double(total)
     }
 
+    /// 每个逻辑核的 CPU 使用率（`0.0` ~ `1.0`，下标即核序号）
+    ///
+    /// 与 `cpuUsage` 同为「两次采样求差」，只是逐核分别计算。核数即系统报告的**逻辑核**数量
+    /// （带超线程的 Intel 机器会比物理核多一倍）。每次调用会短暂阻塞约 100ms；
+    /// 两次采样的核数不一致（极罕见）时返回空数组。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   let 占用 = SystemInfoKit.perCoreCPUUsage
+    ///   for (index, value) in 占用.enumerated() {
+    ///       print("CPU\(index + 1)：\(Int(value * 100))%")
+    ///   }
+    ///   ```
+    public static var perCoreCPUUsage: [Double] {
+        guard let first = samplePerCoreCPUTicks() else { return [] }
+        Thread.sleep(forTimeInterval: 0.1)
+        guard let second = samplePerCoreCPUTicks(), second.count == first.count else { return [] }
+        var usages: [Double] = []
+        usages.reserveCapacity(first.count)
+        for index in 0..<first.count {
+            let dUser = second[index].user &- first[index].user
+            let dSystem = second[index].system &- first[index].system
+            let dIdle = second[index].idle &- first[index].idle
+            let dNice = second[index].nice &- first[index].nice
+            let total = dUser &+ dSystem &+ dIdle &+ dNice
+            guard total > 0 else {
+                usages.append(0)
+                continue
+            }
+            let busy = dUser &+ dSystem &+ dNice
+            usages.append(Double(busy) / Double(total))
+        }
+        return usages
+    }
+
+    /// 每个逻辑核 CPU 使用率的单行文本（形如 `CPU1 12% · CPU2 34%`；取不到时返回「不支持」）
+    public static var perCoreCPUUsageText: String {
+        let usages = perCoreCPUUsage
+        guard !usages.isEmpty else { return "不支持" }
+        return usages.enumerated()
+            .map { "CPU\($0.offset + 1) \(Int(($0.element * 100).rounded()))%" }
+            .joined(separator: " · ")
+    }
+
     /// 内存已用容量（字节）
     public static var memoryUsedBytes: UInt64 {
         memoryStats()?.usedBytes ?? 0
@@ -1130,6 +1322,22 @@ public enum SystemInfoKit {
     public static var availableMemory: String {
         guard let bytes = availableMemoryBytes else { return "未知" }
         return ByteCountFormatter.string(fromByteCount: Int64(bytes), countStyle: .memory)
+    }
+
+    /// 内存占用明细（活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读；读取失败时返回 `nil`）
+    ///
+    /// 比 `memoryUsedBytes` / `memoryUsagePercent` 更细，适合做内存面板或排查「内存去哪了」。
+    /// 数据来自 mach `host_statistics64`，与 `memoryUsedBytes` 同一份数据源，两者口径一致。
+    ///
+    /// - Example:
+    ///   ```swift
+    ///   if let 明细 = SystemInfoKit.memoryBreakdown {
+    ///       print(明细.text)
+    ///       print(明细.联动文本)     // 联动内存不可回收，长期偏高说明有内存压力
+    ///   }
+    ///   ```
+    public static var memoryBreakdown: MemoryBreakdown? {
+        memoryBreakdownStats()
     }
 
     /// 系统负载（1 / 5 / 15 分钟平均负载，`getloadavg` 三值）
@@ -1626,8 +1834,41 @@ public enum SystemInfoKit {
         return (user, system, idle, nice)
     }
 
+    /// 采样一次每个逻辑核的 tick（每项为 USER / SYSTEM / IDLE / NICE）
+    ///
+    /// 与 `sampleCPUTicks()` 同一个 `host_processor_info` 调用，只是不把各核累加到一起。
+    private static func samplePerCoreCPUTicks() -> [(user: UInt32, system: UInt32, idle: UInt32, nice: UInt32)]? {
+        var cpuInfo: processor_info_array_t?
+        var numCpuInfo: mach_msg_type_number_t = 0
+        var numCPUs: natural_t = 0
+        let result = host_processor_info(mach_host_self(), PROCESSOR_CPU_LOAD_INFO, &numCPUs, &cpuInfo, &numCpuInfo)
+        guard result == KERN_SUCCESS, let info = cpuInfo, numCPUs > 0 else { return nil }
+        defer {
+            vm_deallocate(mach_task_self_, vm_address_t(bitPattern: info),
+                          vm_size_t(numCpuInfo) * vm_size_t(MemoryLayout<integer_t>.size))
+        }
+        let perCPU = 4
+        var ticks: [(user: UInt32, system: UInt32, idle: UInt32, nice: UInt32)] = []
+        ticks.reserveCapacity(Int(numCPUs))
+        for i in 0..<Int(numCPUs) {
+            ticks.append((user: UInt32(bitPattern: info[i * perCPU + 0]),
+                          system: UInt32(bitPattern: info[i * perCPU + 1]),
+                          idle: UInt32(bitPattern: info[i * perCPU + 2]),
+                          nice: UInt32(bitPattern: info[i * perCPU + 3])))
+        }
+        return ticks
+    }
+
     /// 读取内存统计（`host_statistics64`），返回已用字节、使用率、可用字节
+    ///
+    /// 只是把 `memoryBreakdownStats()` 的三个派生量取出来，保证与 `memoryBreakdown` 口径完全一致。
     private static func memoryStats() -> (usedBytes: UInt64, percent: Double, availableBytes: UInt64)? {
+        guard let breakdown = memoryBreakdownStats() else { return nil }
+        return (breakdown.usedBytes, breakdown.usedPercent, breakdown.availableBytes)
+    }
+
+    /// 读取内存明细（`host_statistics64` / `vm_statistics64`），逐项拆出各类页数
+    private static func memoryBreakdownStats() -> MemoryBreakdown? {
         var stats = vm_statistics64()
         var count = mach_msg_type_number_t(MemoryLayout<vm_statistics64>.stride / MemoryLayout<integer_t>.stride)
         let result = withUnsafeMutablePointer(to: &stats) { ptr in
@@ -1639,13 +1880,15 @@ public enum SystemInfoKit {
         let pageSize = UInt64(getpagesize())
         let total = ProcessInfo.processInfo.physicalMemory
         guard total > 0 else { return nil }
-        let free = UInt64(stats.free_count) * pageSize
-        let inactive = UInt64(stats.inactive_count) * pageSize
-        let purgeable = UInt64(stats.purgeable_count) * pageSize
-        let speculative = UInt64(stats.speculative_count) * pageSize
-        let available = free + inactive + purgeable + speculative
-        let used = total > available ? total - available : 0
-        return (used, Double(used) / Double(total), available)
+        return MemoryBreakdown(
+            totalBytes: total,
+            freeBytes: UInt64(stats.free_count) * pageSize,
+            activeBytes: UInt64(stats.active_count) * pageSize,
+            inactiveBytes: UInt64(stats.inactive_count) * pageSize,
+            wiredBytes: UInt64(stats.wire_count) * pageSize,
+            compressedBytes: UInt64(stats.compressor_page_count) * pageSize,
+            purgeableBytes: UInt64(stats.purgeable_count) * pageSize,
+            speculativeBytes: UInt64(stats.speculative_count) * pageSize)
     }
 
     /// 采样一次本进程的 CPU 时间（用户态 + 内核态，单位纳秒）
@@ -1732,6 +1975,21 @@ public enum SystemInfoKit {
         let result = semaphore.wait(timeout: .now() + 0.5)
         source.cancel()
         return result == .success ? event : nil
+    }
+
+    /// 电源适配器信息字典的键
+    ///
+    /// 取值为 IOKit `kIOPSPowerAdapter*Key` 常量的实际字符串。这里直接写字面量，
+    /// 以免依赖各 SDK 版本不一定导出的符号名（键值本身是稳定的公开约定）。
+    private enum AdapterKey {
+        /// 功率（瓦）
+        static let watts = "Watts"
+        /// 协商电压（毫伏）
+        static let voltage = "Voltage"
+        /// 协商电流（毫安）
+        static let current = "Current"
+        /// 适配器标识
+        static let adapterID = "AdapterID"
     }
 
     /// 读取 Mac 内置电池的电源信息（IOKit）

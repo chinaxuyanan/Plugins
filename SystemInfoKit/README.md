@@ -11,15 +11,16 @@
 - **设备信息**：标识符 / 名称 / 类型 / 友好型号名（`deviceModelName`，内置标识符→机型对照表，可自行增补）
 - **硬件信息**：内存 / 处理器 / 磁盘（含已用 / 使用率）+ CPU 架构
 - **存储详情**：重要用途可用容量 / 机会性可用容量 / 卷名 / 文件系统类型
-- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）/ 细分状态 `batteryState` + `batteryStateName`（充电中 / 已充满 / 未接电源 / 未知）
+- **电池**：电量 / 是否充电 / 循环次数 / 健康度（iOS + macOS，循环次数与健康度仅 macOS）/ 细分状态 `batteryState` + `batteryStateName`（充电中 / 已充满 / 未接电源 / 未知）/ 电池温度 `batteryTemperature` + `batteryTemperatureText`（仅 macOS，读 IOKit `AppleSmartBattery` 的 `Temperature`）/ 电源适配器明细 `powerAdapter` + `powerAdapterText`（`PowerAdapter` / `电源适配器`：功率 / 协商电压 / 协商电流，仅 macOS，未接电源时为 `nil`）/ 供电来源 `powerSourceName`（交流电源 / 电池）
 - **热状态与电源**：热状态 / 低功耗模式（低功耗仅 iOS）
 - **屏幕与显示器**：分辨率 / 缩放因子 / 显示器数量 / 各显示器分辨率与缩放 / 是否深色模式 / 屏幕亮度（macOS）
 - **刷新率与无障碍**：屏幕最大刷新率 `maximumFramesPerSecond` / 减弱动态效果 `isReduceMotionEnabled` / 降低透明度 `isReduceTransparencyEnabled` / 粗体文本 `isBoldTextEnabled`（仅 iOS）/ 无障碍设置摘要 `accessibilitySummary`
 - **运行信息**：运行时长 / 启动时间 / 是否模拟器
-- **App 信息**：名称 / 版本 / 构建号 / 包标识符 `bundleIdentifier` / 团队 ID `teamIdentifier` / 是否 TestFlight `isTestFlight`
+- **App 信息**：名称 / 版本 / 构建号 / 包标识符 `bundleIdentifier` / 团队 ID `teamIdentifier` / 是否 TestFlight `isTestFlight` / 已安装应用列表 `installedApplications` + `installedApplicationCount`（`InstalledApplication` / `已安装应用`：名称 / 标识符 / 版本 / 路径，仅 macOS，扫 `/Applications` 与 `/System/Applications`）
 - **网络信息**：本机 IP / 是否联网 / 网络类型 / Wi-Fi 名称（macOS）/ Wi-Fi 信号强度（macOS）/ 是否走系统代理 `isUsingProxy` + 代理描述 `proxyDescription` / DNS / 默认网关（macOS）/ 公网 IP（异步）
 - **本地化信息**：语言 / 区域 / 地区 / 时区 / 日历
-- **资源占用**：CPU 使用率 / 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
+- **资源占用**：CPU 使用率 / 每核 CPU 使用率 `perCoreCPUUsage` + `perCoreCPUUsageText`（逐核采样，下标即核序号）/ 内存已用 / 内存使用率 / 可用内存 / 内存压力（macOS）
+- **内存明细**：`memoryBreakdown` / `内存明细` 把内存拆成活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读（`MemoryBreakdown` / `内存明细` 结构体，含各分项人类可读文本与中文摘要）
 - **系统负载**：1 / 5 / 15 分钟平均负载（`getloadavg`）
 - **网络流量统计**：`sampleNetworkTraffic()` 采样活跃接口累计收发字节 + 每秒速率
 - **磁盘读写速率**：`sampleDiskIOTraffic()` 汇总块存储驱动累计读写字节 + 每秒速率（仅 macOS）
@@ -47,7 +48,7 @@ dependencies: [
 
 然后在目标中 `import SystemInfoKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.13.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "1.4.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -97,6 +98,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `batteryHealth` | 电池健康 | 人类可读，形如 `98%`，非 macOS 返回「不支持」 |
 | `batteryState` | 电池细分状态 | `BatteryState`，充电中 / 已充满 / 未接电源 / 未知，双平台 |
 | `batteryStateName` | 电池细分状态中文名 | 形如 `充电中` |
+| `batteryTemperature` / `batteryTemperatureText` | 电池温度（度 / 文本） | `Double?` / `String`，仅 macOS，读 IOKit `AppleSmartBattery`，读不到为「不支持」|
+| `powerSourceName` | 供电来源中文名 | `交流电源` / `电池` / `不支持`（台式机）|
+| `powerAdapter` / `powerAdapterText` | 电源适配器明细（对象 / 文本） | `PowerAdapter?`，仅 macOS，**未接电源时为 `nil`** |
 | `thermalState` | 设备热状态 | `ProcessInfo.ThermalState` |
 | `thermalStateName` | 热状态中文名 | 正常 / 尚可 / 严重 / 危急 |
 | `isLowPowerModeEnabled` | 低功耗模式 | 仅 iOS |
@@ -125,6 +129,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `bundleIdentifier` | App 包标识符 | 形如 `com.example.app` |
 | `teamIdentifier` | 签名团队 ID | `String?`，读 Info.plist / 内嵌描述文件，取不到为 `nil` |
 | `isTestFlight` | 是否 TestFlight 安装 | `Bool`，收据为 `sandboxReceipt` 即内测包 |
+| `installedApplications` / `installedApplicationCount` | 已安装应用列表 / 数量 | `[InstalledApplication]` / `Int`，仅 macOS，扫 `/Applications` 与 `/System/Applications`，按名称升序 |
 | `localIPAddress` | 本机局域网 IP | `String?` |
 | `isNetworkConnected` | 是否联网 | `Bool` |
 | `networkType` | 网络类型 | `String?` |
@@ -140,11 +145,13 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `localeIdentifier` | 完整地区标识 | `String` |
 | `timeZoneIdentifier` / `calendarIdentifier` | 时区 / 日历标识 | `String` |
 | `cpuUsage` | CPU 使用率 | `0.0`~`1.0` |
+| `perCoreCPUUsage` / `perCoreCPUUsageText` | 每核 CPU 使用率（数组 / 单行文本） | `[Double]`，下标即核序号；调用阻塞约 100ms 采样 |
 | `memoryUsedBytes` / `memoryUsed` | 内存已用（字节 / 可读） | `UInt64` / 人类可读 |
 | `memoryUsagePercent` | 内存使用率 | `0.0`~`1.0` |
 | `memoryPressure` | 内存压力 | 仅 macOS |
 | `memoryPressureName` | 内存压力中文名 | 正常 / 警告 / 严重 / 不支持 |
 | `availableMemoryBytes` / `availableMemory` | 可用内存（字节 / 可读） | `UInt64?` / 人类可读 |
+| `memoryBreakdown` | 内存明细 | `MemoryBreakdown?`，拆出活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读 |
 | `loadAverage` | 系统负载 | `[Double]`，1/5/15 分钟三值 |
 | `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` | 1/5/15 分钟负载 | `Double` |
 | `sampleNetworkTraffic()` | 采样网络流量 | `NetworkTraffic?`，累计收发字节 + 每秒速率（首次速率 `nil`）|
@@ -164,6 +171,9 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `snapshot()` | 信息快照 | `[String: String]`，一次性取出全部常用检测项，值均为字符串，可直接 JSON 序列化 |
 | `MemoryPressureMonitor` | 内存压力监听器 | 实时回调，仅 macOS |
 | `MountedVolume` | 存储卷 | 卷名 / 路径 / 总容量 / 可用容量 / 已用占比 / 是否可移除 / 是否内置 |
+| `MemoryBreakdown` | 内存明细 | 总容量 / 空闲 / 活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读，含各分项可读文本与中文摘要 |
+| `InstalledApplication` | 已安装应用 | 名称 / 标识符 / 版本 / 路径，仅 macOS |
+| `PowerAdapter` | 电源适配器 | 功率 / 协商电压 / 协商电流 / 标识，仅 macOS |
 
 ## 中文命名别名
 
@@ -178,6 +188,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `电池电量` / `是否充电` / `热状态` / `热状态名` / `低功耗模式` | `batteryLevel` / `isCharging` / `thermalState` / `thermalStateName` / `isLowPowerModeEnabled` |
 | `电池循环次数` / `电池健康度` / `电池健康` | `batteryCycleCount` / `batteryHealthPercent` / `batteryHealth` |
 | `电池状态` / `电池状态名` | `batteryState` / `batteryStateName`（`.充电中/.已充满/.未接电源/.未知`）|
+| `电池温度` / `电池温度文本` / `供电来源` | `batteryTemperature` / `batteryTemperatureText` / `powerSourceName` |
+| `电源适配器` / `电源适配器文本` | `powerAdapter` / `powerAdapterText` |
 | `屏幕分辨率` / `屏幕缩放` / `显示器数量` / `显示器分辨率` / `显示器缩放` | `screenSize` / `screenScale` / `displayCount` / `displayResolutions` / `displayScales` |
 | `深色模式` / `屏幕亮度` | `isDarkMode` / `screenBrightness` |
 | `系统运行时长` / `系统启动时间` / `是否模拟器` | `systemUptimeString` / `bootTime` / `isSimulator` |
@@ -187,7 +199,8 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `语言代码` / `区域代码` / `地区标识` | `languageCode` / `regionCode` / `localeIdentifier` |
 | `时区标识` / `日历标识` | `timeZoneIdentifier` / `calendarIdentifier` |
 | `CPU使用率` / `内存已用` / `内存使用率` / `进程CPU使用率` / `进程内存` / `内存压力` / `内存压力名` | `cpuUsage` / `memoryUsed` / `memoryUsagePercent` / `processCPUUsage` / `processMemory` / `memoryPressure` / `memoryPressureName` |
-| `可用内存` / `内存压力监听器` | `availableMemory` / `MemoryPressureMonitor`（`.当前压力/.压力变化回调/.开始监听/.停止监听`）|
+| `每核CPU使用率` / `每核CPU使用率文本` | `perCoreCPUUsage` / `perCoreCPUUsageText` |
+| `可用内存` / `内存压力监听器` / `内存明细` | `availableMemory` / `MemoryPressureMonitor`（`.当前压力/.压力变化回调/.开始监听/.停止监听`）/ `memoryBreakdown` |
 | `系统负载` / `负载1分钟` / `负载5分钟` / `负载15分钟` | `loadAverage` / `loadAverage1Min` / `loadAverage5Min` / `loadAverage15Min` |
 | `采样网络流量()` / `采样磁盘读写()` | `sampleNetworkTraffic()` / `sampleDiskIOTraffic()` |
 | `网络流量` / `磁盘读写` | `NetworkTraffic` / `DiskIOTraffic`（类型别名）|
@@ -197,15 +210,21 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `交换内存总量` / `交换内存已用` | `swapTotal` / `swapUsed` |
 | `网络接口列表` / `主网卡物理地址` | `networkInterfaces` / `primaryMACAddress` |
 | `运行进程` / `网络接口` / `进程占用` / `电池状态` / `进程排序依据` | `RunningProcess` / `NetworkInterface` / `ProcessUsage` / `BatteryState` / `ProcessSortKey`（类型别名）|
+| `内存明细` / `已安装应用` / `电源适配器` | `MemoryBreakdown` / `InstalledApplication` / `PowerAdapter`（类型别名）|
 | `内核版本` / `主机名` / `当前用户名` / `是否被调试` | `kernelVersion` / `hostName` / `userName` / `isDebuggerAttached` |
 | `最大刷新率` / `减弱动态效果` / `降低透明度` / `粗体文本` / `无障碍摘要` | `maximumFramesPerSecond` / `isReduceMotionEnabled` / `isReduceTransparencyEnabled` / `isBoldTextEnabled` / `accessibilitySummary` |
 | `存储卷列表` / `存储卷数量` / `可移除存储卷列表` | `mountedVolumes` / `mountedVolumeCount` / `removableVolumes` |
 | `包标识符` / `团队ID` / `是否TestFlight` | `bundleIdentifier` / `teamIdentifier` / `isTestFlight` |
+| `已安装应用列表` / `已安装应用数量` | `installedApplications` / `installedApplicationCount` |
 | `WiFi名称` / `是否走代理` / `代理描述` | `wifiSSID` / `isUsingProxy` / `proxyDescription` |
 | `存储卷` | `MountedVolume`（`.名称/.路径/.总容量/.可用容量/.是否可移除/.是否内置/.已用字节数/.已用占比/.已用占比文本/.总容量文本/.已用文本/.可用文本/.类型名`）|
 | `信息快照()` | `snapshot()` |
 
 ## 更新日志
+
+- **版本号规则变更（自 1.4.0 起）**：版本号改为「满十进位式」——次版本满 10 就进位到主版本。按此规则，`0.13.0` 的下一版写作 `1.4.0`（而不是 `0.14.0`）。此前已发布的 `0.x` tag 原样保留，上面的旧条目也保持原编号。
+
+- **1.4.0**：新增内存明细（`memoryBreakdown` / `内存明细`，用 `host_statistics64` 的 `vm_statistics64` 把内存拆成活跃 / 非活跃 / 联动（wired）/ 压缩 / 可丢弃 / 预读，含 `MemoryBreakdown` / `内存明细` 结构体与各分项人类可读文本、中文多行摘要；可用内存 = 空闲 + 非活跃 + 可丢弃 + 预读，与 `availableMemoryBytes` 同口径）、每核 CPU 使用率（`perCoreCPUUsage` / `每核CPU使用率` 与 `perCoreCPUUsageText` / `每核CPU使用率文本`，`PROCESSOR_CPU_LOAD_INFO` 逐核采样 100ms 求差值，下标即核序号）、已安装应用列表（`installedApplications` / `已安装应用列表` 与 `installedApplicationCount` / `已安装应用数量`，扫 `/Applications` 与 `/System/Applications` 顶层的 `.app`，含 `InstalledApplication` / `已安装应用` 结构体：名称 / 标识符 / 版本 / 路径，按名称升序，仅 macOS）、电池温度与电源明细（`batteryTemperature` / `电池温度` 与 `batteryTemperatureText`，读 IOKit `AppleSmartBattery` 的 `Temperature`；`powerSourceName` / `供电来源`；`powerAdapter` / `电源适配器` 与 `powerAdapterText`，读 `IOPSCopyExternalPowerAdapterDetails()` 得到功率 / 协商电压 / 协商电流，含 `PowerAdapter` / `电源适配器` 结构体，未接电源为 `nil`；均仅 macOS），并把 `memoryStats()` 改为委托 `memoryBreakdownStats()`，让 `memoryUsedBytes` / `memoryUsagePercent` 与 `memoryBreakdown` 不可能出现口径分叉。
 
 - **0.13.0**：新增电池细分状态（`batteryState` / `电池状态`，iOS 用 `UIDevice.batteryState`、macOS 用 `IOPSCopyPowerSourcesInfo`，把「接着电源且已充满」与「正在充电」区分开，区分于只回答「有没有接电源」的 `isCharging`；配 `batteryStateName` / `电池状态名`，枚举 `BatteryState` / `电池状态` 含中文静态别名 `充电中` / `已充满` / `未接电源` / `未知`，`snapshot()` 同步补入 `batteryState`）、进程占用排行（`topProcesses(by:limit:)` / `进程排行(依据:数量:)`，按常驻内存 / 平均 CPU 排行 Top N，用 `proc_pidinfo(PROC_PIDTASKINFO / PROC_PIDTBSDINFO)` 读 RSS 与累计 CPU 时间，含 `ProcessUsage` / `进程占用` 结构体与 `ProcessSortKey` / `进程排序依据` 枚举，仅 macOS、iOS 返回空）、网卡物理地址（`NetworkInterface` 新增 `macAddress` / `物理地址` 字段，从 `getifaddrs` 的 `AF_LINK` `sockaddr_dl` 解析 MAC；另有 `primaryMACAddress` / `主网卡物理地址` 优先取 `en0`），均含中文别名并补冒烟测试。
 

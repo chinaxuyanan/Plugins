@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDECodeSnippetCompletionPrefix</key>
+	<string>swsysinfomemorybreakdown</string>
+	<key>IDECodeSnippetCompletionScopes</key>
+	<array>
+		<string>All</string>
+	</array>
+	<key>IDECodeSnippetContents</key>
+	<string>// SystemInfoKit 内存明细：比「已用 / 使用率」更细，看清内存去哪了
+if let 明细 = SystemInfoKit.memoryBreakdown {
+    print(明细.text)
+    // 内存 16 GB · 已用 9.8 GB（61.3%）· 可用 6.2 GB
+    // 活跃 4.1 GB · 非活跃 3.0 GB · 联动 2.2 GB · 压缩 1.5 GB
+
+    print(明细.usedPercentText)      // 61.3%
+    print(明细.wiredDescription)     // 联动内存（不可回收，长期偏高说明有内存压力）
+    print(明细.availableBytes)       // 与 availableMemoryBytes 同口径：空闲 + 非活跃 + 可丢弃 + 预读
+}
+
+// 中文别名：SystemInfoKit.内存明细（等价 memoryBreakdown）
+</string>
+	<key>IDECodeSnippetIdentifier</key>
+	<string>7F14ADC2-A60A-4F11-A4F5-BC27A31A3A8D</string>
+	<key>IDECodeSnippetLanguage</key>
+	<string>Xcode.SourceCodeLanguage.Swift</string>
+	<key>IDECodeSnippetSummary</key>
+	<string>SystemInfoKit：把内存拆成活跃 / 非活跃 / 联动 / 压缩 / 可丢弃 / 预读</string>
+	<key>IDECodeSnippetTitle</key>
+	<string>内存明细 · memoryBreakdown</string>
+	<key>IDECodeSnippetUserSnippet</key>
+	<true/>
+	<key>IDECodeSnippetVersion</key>
+	<integer>2</integer>
+</dict>
+</plist>
