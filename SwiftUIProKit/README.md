@@ -1,5 +1,7 @@
 # SwiftUIProKit —— SwiftUI 属性中文封装工具库
 
+[![CI](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml/badge.svg?branch=main&label=Plugins%20CI)](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml)
+
 > 解决 SwiftUI 开发中「控件属性太多、不知道用哪个」的痛点。
 > 把常用属性按类别整理、封装成语义化方法，并附上**中文文档注释**，让你在 Xcode 补全 / Quick Help 中直接看到每个属性的中文含义。
 
@@ -24,7 +26,7 @@ dependencies: [
 
 然后在目标中 `import SwiftUIProKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.15.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "0.15.1")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -514,6 +516,8 @@ VStack {
 - [x] 属性速查的 Xcode 代码片段（Snippets）版本
 
 ## 更新日志
+
+- **0.15.1**：修复 iOS 目标编译报错。`boldText` / `textStyle` 与 `inlineTitle` / `largeTitle`（及中文别名 `加粗` / `文字样式` / `内联标题` / `大标题`）此前只标了 macOS 的 `@available`、漏了 iOS 那一项，按本包 iOS 15 下限编 iOS 目标会报 `'fontWeight' is only available in iOS 16.0 or newer` / `'toolbarTitleDisplayMode' is only available in iOS 17.0 or newer`。现已补齐双平台标注（`View.fontWeight(_:)` 是 iOS 16 / macOS 13，`toolbarTitleDisplayMode(_:)` 及其 `ToolbarTitleDisplayMode` 是 iOS 17 / macOS 14）。macOS 侧因为引入版本更低、`swift build` 永远能过，本地发现不了，由 CI 的 iOS 编译检查抓出。注意 `Text.fontWeight(_:)` 是 iOS 13 就有的另一个重载，接收者是具体 `Text` 时不触发该限制。
 
 - **0.15.0**：新增四个复合组件——头像 `Avatar` / `头像`（三种内容来源：文字占位（中文取前两字、英文取首字母，底色按姓名稳定派生、同名同色）、本地图片、远程图片（内部转发 `RemoteImage`），可选描边与右下角在线状态小圆点 `AvatarStatus` / `头像状态`）与头像组 `AvatarGroup` / `头像组`（重叠排列 + 超出折叠成「+N」气泡）、时间轴 `Timeline` / `时间轴`（纵向节点 + 连接线，节点 `TimelineItem` / `时间轴条目` 含标题 / 详情 / 图标 / 是否已完成；连接线高度用 `readSize` 量出内容实际高度后再补足，标题换行也不断线）、迷你图表（迷你折线图 `Sparkline` / `迷你折线图`、迷你柱状图 `MiniBarChart` / `迷你柱状图`，数值按自身最小 / 最大值归一化，空数组 / 单值 / 全相等都不除零、不跳顶）、搜索栏 `SearchBar` / `搜索栏`（放大镜图标 + 一键清空 + 可选取消，内置 `Task` + `Task.sleep` 防抖，连续输入只在停顿后回调一次；`debounceInterval` 传 `0` 即退化为即时回调），均含中文别名与文档注释并补测试。另修复 `FlowLayout` / `流式布局` 中文构造器的「歧义调用」隐患：其首参 `间距` 改为无默认值，否则 `FlowLayout()`（以及 `FlowLayout() { ... }`）会与英文 `init(spacing:lineSpacing:)`（参数全有默认值）冲突、编译报 `ambiguous use of 'init'`。
 

@@ -9,6 +9,3 @@
 xcuserdata/
 *.xcuserstate
 DerivedData/
-
-# 合并历史时留下的原始 .git 备份，确认无误后可整个删除
-.old-repos-backup/

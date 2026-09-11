@@ -1,5 +1,7 @@
 # LogKit —— 中文友好的日志打印工具库
 
+[![CI](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml/badge.svg?branch=main&label=Plugins%20CI)](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml)
+
 > 解决「日志级别混乱、输出格式不统一」的痛点。
 > 内置五级日志、统一输出格式，并提供中文命名别名，补全时直接看到中文方法名。
 
@@ -58,7 +60,7 @@ dependencies: [
 
 然后在目标中 `import LogKit`。
 
-> **为什么不是 `.package(url: "...", from: "0.12.0")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
+> **为什么不是 `.package(url: "...", from: "0.12.1")`？** SwiftPM 要求 `Package.swift` 位于仓库根目录，且不支持带前缀的版本 tag，所以没法从远端直接解析子目录里的这个包（官方 issue：[#5768](https://github.com/swiftlang/swift-package-manager/issues/5768)、[#5780](https://github.com/swiftlang/swift-package-manager/issues/5780)）。如果需要「按版本从远端依赖」，在仓库根目录加一个 `Package.swift` 把三个库收成三个 product 即可，详见 [Plugins/README.md](../README.md)。
 
 ## 快速开始
 
@@ -382,6 +384,8 @@ LogKit.按天轮转 = true    // 跨天后自动归档昨天的文件（崩溃�
 配合 `maxFileSize` / `maxLogFiles` / `maxLogAgeDays` 一起用，按天分文件 + 按需清理，长期运行也不会堆满磁盘。
 
 ## 更新日志
+
+- **0.12.1**：修复 `ZipWriter` 在较旧工具链上的编译超时。打包 zip 时计算 DOS 时间戳的表达式把多个 `??`、位移、按位或与最外层 `UInt16(...)` 挤在一行，类型推断组合爆炸，CI 报 `unable to type-check this expression in reasonable time`。现拆成具名的 `Int` 常量再拼位，计算结果与产出的 zip 完全不变。
 
 - **0.12.0**：新增条目过滤（`LogFilter` / `日志过滤条件`，按级别 / 分类 / 关键字 / 时间段 / 追踪 ID 组合筛选 `LogEntry`，另有 `filterEntries(_:matching:)` / `过滤日志` 与静态构造 `按关键字` / `按级别` / `按追踪ID` / `时间段`）、内存检索（`maxRecentEntries` / `最近保留条数` 缓存最近 N 条，`recentEntries` / `最近日志` / `clearRecentEntries` / `清空最近日志` / `filteredRecentEntries` / `过滤最近日志`，`NSLock` 保护，为 `0` 时不缓存零开销）、统计摘要（`LogSummary` / `日志摘要`，条数 / 各级别条数 / 错误率 / 时间跨度 / 分类排行，`text()` 产出中文摘要，排行次数相同按分类名排序保证稳定）、压缩归档导出（`exportArchive` / `导出压缩包`，纯 Foundation 手写 ZIP 打包当前 + 崩溃 + 归档日志，零依赖，无文件时抛 `logFileNotFound`）、按天自动轮转（`dailyRotation` / `按天轮转`，跨天写入自动归档前一天的按天日志文件），`LogEntry` 新增 `date` / `产生时间`（真正的时间点，不受 `dateFormat` 影响，供时间段筛选），均含中文别名并补单元测试。中文构造器 `init(级别:分类:关键字:起始时间:结束时间:追踪ID:)` 的首参 `级别` 无默认值，以避免与英文零参 `LogFilter()`（参数全有默认值）产生「歧义调用」。
 

@@ -41,11 +41,11 @@ git push -u origin main
 git push origin --tags
 ```
 
-`git push origin --tags` 会把 42 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
+`git push origin --tags` 会把 44 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
 
 ```
-SwiftUIProKit-0.15.0
-LogKit-0.12.0
+SwiftUIProKit-0.15.1
+LogKit-0.12.1
 SystemInfoKit-0.12.0
 ```
 
@@ -70,19 +70,21 @@ SystemInfoKit-0.12.0
 **如果某个 job 红了**：把 Actions 里的报错日志贴给我，我来判断是库要改还是 CI 配置要调。
 第一次跑有可能因为 runner 环境差异需要微调，属正常。
 
-## 五、CI 徽章（可选）
+## 五、CI 徽章
 
-知道用户名之后，我可以在根 README 和三个库的 README 顶部加一个状态徽章，形如：
+四个 README（仓库根 + 三个库）的标题下面都已经放好状态徽章：
 
 ```markdown
-[![CI](https://github.com/你的GitHub用户名/Plugins/actions/workflows/ci.yml/badge.svg)](https://github.com/你的GitHub用户名/Plugins/actions/workflows/ci.yml)
+[![CI](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml)
 ```
+
+三个库的 README 里额外带了 `&label=Plugins%20CI`，把徽章文字显示成「Plugins CI」。
+仓库是 Private 的话，徽章只对登录且有权限的人可见，匿名访客看到的是灰图，属正常。
 
 ## 关于 `.old-repos-backup`
 
-合并历史时，原来四个独立仓库各自的 `.git` 被挪到了 `.old-repos-backup/`（3.8 MB）。
-它已经在 `.gitignore` 里，**不会被推上去**，新仓库里四段历史都完整保留着。
-确认新仓库一切正常后，这个目录可以整个删掉；不删也不影响任何事。
+合并历史时，原来四个独立仓库各自的 `.git` 曾挪到 `.old-repos-backup/`（3.8 MB，且已在 `.gitignore` 里，从未推上去）。
+2026-09-11 确认新仓库一切正常后，已连同 `.gitignore` 里那条注释一起删除。
 
 ## 关于 KitsDemo
 

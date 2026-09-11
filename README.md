@@ -1,5 +1,7 @@
 # Plugins
 
+[![CI](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml)
+
 一组自用的 Swift / SwiftUI 工具库，集中放在同一个仓库里维护。
 
 ## 仓库结构
@@ -18,8 +20,8 @@ Plugins/
 
 | 库 | 说明 | 版本 |
 | --- | --- | --- |
-| [SwiftUIProKit](SwiftUIProKit/README.md) | SwiftUI 控件属性太多、不知道用哪个？这里把常用控件与属性收成一组封装和复合组件 | 0.15.0 |
-| [LogKit](LogKit/README.md) | 分级 / 分类 / 过滤 / 采样 / 文件轮转 / CSV·JSON 导出 | 0.12.0 |
+| [SwiftUIProKit](SwiftUIProKit/README.md) | SwiftUI 控件属性太多、不知道用哪个？这里把常用控件与属性收成一组封装和复合组件 | 0.15.1 |
+| [LogKit](LogKit/README.md) | 分级 / 分类 / 过滤 / 采样 / 文件轮转 / CSV·JSON 导出 | 0.12.1 |
 | [SystemInfoKit](SystemInfoKit/README.md) | 设备、CPU、内存、磁盘、电池、网络等系统信息检测 | 0.12.0 |
 
 ## 怎么用
@@ -59,8 +61,8 @@ targets: [
 三个库版本独立演进，所以 tag 带库名前缀：
 
 ```
-SwiftUIProKit-0.15.0
-LogKit-0.12.0
+SwiftUIProKit-0.15.1
+LogKit-0.12.1
 SystemInfoKit-0.12.0
 ```
 

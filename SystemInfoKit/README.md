@@ -1,5 +1,7 @@
 # SystemInfoKit —— 中文友好的系统检测工具库
 
+[![CI](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml/badge.svg?branch=main&label=Plugins%20CI)](https://github.com/chinaxuyanan/Plugins/actions/workflows/ci.yml)
+
 > 解决「查系统信息要记各种零散 API」的痛点。
 > 把系统版本、设备型号、硬件、屏幕、电池等常用检测项集中封装，全部属性带中文别名。
 
