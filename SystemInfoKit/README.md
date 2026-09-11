@@ -84,7 +84,7 @@ SystemInfoKit.屏幕分辨率     // "1512×982"
 | `activeProcessorCount` | 处理器可用核心数 | `Int` |
 | `processorName` | 处理器型号 | 仅 macOS |
 | `cpuArchitecture` | CPU 架构 | `arm64` / `x86_64` |
-| `gpuInfo` / `gpuName` / `gpuInfoText` | 显卡信息（对象 / 名称 / 文本） | `GPUInfo?`，取系统默认 Metal 设备，取不到为 `nil` / 「不支持」|
+| `gpuInfo` / `gpuName` / `gpuInfoText` | 显卡信息（对象 / 名称 / 文本） | `GPUInfo?`，取系统默认 Metal 设备，取不到为 `nil` / 「不支持」；「建议最大工作内存」为 iOS 16+，iOS 15 上该字段为 `0` |
 | `usbDevices` / `usbDeviceCount` / `usbDevicesText` | USB 外设（列表 / 数量 / 文本） | `[USBDevice]`，仅 macOS，iOS 为空；含集线器与内建键盘 |
 | `fanSpeeds` / `fanSpeedsText` | 风扇转速（列表 / 文本） | `[FanSpeed]`，读 SMC `FnAc`，仅 macOS，无风扇机型为空 |
 | `machineTemperature` / `machineTemperatureText` | 整机温度（度 / 文本） | `Double?` / `String`，读 SMC 多枚温度键取最高，仅 macOS，读不到为「不支持」|

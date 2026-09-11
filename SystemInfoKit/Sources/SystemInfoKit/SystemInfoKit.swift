@@ -310,6 +310,9 @@ public enum SystemInfoKit {
     /// 是否统一内存 / 单线程组最大线程数。取不到（如模拟器、无 Metal 设备）返回 `nil`。
     /// 多显卡机型只给出系统默认设备这一块。
     ///
+    /// - Note: 其中「建议最大工作集内存」用的 `recommendedMaxWorkingSetSize` 是 iOS 16+ API，
+    ///   iOS 15 上读不到、该字段为 `0`（`text` 里也会省略这一段）；其余字段 iOS 15 也可用。
+    ///
     /// - Example:
     ///   ```swift
     ///   if let 显卡 = SystemInfoKit.gpuInfo {
@@ -319,8 +322,16 @@ public enum SystemInfoKit {
     public static var gpuInfo: GPUInfo? {
         #if canImport(Metal)
         guard let device = MTLCreateSystemDefaultDevice() else { return nil }
+        // `recommendedMaxWorkingSetSize` 是 iOS 16+ API（macOS 自 10.12 就有，本包 macOS 下限 12 恒可用）；
+        // iOS 15 上取不到，退化为 0 —— `GPUInfo.text` 会因此省掉这一段的展示。
+        let workingSetBytes: UInt64
+        if #available(iOS 16.0, macOS 12.0, *) {
+            workingSetBytes = UInt64(device.recommendedMaxWorkingSetSize)
+        } else {
+            workingSetBytes = 0
+        }
         return GPUInfo(name: device.name,
-                       maxWorkingMemoryBytes: UInt64(device.recommendedMaxWorkingSetSize),
+                       maxWorkingMemoryBytes: workingSetBytes,
                        hasUnifiedMemory: device.hasUnifiedMemory,
                        maxThreadsPerThreadgroup: device.maxThreadsPerThreadgroup.width)
         #else

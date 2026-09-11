@@ -18,6 +18,8 @@ public struct GPUInfo: Hashable {
     /// 显卡名称（形如 `Apple M1 Pro`）
     public let name: String
     /// 建议的最大工作集内存（字节，取自 `recommendedMaxWorkingSetSize`；读不到为 `0`）
+    ///
+    /// - Note: 该 API 仅 iOS 16+ / macOS 10.12+ 提供；iOS 15 上读不到，恒为 `0`。
     public let maxWorkingMemoryBytes: UInt64
     /// 是否为统一内存架构（Apple Silicon / Apple 集成显卡为 `true`）
     public let hasUnifiedMemory: Bool
