@@ -6,9 +6,28 @@ name: CI
 # runner 固定用 macos-26：它自带的默认 Xcode 是 26.6（build 17F113），与本地开发机一致。
 # 之前用 macos-14（默认 Xcode 15/16 一代）出现过「本地编得过、CI 报编译器类型推断超时」的
 # 工具链差异；而且 macos-14 镜像官方已公告 2026-11-02 起不再支持。
+# ⚠️ 计费与触发闸门（改动前务必读）
+#
+# 本仓是私有库，GitHub 托管的 macOS runner 按 **10 倍系数** 扣免费额度
+# （Free 计划私有库 2000 分钟/月）。本 workflow 一次运行要起 7 个 macOS job
+# （3 构建测试 + 3 iOS 编译 + 1 演示工程），粗算 ≈ 400+ 分钟额度，也就是
+# **一个月只够跑约 5 次**。所以下面两道闸门必须留着：
+#
+# 1) push 只对 main 分支触发。按 GitHub 文档，on.push 只写了 branches 就不再响应
+#    tag 事件 —— 这条本身就已经挡掉了 tag 推送。之所以还要显式写出来，是因为
+#    原先的 `on: push:`（无任何过滤）会让 `git push origin --tags --force` 推 53 个
+#    tag 时**瞬间起 53 次运行 ≈ 371 个 macOS job**，几千分钟额度一把烧光。
+# 2) concurrency 组：同一分支连推多次时，自动取消还没跑完的旧运行，不重复烧额度。
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
+
+# 同一分支（或同一 PR）只保留最新一次运行，旧运行自动取消。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   # 主检查：三个库各自构建 + 跑单元测试
