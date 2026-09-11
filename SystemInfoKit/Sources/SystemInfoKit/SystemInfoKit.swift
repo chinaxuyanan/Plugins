@@ -1941,9 +1941,10 @@ public enum SystemInfoKit {
         #endif
     }
 
+    #if os(macOS)
+
     /// 枚举指定 IOKit 类名的 USB 外设节点（macOS）
     private static func usbDevices(matchingClass className: String) -> [USBDevice] {
-        #if os(macOS)
         guard let matching = IOServiceMatching(className) else { return [] }
         var iterator: io_iterator_t = 0
         // IOServiceGetMatchingServices 会消费 matching 字典，调用方不需要再释放
@@ -1960,14 +1961,13 @@ public enum SystemInfoKit {
             service = IOIteratorNext(iterator)
         }
         return devices
-        #else
-        return []
-        #endif
     }
 
     /// 从单个 IOKit 服务节点读出 USB 外设信息（macOS；没有任何可用字段时返回 `nil`）
+    ///
+    /// 整个声明都放在 `#if os(macOS)` 里：参数类型 `io_registry_entry_t` 来自 IOKit，
+    /// iOS 上连类型都找不到，**光把函数体包起来是不够的**（签名也得一起包）。
     private static func usbDevice(from service: io_registry_entry_t) -> USBDevice? {
-        #if os(macOS)
         var rawProperties: Unmanaged<CFMutableDictionary>?
         guard IORegistryEntryCreateCFProperties(service, &rawProperties, kCFAllocatorDefault, 0) == KERN_SUCCESS,
               let cfProperties = rawProperties?.takeRetainedValue(),
@@ -1987,10 +1987,9 @@ public enum SystemInfoKit {
                          vendorID: vendorID,
                          productID: productID,
                          serialNumber: rawSerial.isEmpty ? nil : rawSerial)
-        #else
-        return nil
-        #endif
     }
+
+    #endif
 
     /// 枚举网络接口，返回活跃接口的名称与 IPv4 地址（Wi-Fi 优先）
     private static func activeNetworkInterface() -> (name: String, ip: String)? {
