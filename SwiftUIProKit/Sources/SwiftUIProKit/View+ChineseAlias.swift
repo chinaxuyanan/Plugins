@@ -365,11 +365,12 @@ public extension View {
 
 public extension View {
     /// 内联标题（等同 `inlineTitle`）
-    @available(macOS 14.0, *)
+    @available(iOS 17.0, macOS 14.0, *)
     @ViewBuilder
     func 内联标题() -> some View { inlineTitle() }
 
     /// 大标题（等同 `largeTitle`）
+    @available(iOS 17.0, *)
     @ViewBuilder
     func 大标题() -> some View { largeTitle() }
 

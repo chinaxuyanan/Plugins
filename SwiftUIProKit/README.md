@@ -237,8 +237,8 @@ VStack {
 
 | 方法 | 中文含义 |
 | --- | --- |
-| `inlineTitle()` | 内联标题 |
-| `largeTitle()` | 大标题（iOS 专有，macOS 无效果）|
+| `inlineTitle()` | 内联标题（iOS 17+ / macOS 14+）|
+| `largeTitle()` | 大标题（iOS 17+；macOS 专有样式不可用，直接返回原视图，故 macOS 不设版本限制）|
 | `hideNavigationBar()` | 隐藏导航栏 / 窗口工具栏（iOS 16+ / macOS 13+）|
 | `navigationBarBackground(_:)` | 导航栏 / 工具栏背景色（iOS 16+ / macOS 13+）|
 

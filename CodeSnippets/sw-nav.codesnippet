@@ -10,8 +10,8 @@
 	</array>
 	<key>IDECodeSnippetContents</key>
 	<string>// 导航与标题（SwiftUIProKit 中文别名）
-.大标题()                      // 大标题
-.内联标题()                    // 内联标题（需 macOS 14+）
+.大标题()                      // 大标题，需 iOS 17+（macOS 上原样返回）
+.内联标题()                    // 内联标题，需 iOS 17+ / macOS 14+
 .隐藏导航栏()                  // 需 iOS 16 / macOS 13+
 .导航栏背景(.blue)             // 导航栏背景色，需 iOS 16 / macOS 13+</string>
 	<key>IDECodeSnippetIdentifier</key>
