@@ -41,7 +41,7 @@ git push -u origin main
 git push origin --tags
 ```
 
-`git push origin --tags` 会把 50 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
+`git push origin --tags` 会把 53 个历史版本标签一起推上去。它们是 `库名-版本` 的形式，例如：
 
 ```
 SwiftUIProKit-1.8.0
