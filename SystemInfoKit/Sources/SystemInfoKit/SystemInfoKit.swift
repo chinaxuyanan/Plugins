@@ -949,9 +949,13 @@ public enum SystemInfoKit {
         let name = [displayName, bundleName]
             .compactMap { $0 }
             .first { !$0.isEmpty } ?? fallback
+        // Info.plist 里偶尔出现空串（有些系统 App 就是），空串等同读不到，统一归一成 nil
+        let identifier = bundle.bundleIdentifier.flatMap { $0.isEmpty ? nil : $0 }
+        let version = (bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String)
+            .flatMap { $0.isEmpty ? nil : $0 }
         return InstalledApplication(name: name,
-                                    bundleIdentifier: bundle.bundleIdentifier,
-                                    version: bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+                                    bundleIdentifier: identifier,
+                                    version: version,
                                     url: url)
     }
     #endif

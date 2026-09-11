@@ -770,9 +770,12 @@ final class SystemInfoKitTests: XCTestCase {
         let apps = SystemInfoKit.installedApplications
         XCTAssertEqual(SystemInfoKit.installedApplicationCount, apps.count)
 
-        // 按名称本地化升序
+        // 按名称本地化升序：逐对检查不递减（`sorted(by:)` 不稳定，同名项顺序不保证，别整体重排后比）
         let names = apps.map(\.name)
-        XCTAssertEqual(names, names.sorted { $0.localizedStandardCompare($1) == .orderedAscending })
+        for (前, 后) in zip(names, names.dropFirst()) {
+            XCTAssertNotEqual(前.localizedStandardCompare(后), .orderedDescending,
+                              "排序应升序，却出现「\(前)」在「\(后)」之前")
+        }
 
         for app in apps {
             XCTAssertFalse(app.name.isEmpty)
@@ -811,6 +814,12 @@ final class SystemInfoKitTests: XCTestCase {
                                             url: URL(fileURLWithPath: "/Applications/X.app"))
         XCTAssertEqual(未知应用.版本文本, "未知")
         XCTAssertEqual(未知应用.标识符文本, "未知")
+
+        // Info.plist 里的空串视同读不到（有些系统 App 的 CFBundleShortVersionString 就是空串）
+        let 空版本 = InstalledApplication(name: "Y", bundleIdentifier: "", version: "",
+                                          url: URL(fileURLWithPath: "/Applications/Y.app"))
+        XCTAssertEqual(空版本.版本文本, "未知")
+        XCTAssertEqual(空版本.标识符文本, "未知")
 
         let _: 已安装应用.Type = InstalledApplication.self
     }

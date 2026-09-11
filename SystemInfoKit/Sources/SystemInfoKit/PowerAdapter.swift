@@ -60,11 +60,13 @@ public struct PowerAdapter: Hashable {
 
     /// 中文单行摘要（形如 `适配器 96W · 20.0V · 4.80A`，缺项自动省略）
     public var text: String {
-        var parts = ["适配器"]
+        var parts: [String] = []
         if watts != nil { parts.append(wattsText) }
         if voltageMillivolts != nil { parts.append(voltageText) }
         if currentMilliamps != nil { parts.append(currentText) }
-        return parts.joined(separator: " · ")
+        // 「适配器」与首个明细之间用空格，明细之间用「 · 」（`适配器` 单独出现时就是全部）
+        guard !parts.isEmpty else { return "适配器" }
+        return "适配器 " + parts.joined(separator: " · ")
     }
 }
 

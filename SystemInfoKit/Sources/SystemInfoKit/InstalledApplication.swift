@@ -40,11 +40,17 @@ public struct InstalledApplication: Identifiable, Hashable {
         self.url = url
     }
 
-    /// 版本号文本（读不到时返回「未知」）
-    public var versionText: String { version ?? "未知" }
+    /// 版本号文本（读不到或为空串时返回「未知」）
+    public var versionText: String {
+        guard let version, !version.isEmpty else { return "未知" }
+        return version
+    }
 
-    /// 包标识符文本（读不到时返回「未知」）
-    public var bundleIdentifierText: String { bundleIdentifier ?? "未知" }
+    /// 包标识符文本（读不到或为空串时返回「未知」）
+    public var bundleIdentifierText: String {
+        guard let bundleIdentifier, !bundleIdentifier.isEmpty else { return "未知" }
+        return bundleIdentifier
+    }
 
     /// 应用包路径文本
     public var path: String { url.path }

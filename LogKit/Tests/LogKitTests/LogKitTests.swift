@@ -1647,8 +1647,17 @@ final class LogKitTests: XCTestCase {
         // 没出现过的级别也列出来，条数为 0
         XCTAssertTrue(markdown.contains("| 严重 | 0 |"))
 
-        // 中文别名等价
-        XCTAssertEqual(LogKit.Markdown报告(LogKit.summary(of: entries)), markdown)
+        // 中文别名等价（两次独立生成，「生成时间」会差几毫秒，先抹掉那一行再比）
+        XCTAssertEqual(不带生成时间(LogKit.Markdown报告(LogKit.summary(of: entries))),
+                       不带生成时间(markdown))
+    }
+
+    /// 抹掉 Markdown 里的「生成时间：…」行（每次生成都取当前时间，不能直接拿来比相等）
+    private func 不带生成时间(_ markdown: String) -> String {
+        markdown
+            .split(separator: "\n", omittingEmptySubsequences: false)
+            .filter { !$0.hasPrefix("生成时间：") }
+            .joined(separator: "\n")
     }
 
     func testMarkdownStringEscapesPipeAndHonorsListedCategories() {
