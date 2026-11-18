@@ -8,6 +8,11 @@ import LogKit
 /// 启动时把 App 设为常规前台应用并激活，确保窗口弹出后能获得焦点。
 @main
 struct KitsDemoApp: App {
+    
+    init() {
+        LogKit.fileOutput = true
+    }
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
